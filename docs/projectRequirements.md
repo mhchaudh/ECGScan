@@ -1,4 +1,4 @@
-# ECGscan - Software Requirements Document
+# ECGscan - Project Requirements Document
 
 ## Executive Summary
 Our project, **ECGscan**, is designed to act as an ECG report scanner that matches the report with similar reports and provides corresponding conclusions. This can include:

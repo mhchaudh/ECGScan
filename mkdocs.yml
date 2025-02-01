@@ -1,0 +1,20 @@
+site_name: Department of Medicine Project
+
+# Optional: Add a theme
+theme:
+  name: material  # You can use other themes like readthedocs or a custom one.
+
+# Navigation: Define the structure of your site
+nav:
+  - Home: index.md
+  - Project Requirements: projectRequirements.md
+  - Software Design: softwareDesign.md
+  - Team Work: teamWork.md
+  - Images:
+      - Major Data Elements: images/majorDataElements.png
+      - Sequence Diagram: images/sequenceDiagram.png
+      - Software Architecture: images/softwareArchitecture.png
+      - Story Map: images/storyMap.png
+      - Team Canvas: images/teamCanvas.png
+      - Tech Stack: images/techStackFinal.png
+      - Wireframe: images/wireFrame.png

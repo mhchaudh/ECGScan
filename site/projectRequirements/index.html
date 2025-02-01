@@ -1,0 +1,1085 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="..">
+      
+      
+        <link rel="next" href="../softwareDesign/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.1">
+    
+    
+      
+        <title>Project Requirements - Department of Medicine Project</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.a40c8224.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#ecgscan-project-requirements-document" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Department of Medicine Project" class="md-header__button md-logo" aria-label="Department of Medicine Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Department of Medicine Project
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Project Requirements
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Department of Medicine Project" class="md-nav__button md-logo" aria-label="Department of Medicine Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Department of Medicine Project
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Project Requirements
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Project Requirements
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Executive Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-app-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the App Works:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Project Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem Statement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value-proposition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Value Proposition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      Target Users
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Glossary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-stories" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Stories
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User Stories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sample-user-stories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample User Stories:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acceptance Tests:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moscow-prioritization" class="md-nav__link">
+    <span class="md-ellipsis">
+      MoSCoW Prioritization:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#similar-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Similar Products
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Similar Products">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#competitive-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Competitive Products
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#open-source-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      Open-Source References
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relevant-articles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relevant Articles
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Resources
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#useful-libraries-and-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful Libraries and Frameworks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../softwareDesign/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Software Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../teamWork/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Team Work
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Images
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Images
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/majorDataElements.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Major Data Elements
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/sequenceDiagram.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sequence Diagram
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/softwareArchitecture.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Software Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/storyMap.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Story Map
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/teamCanvas.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Team Canvas
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/techStackFinal.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tech Stack
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../images/wireFrame.png" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Wireframe
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Executive Summary
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Executive Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-app-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      How the App Works:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Overview
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Project Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem Statement
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#value-proposition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Value Proposition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#target-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      Target Users
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      Project Glossary
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#user-stories" class="md-nav__link">
+    <span class="md-ellipsis">
+      User Stories
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="User Stories">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sample-user-stories" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sample User Stories:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#acceptance-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Acceptance Tests:
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#moscow-prioritization" class="md-nav__link">
+    <span class="md-ellipsis">
+      MoSCoW Prioritization:
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#similar-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Similar Products
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Similar Products">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#competitive-products" class="md-nav__link">
+    <span class="md-ellipsis">
+      Competitive Products
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#open-source-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      Open-Source References
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relevant-articles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relevant Articles
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-resources" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Resources
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Resources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#useful-libraries-and-frameworks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Useful Libraries and Frameworks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="ecgscan-project-requirements-document">ECGscan - Project Requirements Document</h1>
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Our project, <strong>ECGscan</strong>, is designed to act as an ECG report scanner that matches the report with similar reports and provides corresponding conclusions. This can include:
+- A <strong>similarity score</strong> (e.g., "This ECG report matches X diagnosis with 85% probability").
+- A <strong>list of possible medical conditions</strong> with confidence levels.
+- <strong>Metadata</strong> including heart rate and waveforms.</p>
+<p>This app is intended for <strong>environments where only paper ECG reports are available</strong> and can support the <strong>triage system</strong> by quickly identifying whether a patient’s case is potentially critical. The <strong>user interface (UI) will be simple and efficient</strong>, making it accessible even to <strong>non-English speakers</strong>.</p>
+<h3 id="how-the-app-works">How the App Works:</h3>
+<ol>
+<li>The user <strong>scans an ECG report</strong> (via photo or upload).</li>
+<li>The app <strong>processes the image</strong> and runs it through a <strong>matching algorithm</strong>.</li>
+<li>It returns <strong>similar diagnoses</strong> along with the <strong>confidence level</strong>.</li>
+</ol>
+<h2 id="project-overview">Project Overview</h2>
+<h3 id="problem-statement">Problem Statement</h3>
+<ul>
+<li>Many <strong>medical facilities rely on paper ECG reports</strong>, making it difficult to leverage modern AI-driven diagnostic tools.</li>
+<li>Quick <strong>triage decisions</strong> are essential, especially in high-volume or resource-limited settings.</li>
+</ul>
+<h3 id="value-proposition">Value Proposition</h3>
+<ul>
+<li>Provides <strong>automated analysis</strong> of ECG reports.</li>
+<li>Assists <strong>triage nurses and doctors</strong> in <strong>prioritizing patients</strong>.</li>
+<li><strong>Works offline</strong>, making it useful in <strong>low-resource settings</strong>.</li>
+</ul>
+<h3 id="target-users">Target Users</h3>
+<ul>
+<li><strong>Doctors, nurses, and medical professionals</strong> in clinics, hospitals, and field settings.</li>
+<li><strong>Medical researchers</strong> interested in ECG analysis trends.</li>
+<li><strong>Non-English speakers</strong> who need a simple and intuitive tool.</li>
+</ul>
+<h3 id="usage">Usage</h3>
+<ul>
+<li>Users <strong>scan/upload</strong> an ECG report.</li>
+<li>The app <strong>analyzes and matches</strong> the report with existing data.</li>
+<li>The user receives <strong>similar cases and potential diagnoses</strong>.</li>
+</ul>
+<hr />
+<h2 id="project-glossary">Project Glossary</h2>
+<ul>
+<li><strong>ECG (Electrocardiogram)</strong>: A test that records the electrical activity of the heart.</li>
+<li><strong>Triage</strong>: The process of determining the priority of patients' treatments based on the severity of their condition.</li>
+<li><strong>Confidence Level</strong>: A probability measure indicating how certain the system is about a particular diagnosis.</li>
+<li><strong>Waveform Analysis</strong>: The study of ECG signal patterns to detect abnormalities.</li>
+</ul>
+<hr />
+<h2 id="user-stories">User Stories</h2>
+<p>User stories are formulated using the standard notation:</p>
+<blockquote>
+<p><em>As a [persona], I [want to], [so that].</em></p>
+</blockquote>
+<h3 id="sample-user-stories">Sample User Stories:</h3>
+<ol>
+<li><strong>As a doctor</strong>, I want to scan an ECG report, so that I can receive an automated diagnosis suggestion.</li>
+<li><strong>As a nurse</strong>, I want a confidence score for each suggested diagnosis, so that I can prioritize critical patients.</li>
+<li><strong>As a non-English speaking healthcare worker</strong>, I want a simple and intuitive UI, so that I can use the app without language barriers.</li>
+</ol>
+<p>All other user stories can be found under the Issues tab on Github.</p>
+<h3 id="acceptance-tests">Acceptance Tests:</h3>
+<ul>
+<li>The app <strong>correctly identifies</strong> key ECG waveforms from uploaded images.</li>
+<li>The confidence score is <strong>accurate within an acceptable range</strong>.</li>
+<li>The UI is <strong>usable without needing extensive training</strong>.</li>
+</ul>
+<h3 id="moscow-prioritization">MoSCoW Prioritization:</h3>
+<ul>
+<li><strong>Must Have</strong>: Image processing, ECG pattern matching, confidence score.</li>
+<li><strong>Should Have</strong>: Localization for non-English users.</li>
+<li><strong>Could Have</strong>: Integration with existing EMR systems.</li>
+<li><strong>Won’t Have</strong>: Real-time ECG signal acquisition (initially).</li>
+</ul>
+<hr />
+<h2 id="similar-products">Similar Products</h2>
+<h3 id="competitive-products">Competitive Products</h3>
+<ol>
+<li><strong>AcqKnowledge by BIOPAC</strong> (<a href="https://www.biopac.com/knowledge-base/ecg-analysis/">Site</a>)</li>
+<li><strong>PMcardio by Powerful Medical</strong> (<a href="https://www.powerfulmedical.com/">Site</a>)</li>
+<li><strong>ECG Buddy</strong> (<a href="https://www.ecgbuddy.ai/en">Site</a>)</li>
+</ol>
+<h3 id="open-source-references">Open-Source References</h3>
+<ul>
+<li><strong>BioSig Project</strong> (<a href="https://biosig.sourceforge.net/projects.html">Site</a>) - Library for reading ECG signals, includes language translations.</li>
+<li><strong>NeuroKit2</strong> (<a href="https://neuropsychology.github.io/NeuroKit/">GitHub</a>) - Tools for identifying ECG signals, works with raw data.</li>
+<li><strong>ECGMiner</strong> (<a href="https://www.sciencedirect.com/science/article/pii/S016926072400049X">Article</a>, <a href="https://github.com/adofersan/ecg-miner">GitHub</a>) - Data mining ECG signals.</li>
+</ul>
+<h3 id="relevant-articles">Relevant Articles</h3>
+<ul>
+<li><strong>ECG Signal Feature Extraction Trends in Methods and Applications</strong> (<a href="https://biomedical-engineering-online.biomedcentral.com/articles/10.1186/s12938-023-01075-1">Site</a>)</li>
+<li><strong>A Data Pipeline for Extraction and Processing of Electrocardiogram Recordings</strong> (<a href="https://www.cinc.org/2021/Program/accepted/228_Preprint.pdf">Journal</a>)</li>
+</ul>
+<hr />
+<h2 id="technical-resources">Technical Resources</h2>
+<h3 id="useful-libraries-and-frameworks">Useful Libraries and Frameworks</h3>
+<ul>
+<li><strong>ECG Image Kit</strong> (<a href="https://github.com/alphanumericslab/ecg-image-kit">GitHub</a>) - Capable of digitizing paper ECGs (requires an image-scanning library for real-world use).</li>
+</ul>
+<hr />
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.5090c770.min.js"></script>
+      
+    
+  </body>
+</html>
