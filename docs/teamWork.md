@@ -22,7 +22,7 @@
 
 | Names      | Preferred Roles     | Manageable Roles | Least Preferred Roles |
 |------------|---------------------|------------------|------------------------|
-| Brandon    |                     |                  |                        |
+| Brandon    |   IMP, TW, SP     |   CO, SH, PL               |     ME, RI, CF                   |
 | Hassan     |                     |                  |                        |
 | Mohamed    | SP, IMP, CO         | TW, SH, PL       | ME, RI, CF            |
 | Abdullah   | IMP, ME, TW         | SP, CO, CF       | SH, RI, PL            |
