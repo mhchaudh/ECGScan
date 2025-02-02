@@ -17,6 +17,7 @@
 - **Abdullah**: Implementer
 - **Ricardo**: Plant
 - **Rithwik**: Shaper
+- **Pooja**: Teamworker
 
 | Names      | Preferred Roles     | Manageable Roles | Least Preferred Roles |
 |------------|---------------------|------------------|------------------------|
