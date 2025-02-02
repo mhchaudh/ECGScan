@@ -2,8 +2,11 @@
 
 ## Executive Summary
 Our project, **ECGscan**, is designed to act as an ECG report scanner that matches the report with similar reports and provides corresponding conclusions. This can include:
+
 - A **similarity score** (e.g., "This ECG report matches X diagnosis with 85% probability").
+
 - A **list of possible medical conditions** with confidence levels.
+
 - **Metadata** including heart rate and waveforms.
 
 This app is intended for **environments where only paper ECG reports are available** and can support the **triage system** by quickly identifying whether a patient’s case is potentially critical. The **user interface (UI) will be simple and efficient**, making it accessible even to **non-English speakers**.
