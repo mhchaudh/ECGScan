@@ -1,5 +1,9 @@
 # Project Management
 
+## Story board
+
+![Story Board](images/storyMap.png)
+
 ## Project Plan
 
 ### Sprint 1  

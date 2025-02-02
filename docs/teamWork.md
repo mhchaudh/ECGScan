@@ -3,9 +3,6 @@
 ## Team Canvas
 ![Team Canvas](images/teamCanvas.png)
 
-## Story board
-
-![Story Board](images/storyMap.png)
 
 ## Scrum Roles
 
@@ -19,6 +16,7 @@
 - **Mohamed**: Specialist
 - **Abdullah**: Implementer
 - **Ricardo**: Plant
+- **Rithwik**: Shaper
 
 | Names      | Preferred Roles     | Manageable Roles | Least Preferred Roles |
 |------------|---------------------|------------------|------------------------|
