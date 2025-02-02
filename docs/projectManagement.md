@@ -70,12 +70,60 @@
 | US 01.03.05 Alternative (C) | As a healthcare provider, I want the app to generate a random non-identifiable patient code automatically.                                    | 2 |
 | US 01.03.06 (C)          | As a healthcare provider, I want to enter a free-text label (“pre-treatment”, “post-treatment”, etc.) to compare results.                        | 3 |
 | US 02.01.01 (M)          | As a healthcare provider, I want the app to digitize the ECG locally for secure and effective data analysis.                                     | 5 |
+| US 02.02.01 (C)          | As a healthcare provider, I want the system to use the entered sex and age data for more accurate ECG predictions.                              | 3 |
 | US 03.01.01 (M)          | As a healthcare provider, I want the app to return possible conditions with confidence scores for the uploaded ECG.                              | 2 |
+| US 03.01.03 (S)          | As a healthcare provider, I want the result to display the gender and age associated with the analyzed ECG.                                     | 2 |
+| US 03.01.04 (M)          | As a healthcare provider, I want the app to compare digitized ECGs against a known conditions database for diagnosis.                           | 5 |
+| US 03.03.01 (M)          | As a healthcare provider, I want the app to allow saving ECG results locally for future reference.                                              | 2 |
+| US 04.01.01 (M)          | As a healthcare provider, I want the app to store data securely to ensure patient confidentiality.                                              | 3 |
+| US 05.02.01 (C)          | As a healthcare provider, I want the app to support both light and dark mode for comfortable use.                                               | 2 |
+| US 05.02.02 (C)          | As a healthcare provider, I want to adjust the font size in the app according to my visual preference.                                          | 2 |
+
+**Estimated Sprint Velocity:** ...  
+
+#### Tasks  
+Sprint 3 tasks will be added during Sprint 2.  
 
 ---
 
-### Sprints 4 and 5  
+### Sprint 4  
+**Due:** Mar 23, 2025  
 
-Details for **Sprints 4 and 5** include user stories and estimated sprint velocity but will be finalized after completion of prior sprints.
+#### User Stories  
+| User Story ID            | Description                                                                                                              | Story Points |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------------|--------------|
+| US 01.01.03 (C)          | As a healthcare provider, I want the app to provide real-time blur detection when taking a photo to ensure good quality. | 5 |
+| US 03.01.02 (M)          | As a healthcare provider, I want the app to highlight the relevant portion of the ECG wave for better interpretation.    | 3 |
+| US 03.01.05 (M)          | As a healthcare provider, I want to switch between different ECG results for the same patient to compare effectiveness.  | 2 |
+| US 03.03.02 (S)          | As a healthcare provider, I want the app to group ECG results by free-text identifier for easy access.                   | 3 |
+| US 03.03.03 (S)          | As a healthcare provider, I want the app to store processed ECGs locally for offline retrieval.                           | 2 |
+| US 03.03.04 (S)          | As a healthcare provider, I want to filter saved ECG results by date, identifier, or label for quick retrieval.         | 2 |
+| US 04.01.02 (M)          | As a healthcare provider, I want the app to delete submitted ECG data post-processing to comply with regulations.        | 1 |
+| US 05.02.03 (C)          | As a healthcare provider, I want haptic feedback for key actions like “image is too blurry” for tactile confirmation.    | 3 |
+| US 05.02.04 (C)          | As a healthcare provider, I want to reset all settings to default if needed.                                             | 2 |
+
+**Estimated Sprint Velocity:** ...  
+
+#### Tasks  
+Sprint 4 tasks will be added during Sprint 3.  
 
 ---
+
+### Sprint 5  
+**Due:** Apr 1, 2025  
+
+#### User Stories  
+| User Story ID            | Description                                                                                                        | Story Points |
+|--------------------------|--------------------------------------------------------------------------------------------------------------------|--------------|
+| US 03.02.01 (M)          | As a healthcare provider, I want to indicate agreement or disagreement with ECG predictions to validate results.   | 1 |
+| US 03.02.02 (M)          | As a healthcare provider, I want to provide a short text explanation when disagreeing to document reasoning.       | 1 |
+| US 03.02.04 (M)          | As a healthcare provider, I want my feedback stored with ECG results to improve system accuracy.                   | 5 |
+| US 03.02.03 (C)          | As a healthcare provider, I want my feedback considered for system improvement by developers.                      | 5 |
+| US 04.01.03 (C or W)     | As a healthcare provider, I want a notification when ECG data is deleted for awareness.                            | 1 |
+| US 04.01.04 (S)          | As a healthcare provider, I want to manually delete stored ECG records for data management.                        | 1 |
+| US 06.01.01 (M)          | Deploy application to Cybera.                                                                                      | 5 |
+
+**Estimated Sprint Velocity:** ...  
+
+#### Tasks  
+Sprint 5 tasks will be added during Sprint 4.  
