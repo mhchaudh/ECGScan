@@ -1,0 +1,47 @@
+# Virtual Environment
+venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Environment Variables
+.env
+
+# Logs and Debug Files
+logs/
+*.log
+
+# Database and Migrations
+instance/
+migrations/
+*.sqlite3
+*.db
+
+# Compiled files
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# IDE Specific (VSCode, JetBrains, etc.)
+.vscode/
+.idea/
+*.iml
+
+# Jupyter Notebook Checkpoints (if using)
+.ipynb_checkpoints/
+
+# Coverage Reports
+htmlcov/
+.coverage
+*.cover
+
+#Mac OS
+.DS_Store
