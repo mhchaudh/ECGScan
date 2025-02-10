@@ -68,7 +68,7 @@ button:focus-visible {
 }
 
 /* below is just so we can make the distincitons between each screen */
-.about-us{
+.about-us-container{
   color: #1a1a1a;
 }
 
@@ -78,3 +78,13 @@ button:focus-visible {
 }
 
 
+
+/* below is just so we can make the distincitons between each screen */
+.about-us{
+  color: #1a1a1a;
+}
+
+.home-page{ 
+    color: #1a1a1a;
+
+}

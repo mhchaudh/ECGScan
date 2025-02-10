@@ -1,8 +1,8 @@
 import './App.css';
 import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
-import AboutUs from './AboutUs';
-import Home from './Home'; // Import the new Home component
+import AboutUs from './Pages/AboutUs';
+import Home from './Pages/Home'; // Import the new Home component
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
