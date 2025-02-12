@@ -9,6 +9,7 @@ function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [capturedImage, setCapturedImage] = useState(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
+  const [age, setAge] = useState();
   const [facingMode, setFacingMode] = useState("environment");
 
   const handleUploadButtonClick = () => {
@@ -50,9 +51,24 @@ function Home() {
     handleTakePictureClick();
   };
 
+  const handleAgeChange = (e) => {
+    let value = e.target.value;
+    if (value !== "" && (value < 0 || value > 110)) {
+      value = "";
+    }
+    setAge(value);
+  };
+
   return (
     <>
       <div>
+        <input className="age-input" placeholder= "Age (e.g. 25)" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
+        <div className="gender-input">
+          <input id="gender-female" value="female" type="radio" name="gender"/>
+          <label htmlFor="gender-female">Female</label>
+          <input id="gender-male" value="male" type="radio" name="gender"/>
+          <label htmlFor="gender-male">Male</label>
+        </div>
         <button onClick={handleTakePictureClick}>Take Picture</button>
         <button className="upload-button" onClick={handleUploadButtonClick}>
           Upload Image
