@@ -7,7 +7,7 @@ function Home() {
   const videoRef = useRef(null);
   const navigate = useNavigate();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const [CapturedImage, setCapturedImage] = useState(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
 
@@ -18,7 +18,7 @@ function Home() {
     if (cameFromConfirm) {
       handleTakePictureClick(); // Automatically open the camera if coming from Confirm page
     }
-  }, [cameFromConfirm]);
+  });
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
