@@ -1,35 +1,83 @@
-// Referenced: https://medium.com/web-dev-survey-from-kyoto/how-to-customize-the-file-upload-button-in-react-b3866a5973d8
-// handle later
-
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import './Home.css'; 
 
 function Home() {
+  const fileInputRef = useRef(null);
+  const videoRef = useRef(null);
+  const navigate = useNavigate();
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [flashEnabled, setFlashEnabled] = useState(false);
+  const [facingMode, setFacingMode] = useState("environment");
 
-  // Reference to file upload
-  const fileInputRef = useRef(null); 
-
-  // when we press upload-button, it clicks the reference to the hidden file upload button
   const handleUploadButtonClick = () => {
-    fileInputRef.current.click()
-  }
+    fileInputRef.current.click();
+  };
 
-    return (<>
+  const handleTakePictureClick = () => {
+    setIsCameraOpen(true);
+    navigator.mediaDevices.getUserMedia({ video: { facingMode } })
+      .then(stream => {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      })
+      .catch(err => {
+        console.error("Error accessing camera: ", err);
+      });
+  };
+
+  const handleCapture = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const context = canvas.getContext('2d');
+    context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+    const imageUrl = canvas.toDataURL('image/png');
+    setCapturedImage(imageUrl);
+    setIsCameraOpen(false);
+    videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    navigate('/confirm', { state: { imageUrl } });
+  };
+
+  const toggleFlash = () => {
+    setFlashEnabled(!flashEnabled);
+    // Note: Flash control is not supported in all browsers and devices
+  };
+
+  const toggleCamera = () => {
+    setFacingMode(facingMode === "environment" ? "user" : "environment");
+    handleTakePictureClick();
+  };
+
+  return (
+    <>
       <div>
-
-      <button>Take Picture</button> 
-      {/* not functional yet */}
-
+        <button onClick={handleTakePictureClick}>Take Picture</button>
         <button className="upload-button" onClick={handleUploadButtonClick}>
-          Upload Image</button>
-
-        <input type="file" 
-        accept="image/*" 
-        ref={fileInputRef} 
-        style={{display:"none"}}></input>
-
+          Upload Image
+        </button>
+        <input
+          type="file"
+          accept="image/*"
+          ref={fileInputRef}
+          style={{ display: "none" }}
+        />
+        {isCameraOpen && (
+          <div className="camera-container">
+            <video ref={videoRef} className="camera-view"></video>
+            <button className="capture-button" onClick={handleCapture}></button>
+            <button className="flash-button" onClick={toggleFlash}>
+              {flashEnabled ? "⚡" : "⚡"}
+            </button>
+            <button className="toggle-camera-button" onClick={toggleCamera}>
+              🔄
+            </button>
+          </div>
+        )}
       </div>
+    </>
+  );
+}
 
-      </>);
-  }
-
-  export default Home; 
+export default Home;

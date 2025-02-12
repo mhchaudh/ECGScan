@@ -70,3 +70,7 @@ body {
 .dropdown:hover .dropbtn {
   background-color: transparent;
 }
+
+.main-content {
+  padding-top: 4rem; 
+}
