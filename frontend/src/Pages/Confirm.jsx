@@ -4,6 +4,8 @@ import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./Confirm.css";
 
+
+
 function Confirm() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,8 +23,26 @@ function Confirm() {
 
   const handleRetake = () => navigate("/home", { state: { cameFromConfirm:true }}); // we redirect to the home page if we want to retake the photo
 
-  const handleConfirm = () => {
+  const API_URL = import.meta.env.VITE_API_URL;
+  const handleConfirm = async () => {
     console.log("Confirmed cropped image: ", croppedImage || imageUrl);
+
+    const imageToSend = croppedImage || imageUrl;
+    try {
+      const response = await fetch(`${API_URL}/api/image`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageToSend }),
+      });
+      if (!response.ok) {
+        console.error("Upload failed");
+      } else {
+        console.log("Image uploaded successfully");
+      }
+    } catch (error) {
+      console.error("Error uploading image: ", error);
+    }
+
     navigate("/home");
   };
 
