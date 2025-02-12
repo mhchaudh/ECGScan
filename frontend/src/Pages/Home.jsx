@@ -1,5 +1,5 @@
-import { useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useRef, useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import './Home.css'; 
 
 function Home() {
@@ -7,10 +7,19 @@ function Home() {
   const videoRef = useRef(null);
   const navigate = useNavigate();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [capturedImage, setCapturedImage] = useState(null);
+  const [CapturedImage, setCapturedImage] = useState(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
-  const [age, setAge] = useState();
   const [facingMode, setFacingMode] = useState("environment");
+  const [age, setAge] = useState("");
+
+  const location = useLocation();
+  const cameFromConfirm = location.state?.cameFromConfirm || false; // Check if the user came from Confirm page
+
+  useEffect(() => {
+    if (cameFromConfirm) {
+      handleTakePictureClick(); // Automatically open the camera if coming from Confirm page
+    }
+  });
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
@@ -50,7 +59,6 @@ function Home() {
     setFacingMode(facingMode === "environment" ? "user" : "environment");
     handleTakePictureClick();
   };
-
   const handleAgeChange = (e) => {
     let value = e.target.value;
     if (value !== "" && (value < 0 || value > 110)) {
@@ -58,7 +66,6 @@ function Home() {
     }
     setAge(value);
   };
-
   return (
     <>
       <div>

@@ -1,17 +1,23 @@
 import './App.css';
-import { useState } from 'react';
-import { Routes, Route, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Routes, Route, Link, useNavigate} from 'react-router-dom';
 import AboutUs from './Pages/AboutUs';
 import Home from './Pages/Home'; 
 import Confirm from './Pages/Confirm';
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
+  const navigate = useNavigate();
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
-  };
-
+  }
+  useEffect(() => {
+    const hasVisited = sessionStorage.getItem("hasVisited");
+    if (!hasVisited) {
+      sessionStorage.setItem("hasVisited", "true");
+      navigate("/home");
+    }
+  }, [navigate]);
   return (
     <div>
       <div className="top-bar">
@@ -24,7 +30,6 @@ function App() {
               {/* I prompted ChatGPT to ask "How do I set up React Router with multiple pages for a navigation menu?" */}
 
               <Link to="/home">Home</Link>
-              <Link to="/option2">Option 2</Link>
               <Link to="/about">About</Link>
             </div>
           )}
