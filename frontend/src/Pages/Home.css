@@ -27,6 +27,21 @@
     border-radius: 50%;
     cursor: pointer;
   }
+
+  .upload-button, .picture-button {
+    background-color: white; /* Set button background to white */
+  }
+  .camera-image-icon  {
+    width: 100px;
+    height: 100px;
+    margin-right: 4px;
+  }
+
+  .upload-image-icon {
+    width: 100px;
+    height: 100px;
+    margin-right: 4px;
+  }
   
   .flash-button {
     position: absolute;
@@ -82,8 +97,14 @@
 
   .gender-input{
     margin: 20px;
-    width: 100%
+    width: 100%;
+    background-color: white; 
   }
+  #input_female, #input_male {
+    width: 100px; 
+    height: 100px;
+    cursor: pointer; 
+}
 
   .gender-input label{
     margin-right: 20px;

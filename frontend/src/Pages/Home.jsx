@@ -1,7 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import './Home.css'; 
-
+import cameraimage from "../assets/camera-image.png"
+import uploadimage from "../assets/upload-icon.png"
+import manicon from "../assets/man-icon.png"
+import womenicon from "../assets/women-icon.png"
 function Home() {
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -72,13 +75,20 @@ function Home() {
         <input className="age-input" placeholder= "Age (e.g. 25)" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
         <div className="gender-input">
           <input id="gender-female" value="female" type="radio" name="gender"/>
-          <label htmlFor="gender-female">Female</label>
+          <img src = {womenicon} id = "input_female"/>
           <input id="gender-male" value="male" type="radio" name="gender"/>
-          <label htmlFor="gender-male">Male</label>
+          <img src = {manicon} id = "input_male"/>
         </div>
-        <button onClick={handleTakePictureClick}>Take Picture</button>
-        <button className="upload-button" onClick={handleUploadButtonClick}>
-          Upload Image
+        <button className = 'picture-button' onClick={handleTakePictureClick}><img
+              src={cameraimage}
+              alt="Take a Picture"
+              className="camera-image-icon"
+            /></button>
+        <button className = 'upload-button' onClick={handleUploadButtonClick}><img
+              src={uploadimage}
+              alt="Upload Image"
+              className="upload-image-icon"
+            />
         </button>
         <input
           type="file"
@@ -89,7 +99,7 @@ function Home() {
         {isCameraOpen && (
           <div className="camera-container">
             <video ref={videoRef} className="camera-view"></video>
-            <button className="capture-button" onClick={handleCapture}></button>
+            <button className="capture-button" onClick={handleCapture}> </button>
             <button className="flash-button" onClick={toggleFlash}>
               {flashEnabled ? "⚡" : "⚡"}
             </button>
