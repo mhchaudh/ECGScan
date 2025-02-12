@@ -71,4 +71,20 @@
     padding: 10px;
     font-size: 16px;
     cursor: pointer;
+
+  }
+
+  .age-input{
+    margin: 20px;
+    width: 100%;
+    padding: 10px;
+  }
+
+  .gender-input{
+    margin: 20px;
+    width: 100%
+  }
+
+  .gender-input label{
+    margin-right: 20px;
   }

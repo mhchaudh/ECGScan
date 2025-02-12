@@ -2,9 +2,8 @@ import './App.css';
 import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useNavigate} from 'react-router-dom';
 import AboutUs from './Pages/AboutUs';
-import Home from './Pages/Home'; // Import the new Home component
+import Home from './Pages/Home'; 
 import Confirm from './Pages/Confirm';
-
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -37,12 +36,13 @@ function App() {
         </div>
       </div>
 
-
+      <div className="main-content">
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/confirm" element={<Confirm />} />
       </Routes>
+      </div>
     </div>
   );
 }
