@@ -70,7 +70,6 @@ function Confirm() {
       <h2>Adjust Your Image</h2>
 
       <div className="image-container">
-        {/* Croppable Image */}
         <ReactCrop
           src={imageUrl}
           crop={crop}
@@ -82,11 +81,9 @@ function Confirm() {
             src={imageUrl}
             alt="Captured"
             ref={imageRef}
-            className="confirm-image" // Track image dimensions on load
+            className="confirm-image" 
           />
         </ReactCrop>
-
-        {/* Show Cropped Preview */}
         <div className="cropped-preview">
           <h3>Cropped Image:</h3>
           {croppedImage ? (
@@ -96,11 +93,7 @@ function Confirm() {
           )}
         </div>
       </div>
-
-      {/* Hidden Canvas for Cropping */}
       <canvas ref={canvasRef} style={{ display: "none" }} />
-
-      {/* Buttons */}
       <div className="button-group">
         <button onClick={handleRetake}>Retake</button>
         <button onClick={handleConfirm} disabled={!croppedImage}>Confirm</button>
