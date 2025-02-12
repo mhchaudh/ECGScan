@@ -3,14 +3,14 @@ import { useState } from 'react';
 import { Routes, Route, Link } from 'react-router-dom';
 import AboutUs from './Pages/AboutUs';
 import Home from './Pages/Home'; // Import the new Home component
+import Confirm from './Pages/Confirm';
+
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
-  };
-
+  }
   return (
     <div>
       <div className="top-bar">
@@ -34,6 +34,7 @@ function App() {
       <Routes>
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/confirm" element={<Confirm />} />
       </Routes>
     </div>
   );
