@@ -72,12 +72,12 @@ function Home() {
   return (
     <>
       <div>
-        <input className="age-input" placeholder= "Age (e.g. 25)" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
+        <input className="age-input" placeholder= "Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
         <div className="gender-input">
           <input id="gender-female" value="female" type="radio" name="gender"/>
-          <img src = {womenicon} id = "input_female"/>
+          <label htmlFor="gender-female"><img src = {womenicon} id = "input_female"/></label>
           <input id="gender-male" value="male" type="radio" name="gender"/>
-          <img src = {manicon} id = "input_male"/>
+          <label htmlFor="gender-male"><img src = {manicon} id = "input_male"/></label>
         </div>
         <button className = 'picture-button' onClick={handleTakePictureClick}><img
               src={cameraimage}
