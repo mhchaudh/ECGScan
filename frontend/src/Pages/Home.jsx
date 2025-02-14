@@ -49,8 +49,12 @@ function Home() {
     const imageUrl = canvas.toDataURL('image/png');
     setCapturedImage(imageUrl);
     setIsCameraOpen(false);
-    videoRef.current.srcObject.getTracks().forEach(track => track.stop());
-    navigate('/confirm', { state: { imageUrl } });
+    if (videoRef.current.srcObject){
+      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    }
+    setTimeout(() => {
+      navigate('/confirm', { state: { imageUrl } });
+  }, 500); 
   };
 
   const toggleFlash = () => {

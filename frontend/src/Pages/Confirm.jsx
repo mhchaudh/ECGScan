@@ -5,7 +5,6 @@ import "react-image-crop/dist/ReactCrop.css";
 import "./Confirm.css";
 
 
-
 function Confirm() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -122,6 +121,4 @@ function Confirm() {
     </div>
   );
 }
-
-
 export default Confirm;
