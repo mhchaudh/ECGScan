@@ -91,21 +91,36 @@
 
   .age-input{
     margin: 20px;
-    width: 100%;
+    width: 60%;
     padding: 10px;
+    border: 1px solid black;
   }
-
-  .gender-input{
-    margin: 20px;
-    width: 100%;
-    background-color: white; 
-  }
-  #input_female, #input_male {
-    width: 100px; 
-    height: 100px;
-    cursor: pointer; 
-}
 
   .gender-input label{
-    margin-right: 20px;
+    margin: 25px;
+  }
+
+  .home {
+    display: flex;
+    justify-content: center;
+  }
+
+  .uploading {
+    padding: 50px;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .gender-input input[type="radio"] {
+    display: none; 
+  }
+  
+  .gender-input label img {
+    width: 100px; 
+    cursor: pointer;
+  }
+  /* Prompted chatgpt to ask how to create border on image upon selection */
+  .gender-input input[type="radio"]:checked + img {
+    border: 2px solid rgb(31, 80, 87);
+    border-radius: 5px; 
   }

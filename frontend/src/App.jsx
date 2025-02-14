@@ -21,7 +21,7 @@ function App() {
   return (
     <div>
       <div className="top-bar">
-        <span>ECG Scan</span>
+        <span>ECGenius</span>
         <div className="dropdown">
           <button className="dropbtn" onClick={toggleDropdown}>☰</button>
           {dropdownOpen && (

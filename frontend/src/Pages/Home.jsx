@@ -63,33 +63,44 @@ function Home() {
     handleTakePictureClick();
   };
   const handleAgeChange = (e) => {
-    let value = e.target.value;
-    if (value !== "" && (value < 0 || value > 110)) {
-      value = "";
+    if (e.target.value < 0 || e.target.value > 110) {
+      setAge("");
+      return
     }
-    setAge(value);
+    setAge(e.target.value);
   };
   return (
     <>
       <div>
-        <input className="age-input" placeholder= "Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
-        <div className="gender-input">
-          <input id="gender-female" value="female" type="radio" name="gender"/>
-          <label htmlFor="gender-female"><img src = {womenicon} id = "input_female"/></label>
-          <input id="gender-male" value="male" type="radio" name="gender"/>
-          <label htmlFor="gender-male"><img src = {manicon} id = "input_male"/></label>
+        <div className="home">
+          <div className="uploading">
+            <h1 className="upload-title">Upload Patient Info and ECG</h1>
+            <input className="age-input" placeholder= "Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
+            <div className="gender-input">
+              <label>
+                <input type="radio" name="gender" value="female" />
+                <img id="input_female" src={womenicon} alt="Female" />
+              </label>
+
+              <label>
+                <input type="radio" name="gender" value="male" />
+                <img id="input_male" src={manicon} alt="Male" />
+              </label>
+            </div>
+            
+            <button className = 'picture-button' onClick={handleTakePictureClick}><img
+                  src={cameraimage}
+                  alt="Take a Picture"
+                  className="camera-image-icon"
+                /></button>
+            <button className = 'upload-button' onClick={handleUploadButtonClick}><img
+                  src={uploadimage}
+                  alt="Upload Image"
+                  className="upload-image-icon"
+                />
+            </button>
+          </div>
         </div>
-        <button className = 'picture-button' onClick={handleTakePictureClick}><img
-              src={cameraimage}
-              alt="Take a Picture"
-              className="camera-image-icon"
-            /></button>
-        <button className = 'upload-button' onClick={handleUploadButtonClick}><img
-              src={uploadimage}
-              alt="Upload Image"
-              className="upload-image-icon"
-            />
-        </button>
         <input
           type="file"
           accept="image/*"
