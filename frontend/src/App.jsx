@@ -30,7 +30,7 @@ function App() {
               {/* I prompted ChatGPT to ask "How do I set up React Router with multiple pages for a navigation menu?" */}
 
               <Link to="/home">Home</Link>
-              <Link to="/about">About</Link>
+              <Link className="about-us" to="/about">About</Link>
             </div>
           )}
         </div>
