@@ -1,15 +1,9 @@
 # ECGscan - Project Requirements Document
 
 ## Executive Summary
-Our project, **ECGscan**, is designed to act as an ECG report scanner that matches the report with similar reports and provides corresponding conclusions. This can include:
+Our project, **ECGScan**, is designed to act as an ECG report scanner that analyzes printed ECG reports, matches them with similar cases, and provides corresponding conclusions. By using similarity detection technology, the system can offer a probability-based diagnosis. This diagnosis is presented through a report that indicates how closely a given ECG matches a specific condition, along with a confidence level. Additionally, the app provides a list of potential medical conditions with confidence scores, helping users interpret their results more effectively. Metadata, including heart rate and waveform characteristics, is extracted to give a comprehensive overview of the scan.
 
-- A **similarity score** (e.g., "This ECG report matches X diagnosis with 85% probability").
-
-- A **list of possible medical conditions** with confidence levels.
-
-- **Metadata** including heart rate and waveforms.
-
-This app is intended for **environments where only paper ECG reports are available** and can support the **triage system** by quickly identifying whether a patient’s case is potentially critical. The **user interface (UI) will be simple and efficient**, making it accessible even to **non-English speakers**.
+ECGScan is particularly valuable in settings where only printed ECG reports are available, serving as a rapid assessment tool to support triage system decisions. By quickly identifying whether a case is potentially critical, ECGScan can enhance efficiency, particularly in environments where resources are limited. The user interface (UI) is designed to be simple and intuitive, ensuring accessibility for a wide range of users, including non-English speakers.
 
 ### How the App Works:
 1. The user **scans an ECG report** (via photo or upload).
