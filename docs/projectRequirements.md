@@ -34,10 +34,53 @@ ECGScan is particularly valuable in settings where only printed ECG reports are 
 ---
 
 ## Project Glossary
-- **ECG (Electrocardiogram)**: A test that records the electrical activity of the heart.
-- **Triage**: The process of determining the priority of patients' treatments based on the severity of their condition.
-- **Confidence Level**: A probability measure indicating how certain the system is about a particular diagnosis.
-- **Waveform Analysis**: The study of ECG signal patterns to detect abnormalities.
+- **ECG (Electrocardiogram)**: A group of sensors that records the electrical activity of the heart. ECGscan processes paper-based ECG reports by digitizing them and extracting key features such as waveforms, heart rate, and abnormalities. The system works with 12-lead ECGs, capturing a 12-channel signal, and can analyze ECGs of varying lengths, typically a few seconds to several minutes depending on the quality and source of the scanned report.
+- **Triage**: The process of prioritizing patients based on the severity of their condition. ECGscan supports triage by quickly identifying potentially critical cases through automated ECG analysis and similarity scoring.
+- **Confidence Level**: A probability measure indicating how certain the system is about a particular diagnosis. It is represented as a percentage score (e.g., "This ECG report matches X diagnosis with 85% confidence"). The confidence score is calculated based on a pattern-matching algorithm trained on a diverse ECG dataset.
+- **Waveform Analysis**: The study of ECG signal patterns to detect abnormalities. ECGscan extracts waveforms from scanned ECG reports and analyzes them for deviations, including arrhythmias, ischemic events, conduction disorders, and other cardiac irregularities.
+
+- **Similarity Score & Matching Algorithm**:
+ECGscan will employ image-based ECG digitization and a pattern-matching algorithm that:
+
+1. Matches extracted data from ECG images against a large database of labeled ECGs.
+2. Returns a similarity score, indicating how closely the scanned ECG resembles stored cases, and the algorithm's confidence level.
+3. Lists potential diagnoses, ranked by confidence level.
+4. The algorithm will be trained on a diverse ECG database, including historical patient records and medically annotated ECG datasets, to enssure accurate classification.
+
+### **Metadata**
+Additional extracted data from the scanned ECG report, which may include:
+
+- **Heart rate** (e.g., beats per minute)
+- **Waveform features** (P-wave, QRS complex, T-wave)
+- **Lead configurations** (e.g., standard 12-lead setup)
+- **Potential diagnosis labels** (if available from previous records)
+- **Image quality metrics** (e.g., noise level, clarity of waveform detection)
+
+### **Similarity Score & Matching Algorithm**
+ECGscan includes an **AI-driven ECG pattern-matching algorithm** that:
+
+1. **Extracts key features from the scanned ECG report**.
+2. **Compares the extracted waveform with a curated ECG database**.
+3. **Lists potential diagnoses, ranked by confidence level**.
+
+The algorithm has been trained on **a diverse ECG database**, including historical patient records and medically annotated ECG datasets, ensuring accurate classification.
+
+### **Settings (as referenced in US 05.02.04 - Could-Do)**
+Configurable parameters within **ECGscan**, allowing healthcare providers to customize system behavior. These settings include:
+
+- **Image processing adjustments** (e.g., contrast enhancement, noise reduction)
+- **Confidence threshold customization** (to adjust sensitivity)
+- **Display options** (waveform scaling, layout preferences)
+- **Localization settings** (support for non-English users)
+
+### **Reset to Default Option**
+The system also includes a **"Reset to Default" option**, which:
+
+- **Prompts the user with a confirmation dialog before resetting**.
+- **Displays a success message upon completion**..
+
+
+
 
 ---
 
@@ -108,4 +151,48 @@ While developing **ECGScan**, we reviewed several existing products that align w
 
 ## Development Resources
 
-(Not yet completed)
+ECGscan follows an N-Tier architecture with Flask as the backend framework and React as the frontend UI layer. Below is a comprehensive list of technologies, frameworks, and references that will guide the implementation.
+
+---
+
+### Backend Architecture (N-Tier)
+
+ECGscan's backend follows a **3-layer N-Tier architecture**:
+
+- **Controller Layer** - Handles HTTP requests, input validation, and directs calls to the service layer.
+- **Service Layer** - Contains business logic only.
+- **Repository Layer** - Handles database interactions and abstracts data access logic.
+
+#### **Backend Frameworks & Design Patterns**
+- **[Flask](https://flask.palletsprojects.com/)** – Microservice-friendly framework for handling API requests.
+- **[Flask Project Structure Guide](https://medium.com/@andrew.hrimov/flask-project-structure-template-c4337b60a410)** – Best practices for structuring Flask apps with N-Tier architecture.
+- **[FastAPI (Optional)](https://fastapi.tiangolo.com/)** – Alternative async API option if Flask performance is a concern.
+- **[N-Tier Architecture Guide (.NET)](https://dev.to/dotnetfullstackdev/layered-n-tier-architecture-in-net-core-51ic)** – General industry standard reference for N-Tier design.
+
+---
+
+### Frontend (React-based UI)
+
+ECGscan’s frontend will use **React.js** to build a fast, responsive interface for users.
+
+#### **Frontend Technologies**
+- **[React.js](https://react.dev/)** – Frontend framework for UI.
+- **[Next.js (Optional)](https://nextjs.org/)**
+
+---
+
+### Machine Learning & AI for ECG Classification
+
+- **[PyTorch](https://pytorch.org/)** – Used for deep learning models.
+- **[NeuroKit2](https://neurokit2.readthedocs.io/en/latest/)** – Extracts HRV, QRS complex, and ECG waveforms.
+- **[OpenCV](https://docs.opencv.org/)** – Image preprocessing for digitizing ECG scans.
+- **[Alphanumerice GitHub](https://github.com/Alphanumerice-ECG-Digitizer)** – Source code for the digitization pipeline.
+    - Converts printed ECG waveforms into digital signals.
+    - Extracts waveform data, heart rate, and time intervals.
+    - Enables ECG data to be processed, analyzed, and stored for further evaluation.
+
+---
+
+### Deployment
+
+- **[Cybera](https://www.cybera.ca/)** – Cloud hosting provider for deploying ECGscan’s backend and AI models.
