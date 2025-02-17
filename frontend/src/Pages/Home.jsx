@@ -1,10 +1,11 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import './Home.css'; 
-import cameraimage from "../assets/camera-image.png"
-import uploadimage from "../assets/upload-icon.png"
-import manicon from "../assets/man-icon.png"
-import womenicon from "../assets/women-icon.png"
+import cameraimage from "../assets/camera-image.png";
+import uploadimage from "../assets/upload-icon.png";
+import manicon from "../assets/man-icon.png";
+import womenicon from "../assets/women-icon.png";
+
 function Home() {
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
@@ -14,18 +15,31 @@ function Home() {
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
   const [age, setAge] = useState("");
+  const [gender, setGender] = useState(""); // Add gender state
 
   const location = useLocation();
-  const cameFromConfirm = location.state?.cameFromConfirm || false; // Check if the user came from Confirm page
+  const cameFromConfirm = location.state?.cameFromConfirm || false;
 
   useEffect(() => {
     if (cameFromConfirm) {
       handleTakePictureClick(); // Automatically open the camera if coming from Confirm page
     }
-  });
+  }, [cameFromConfirm]);
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
+  };
+
+  const handleFileInputChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result; // This is the data URL of the uploaded image
+        navigate('/confirmupload', { state: { imageUrl, age, gender } }); // Pass age and gender
+      };
+      reader.readAsDataURL(file); // Read the file as a data URL
+    }
   };
 
   const handleTakePictureClick = () => {
@@ -53,55 +67,55 @@ function Home() {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setTimeout(() => {
-      navigate('/confirm', { state: { imageUrl } });
-  }, 500); 
+      navigate('/confirm', { state: { imageUrl, age, gender } }); // Pass age and gender
+    }, 500); 
   };
 
   const toggleFlash = () => {
     setFlashEnabled(!flashEnabled);
-    // Note: Flash control is not supported in all browsers and devices
   };
 
   const toggleCamera = () => {
     setFacingMode(facingMode === "environment" ? "user" : "environment");
     handleTakePictureClick();
   };
+
   const handleAgeChange = (e) => {
     if (e.target.value < 0 || e.target.value > 110) {
       setAge("");
-      return
+      return;
     }
     setAge(e.target.value);
   };
+
+  const handleGenderChange = (e) => {
+    setGender(e.target.value); // Update gender state
+  };
+
   return (
     <>
       <div>
         <div className="home">
           <div className="uploading">
             <h1 className="upload-title">Upload Patient Info and ECG</h1>
-            <input className="age-input" placeholder= "Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
+            <input className="age-input" placeholder="Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
             <div className="gender-input">
               <label>
-                <input type="radio" name="gender" value="female" />
+                <input type="radio" name="gender" value="female" onChange={handleGenderChange} />
                 <img id="input_female" src={womenicon} alt="Female" />
               </label>
 
               <label>
-                <input type="radio" name="gender" value="male" />
+                <input type="radio" name="gender" value="male" onChange={handleGenderChange} />
                 <img id="input_male" src={manicon} alt="Male" />
               </label>
             </div>
             
-            <button className = 'picture-button' onClick={handleTakePictureClick}><img
-                  src={cameraimage}
-                  alt="Take a Picture"
-                  className="camera-image-icon"
-                /></button>
-            <button className = 'upload-button' onClick={handleUploadButtonClick}><img
-                  src={uploadimage}
-                  alt="Upload Image"
-                  className="upload-image-icon"
-                />
+            <button className='picture-button' onClick={handleTakePictureClick}>
+              <img src={cameraimage} alt="Take a Picture" className="camera-image-icon" />
+            </button>
+            <button className='upload-button' onClick={handleUploadButtonClick}>
+              <img src={uploadimage} alt="Upload Image" className="upload-image-icon" />
             </button>
           </div>
         </div>
@@ -110,6 +124,7 @@ function Home() {
           accept="image/*"
           ref={fileInputRef}
           style={{ display: "none" }}
+          onChange={handleFileInputChange}
         />
         {isCameraOpen && (
           <div className="camera-container">
