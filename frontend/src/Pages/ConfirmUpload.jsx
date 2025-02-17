@@ -2,9 +2,9 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import "./Confirm.css";
+import "./ConfirmUpload.css";
 
-function Confirm() {
+function ConfirmUpload() {
   const location = useLocation();
   const navigate = useNavigate();
   const { imageUrl, age: initialAge, gender: initialGender } = location.state || {}; // Retrieve age and gender
@@ -101,7 +101,7 @@ function Confirm() {
   };
 
   return (
-    <div className="confirm-container">
+    <div className="confirm-upload-container">
       <h2>Adjust Your Image</h2>
 
       {/* Editable Age Input */}
@@ -155,9 +155,9 @@ function Confirm() {
         >
           <img
             src={imageUrl}
-            alt="Captured"
+            alt="Uploaded"
             ref={imageRef}
-            className="confirm-image"
+            className="confirm-upload-image"
           />
         </ReactCrop>
         <div className="cropped-preview">
@@ -171,12 +171,16 @@ function Confirm() {
       </div>
       <canvas ref={canvasRef} style={{ display: "none" }} />
       <div className="button-group">
-        <button onClick={handleRetake}>Retake</button>
-        <button onClick={handleConfirm} disabled={!croppedImage}>Confirm</button>
-        <button onClick={handleDownload} disabled={!croppedImage}>Download</button>
+        <button onClick={handleRetake}>Retake/Re-upload</button>
+        <button onClick={handleConfirm} disabled={!croppedImage}>
+          Confirm
+        </button>
+        <button onClick={handleDownload} disabled={!croppedImage}>
+          Download
+        </button>
       </div>
     </div>
   );
 }
 
-export default Confirm;
+export default ConfirmUpload;

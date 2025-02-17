@@ -4,6 +4,7 @@ import { Routes, Route, Link, useNavigate} from 'react-router-dom';
 import AboutUs from './Pages/AboutUs';
 import Home from './Pages/Home'; 
 import Confirm from './Pages/Confirm';
+import ConfirmUpload from './Pages/ConfirmUpload';
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -41,6 +42,7 @@ function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/confirm" element={<Confirm />} />
+        <Route path="/confirmupload" element={<ConfirmUpload />} />
       </Routes>
       </div>
     </div>
