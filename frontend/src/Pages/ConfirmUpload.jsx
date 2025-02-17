@@ -21,7 +21,7 @@ function ConfirmUpload() {
     if (!imageUrl) navigate("/home"); // Redirect to home page if there is no image
   }, [imageUrl, navigate]);
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // Redirect to the home page to retake the photo
+  const handleRetake = () => navigate("/home", {}); // Redirect to the home page to retake the photo
 
   const API_URL = import.meta.env.VITE_API_URL;
   const handleConfirm = async () => {
