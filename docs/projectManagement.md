@@ -79,10 +79,26 @@
 | US 05.02.01 (C)          | As a healthcare provider, I want the app to support both light and dark mode for comfortable use.                                               | 2 |
 | US 05.02.02 (C)          | As a healthcare provider, I want to adjust the font size in the app according to my visual preference.                                          | 2 |
 
-**Estimated Sprint Velocity:** ...  
+**Estimated Sprint Velocity:** 41  
 
 #### Tasks  
-Sprint 3 tasks will be added during Sprint 2.  
+| Task                                    | Related US                 | Assigned To | Due Date  |
+|-----------------------------------------|----------------------------|------------|----------|
+| Implement Automatic Cropping for Privacy | US 01.04.01 Alternative (C) | Rithwik           | Mar 9    |
+| Add Flashlight Option for Camera        | US 01.01.02 (C)            | Rithwik           | Mar 9    |
+| Implement Free-Text Identifier for ECGs | US 01.03.05 (S)            |  Brandon          | Mar 9    |
+| Implement Random Non-Identifiable Patient Code | US 01.03.05 Alternative (C) |  Pooja   | Mar 9    |
+| Add Free-Text Labeling for ECG Comparison | US 01.03.06 (C)            | Abdullah, Ricardo    | Mar 9    |
+| Develop Local ECG Digitization Feature  | US 02.01.01 (M)            |  Abdullah, Ricardo   | Mar 9    |
+| Implement Age & Sex-Based ECG Prediction | US 02.02.01 (C)            | Brandon   | Mar 9    |
+| Implement ECG Condition Prediction with Confidence Scores | US 03.01.01 (M) | Abdullah, Ricardo | Mar 9    |
+| Display Age & Gender in ECG Analysis    | US 03.01.03 (S)            | Abdullah  | Mar 9    |
+| Compare ECGs Against Known Conditions Database | US 03.01.04 (M) |  Mohamed          | Mar 9    |
+| Implement Local Saving of ECG Results   | US 03.03.01 (M)            | Pooja           | Mar 9    |
+| Secure Data Storage Implementation      | US 04.01.01 (M)            |  Mohamed          | Mar 9    |
+| Add Light & Dark Mode Support           | US 05.02.01 (C)            |  Hassan          | Mar 9    |
+| Implement Adjustable Font Size Feature  | US 05.02.02 (C)            | Hassan           | Mar 9    |
+
 
 ---
 
@@ -102,7 +118,7 @@ Sprint 3 tasks will be added during Sprint 2.
 | US 05.02.03 (C)          | As a healthcare provider, I want haptic feedback for key actions like “image is too blurry” for tactile confirmation.    | 3 |
 | US 05.02.04 (C)          | As a healthcare provider, I want to reset all settings to default if needed.                                             | 2 |
 
-**Estimated Sprint Velocity:** ...  
+**Estimated Sprint Velocity:** 23  
 
 #### Tasks  
 Sprint 4 tasks will be added during Sprint 3.  
@@ -123,7 +139,7 @@ Sprint 4 tasks will be added during Sprint 3.
 | US 04.01.04 (S)          | As a healthcare provider, I want to manually delete stored ECG records for data management.                        | 1 |
 | US 06.01.01 (M)          | Deploy application to Cybera.                                                                                      | 5 |
 
-**Estimated Sprint Velocity:** ...  
+**Estimated Sprint Velocity:** 19  
 
 #### Tasks  
 Sprint 5 tasks will be added during Sprint 4.  
