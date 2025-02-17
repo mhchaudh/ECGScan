@@ -11,30 +11,66 @@ function ConfirmUpload() {
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [age, setAge] = useState(initialAge || ""); // Local state for age
-  const [gender, setGender] = useState(initialGender || ""); // Local state for gender
+  const [resizedImage, setResizedImage] = useState(null); // Store resized image
+  const [age, setAge] = useState(initialAge || "");
+  const [gender, setGender] = useState(initialGender || "");
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (!imageUrl) navigate("/home"); // Redirect to home page if there is no image
+    if (!imageUrl) {
+      navigate("/home"); // Redirect if no image is provided
+      return;
+    }
+    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image
   }, [imageUrl, navigate]);
 
-  const handleRetake = () => navigate("/home", {}); // Redirect to the home page to retake the photo
+  // Function to resize image before display
+  const resizeImage = (src, maxWidth, maxHeight, callback) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let width = img.width;
+      let height = img.height;
+
+      // Maintain aspect ratio
+      if (width > height) {
+        if (width > maxWidth) {
+          height *= maxWidth / width;
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width *= maxHeight / height;
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, width, height);
+
+      callback(canvas.toDataURL("image/png")); // Convert to Base64
+    };
+    img.src = src;
+  };
+
+  const handleRetake = () => navigate("/home");
 
   const API_URL = import.meta.env.VITE_API_URL;
   const handleConfirm = async () => {
-    console.log("Confirmed cropped image: ", croppedImage || imageUrl);
+    console.log("Confirmed cropped image: ", croppedImage || resizedImage);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
 
-    const imageToSend = croppedImage || imageUrl;
+    const imageToSend = croppedImage || resizedImage;
     try {
       const response = await fetch(`${API_URL}/api/image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageToSend, age, gender }), // Include age and gender in the request body
+        body: JSON.stringify({ image: imageToSend, age, gender }),
       });
       if (!response.ok) {
         console.error("Upload failed");
@@ -97,7 +133,7 @@ function ConfirmUpload() {
   };
 
   const handleGenderChange = (e) => {
-    setGender(e.target.value); // Update gender state
+    setGender(e.target.value);
   };
 
   return (
@@ -147,14 +183,14 @@ function ConfirmUpload() {
 
       <div className="image-container">
         <ReactCrop
-          src={imageUrl}
+          src={resizedImage} // Use resized image for cropping
           crop={crop}
           onChange={setCrop}
           onComplete={onCropComplete}
           ruleOfThirds
         >
           <img
-            src={imageUrl}
+            src={resizedImage} // Use resized image
             alt="Uploaded"
             ref={imageRef}
             className="confirm-upload-image"
