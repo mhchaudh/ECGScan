@@ -1,0 +1,126 @@
+.camera-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .camera-view {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+  
+  .capture-button {
+    position: absolute;
+    bottom: 20px;
+    width: 70px;
+    height: 70px;
+    background-color: white;
+    border: 5px solid #ccc;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  .upload-button, .picture-button {
+    background-color: white; /* Set button background to white */
+  }
+  .camera-image-icon  {
+    width: 100px;
+    height: 100px;
+    margin-right: 4px;
+  }
+
+  .upload-image-icon {
+    width: 100px;
+    height: 100px;
+    margin-right: 4px;
+  }
+  
+  .flash-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .toggle-camera-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    padding: 10px;
+    font-size: 24px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+  
+  .preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .preview-image {
+    width: 100%;
+    max-width: 500px;
+    margin-bottom: 20px;
+  }
+  
+  .preview-container button {
+    margin: 5px;
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+
+  }
+
+  .age-input{
+    margin: 20px;
+    width: 60%;
+    padding: 10px;
+    border: 1px solid black;
+  }
+
+  .gender-input label{
+    margin: 25px;
+  }
+
+  .home {
+    display: flex;
+    justify-content: center;
+  }
+
+  .uploading {
+    padding: 50px;
+    display: inline-block;
+    text-align: center;
+  }
+
+  .gender-input input[type="radio"] {
+    display: none; 
+  }
+  
+  .gender-input label img {
+    width: 100px; 
+    cursor: pointer;
+  }
+  /* Prompted chatgpt to ask how to create border on image upon selection */
+  .gender-input input[type="radio"]:checked + img {
+    border: 2px solid rgb(31, 80, 87);
+    border-radius: 5px; 
+  }
