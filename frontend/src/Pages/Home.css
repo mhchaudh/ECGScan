@@ -89,8 +89,8 @@
 
   }
 
-  .age-input{
-    margin: 20px;
+  .age-input, .identifier-input{
+    margin: 10px;
     width: 60%;
     padding: 10px;
     border: 1px solid black;
