@@ -114,7 +114,7 @@ function Confirm() {
       <h2>Adjust Your Image</h2>
 
       {/* Editable Identifier Input */}
-      <div className="age-input-container">
+      <div className="identifier-input-container">
         <label htmlFor="identifier">Identifier:</label>
         <input
           id="identifier"
