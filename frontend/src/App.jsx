@@ -22,7 +22,7 @@ function App() {
   return (
     <div>
       <div className="top-bar">
-        <span>ECGenius</span>
+        <span style={{"cursor": "pointer"}} onClick={()=>{navigate("/home");}}>ECGenius</span>
         <div className="dropdown">
           <button className="dropbtn" onClick={toggleDropdown}>☰</button>
           {dropdownOpen && (

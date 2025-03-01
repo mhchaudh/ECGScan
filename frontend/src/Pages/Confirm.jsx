@@ -7,12 +7,14 @@ import "./Confirm.css";
 function Confirm() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl, age: initialAge, gender: initialGender } = location.state || {}; // Retrieve age and gender
+  const { imageUrl, age: initialAge, gender: initialGender, identifier: initialIdentifier  } = location.state || {}; // Retrieve age and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
   const [age, setAge] = useState(initialAge || ""); // Local state for age
   const [gender, setGender] = useState(initialGender || ""); // Local state for gender
+  const [identifier, setIdentifier] = useState(initialIdentifier || "");
+  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -28,6 +30,8 @@ function Confirm() {
     console.log("Confirmed cropped image: ", croppedImage || imageUrl);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
+    previousIdentifiers.push(identifier);
+    localStorage.setItem("uniqueIdentifiers", JSON.stringify(previousIdentifiers));
 
     const imageToSend = croppedImage || imageUrl;
     try {
@@ -41,6 +45,7 @@ function Confirm() {
       } else {
         console.log("Image uploaded successfully");
       }
+      
     } catch (error) {
       console.error("Error uploading image: ", error);
     }
@@ -100,9 +105,26 @@ function Confirm() {
     setGender(e.target.value); // Update gender state
   };
 
+  const handleIdentifierChange = (e) => {
+    setIdentifier(e.target.value);
+  }
+
   return (
     <div className="confirm-container">
       <h2>Adjust Your Image</h2>
+
+      {/* Editable Identifier Input */}
+      <div className="identifier-input-container">
+        <label htmlFor="identifier">Identifier:</label>
+        <input
+          id="identifier"
+          type="text"
+          placeholder="Identifier"
+          value={identifier}
+          onChange={handleIdentifierChange}
+          autoComplete="off"
+        />
+      </div>
 
       {/* Editable Age Input */}
       <div className="age-input-container">

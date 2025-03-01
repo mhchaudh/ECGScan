@@ -16,6 +16,8 @@ function Home() {
   const [facingMode, setFacingMode] = useState("environment");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState(""); // Add gender state
+  const [identifier, setIdentifier] = useState(""); 
+  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
 
   const location = useLocation();
   const cameFromConfirm = location.state?.cameFromConfirm || false;
@@ -67,7 +69,7 @@ function Home() {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setTimeout(() => {
-      navigate('/confirm', { state: { imageUrl, age, gender } }); // Pass age and gender
+      navigate('/confirm', { state: { imageUrl, age, gender, identifier } }); // Pass age and gender
     }, 500); 
   };
 
@@ -91,6 +93,10 @@ function Home() {
   const handleGenderChange = (e) => {
     setGender(e.target.value); // Update gender state
   };
+  
+  const handleIdentifierChange = (e) => {
+    setIdentifier(e.target.value);
+  }
 
   return (
     <>
@@ -98,7 +104,22 @@ function Home() {
         <div className="home">
           <div className="uploading">
             <h1 className="upload-title">Upload Patient Info and ECG</h1>
+            <input
+              className="identifier-input"
+              list="identifiers"
+              placeholder="Unique Patient Identifier"
+              value={identifier}
+              onChange={handleIdentifierChange}
+              type="text"
+            />
+            {/* Prompted chatgpt to ask how to connect text input to dropdown list suggestions:  */}
+            <datalist id="identifiers">
+              {previousIdentifiers.map((id, index) => (
+                <option key={index} value={id} />
+              ))}
+            </datalist>
             <input className="age-input" placeholder="Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
+
             <div className="gender-input">
               <label>
                 <input type="radio" name="gender" value="female" onChange={handleGenderChange} />
