@@ -1,49 +1,73 @@
-
-// BASIC ABOUT US SECTION
-
+import { Container, Typography, List, ListItem, ListItemText } from "@mui/material";
 
 function AboutUs() {
-    return (
-      <div className="about-us-container">
-        <h1 className="about-us-title">About ECGScan</h1>
-        <p className="about-us-desc">
-          ECGScan is an open-source mobile web application designed to aid clinicians and other healthcare professionals in interpreting electrocardiograms (ECGs).
-          ECGScan allows users to upload / capture ECG images, process them on-device, and match the extracted waveforms to a comprehensive database of ECG patterns for diagnostic insights.
-        </p>
-  
-        <h2 className="about-us-subtitle">Our Team</h2>
-        <p>
-          ECGScan is developed in collaboration with medical and technology experts to enhance ECG interpretation for clinicians.
-        </p>
-        <h3 className="about-us-subtitle">Project Leads</h3>
-        <p>
-          This project is led by <strong>Dr. Moustafa Abdalla (MD, DPhil)</strong>, a Principal Investigator and Surgeon – Resident Physician at Mass General Hospital, 
-          and <strong>Dr. Mohamed Abdalla (PhD)</strong>, an Assistant Professor at the University of Alberta.
-        </p>
-        <h3 className="about-us-subtitle">Development Team</h3>
-        <ul>
-          <li><strong>Abdullah Faisal</strong></li>
-          <li><strong>Brandon Dong</strong></li>
-          <li><strong>Pooja Bhambri</strong></li>
-          <li><strong>Rithwik Korukonda Bhattar</strong></li>
-          <li><strong>Mohamed Al-Nassirat</strong></li>
-          <li><strong>Hassan Chaudhary</strong></li>
-          <li><strong>Ricardo Garcia</strong></li>
-        </ul>
-  
-        <h2 className="about-us-subtitle">Our Mission</h2>
-        <p>
+  return (
+    <Container className="about-us-container" maxWidth="md">
+      {/* Main title */}
+      <Typography variant="h3" component="h1" className="about-us-title" gutterBottom>
+        About ECGScan
+      </Typography>
+      {/* Description */}
+      <Typography variant="body1" className="about-us-desc" paragraph>
+        ECGScan is an open-source mobile web application designed to aid clinicians and other healthcare professionals in interpreting electrocardiograms (ECGs).
+        ECGScan allows users to upload / capture ECG images, process them on-device, and match the extracted waveforms to a comprehensive database of ECG patterns for diagnostic insights.
+      </Typography>
+      {/* Subtitle */}
+      <Typography variant="h4" component="h2" className="about-us-subtitle" gutterBottom>
+        Our Team
+      </Typography>
+      {/* Team description */}
+      <Typography variant="body1" paragraph>
+        ECGScan is developed in collaboration with medical and technology experts to enhance ECG interpretation for clinicians.
+      </Typography>
+      {/* Project Leads */}
+      <Typography variant="h5" component="h3" className="about-us-subtitle" gutterBottom>
+        Project Leads
+      </Typography>
+      <Typography variant="body1" paragraph>
+        This project is led by <strong>Dr. Moustafa Abdalla (MD, DPhil)</strong>, a Principal Investigator and Surgeon – Resident Physician at Mass General Hospital, 
+        and <strong>Dr. Mohamed Abdalla (PhD)</strong>, an Assistant Professor at the University of Alberta.
+      </Typography>
+      {/* Development Team */}
+      <Typography variant="h5" component="h3" className="about-us-subtitle" gutterBottom>
+        Development Team
+      </Typography>
+      <List>
+        <ListItem>
+          <ListItemText primary={<strong>Abdullah Faisal</strong>} />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary={<strong>Brandon Dong</strong>} />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary={<strong>Pooja Bhambri</strong>} />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary={<strong>Rithwik Korukonda Bhattar</strong>} />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary={<strong>Mohamed Al-Nassirat</strong>} />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary={<strong>Hassan Chaudhary</strong>} />
+        </ListItem>
+        <ListItem>
+          <ListItemText primary={<strong>Ricardo Garcia</strong>} />
+        </ListItem>
+      </List>
+      {/* Mission */}
+      <Typography variant="h4" component="h2" className="about-us-subtitle" gutterBottom>
+        Our Mission
+      </Typography>
+      <Typography variant="body1" paragraph>
         Our goal is to improve the efficiency and accuracy of ECG interpretation by utilizing computational techniques to minimize variability and reduce the risk of diagnostic errors.
-        </p>
-  
-      <p className="copyright-subtitle">
-  
-      </p>
-          © {new Date().getFullYear()} ECGScan. Open-source under the BSD license.
-      </div>
-  
-      
-    );
-  }
-  
-  export default AboutUs;
+      </Typography>
+      {/* Copyright */}
+      <Typography variant="body2" className="copyright-subtitle" paragraph>
+        © {new Date().getFullYear()} ECGScan. Open-source under the BSD license.
+      </Typography>
+    </Container>
+  );
+}
+
+export default AboutUs;

@@ -1,10 +1,10 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { Button, Grid, TextField, ToggleButton, ToggleButtonGroup, Typography, IconButton } from "@mui/material";
+import { PhotoCamera, CloudUpload, Male, Female, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
 import './Home.css'; 
 import cameraimage from "../assets/camera-image.png";
 import uploadimage from "../assets/upload-icon.png";
-import manicon from "../assets/man-icon.png";
-import womenicon from "../assets/women-icon.png";
 
 function Home() {
   const fileInputRef = useRef(null);
@@ -15,8 +15,8 @@ function Home() {
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
   const [age, setAge] = useState("");
-  const [gender, setGender] = useState(""); // Add gender state
-  const [identifier, setIdentifier] = useState(""); 
+  const [gender, setGender] = useState("");
+  const [identifier, setIdentifier] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
 
   const location = useLocation();
@@ -24,7 +24,7 @@ function Home() {
 
   useEffect(() => {
     if (cameFromConfirm) {
-      handleTakePictureClick(); // Automatically open the camera if coming from Confirm page
+      handleTakePictureClick();
     }
   }, [cameFromConfirm]);
 
@@ -37,10 +37,10 @@ function Home() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const imageUrl = reader.result; // This is the data URL of the uploaded image
-        navigate('/confirmupload', { state: { imageUrl, age, gender } }); // Pass age and gender
+        const imageUrl = reader.result;
+        navigate('/confirmupload', { state: { imageUrl, age, gender } });
       };
-      reader.readAsDataURL(file); // Read the file as a data URL
+      reader.readAsDataURL(file);
     }
   };
 
@@ -69,7 +69,7 @@ function Home() {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setTimeout(() => {
-      navigate('/confirm', { state: { imageUrl, age, gender, identifier } }); // Pass age and gender
+      navigate('/confirm', { state: { imageUrl, age, gender, identifier } });
     }, 500); 
   };
 
@@ -82,64 +82,59 @@ function Home() {
     handleTakePictureClick();
   };
 
-  const handleAgeChange = (e) => {
-    if (e.target.value < 0 || e.target.value > 110) {
-      setAge("");
-      return;
-    }
-    setAge(e.target.value);
-  };
-
-  const handleGenderChange = (e) => {
-    setGender(e.target.value); // Update gender state
-  };
-  
-  const handleIdentifierChange = (e) => {
-    setIdentifier(e.target.value);
-  }
-
   return (
-    <>
-      <div>
-        <div className="home">
-          <div className="uploading">
-            <h1 className="upload-title">Upload Patient Info and ECG</h1>
-            <input
-              className="identifier-input"
-              list="identifiers"
-              placeholder="Unique Patient Identifier"
-              value={identifier}
-              onChange={handleIdentifierChange}
-              type="text"
-            />
-            {/* Prompted chatgpt to ask how to connect text input to dropdown list suggestions:  */}
-            <datalist id="identifiers">
-              {previousIdentifiers.map((id, index) => (
-                <option key={index} value={id} />
-              ))}
-            </datalist>
-            <input className="age-input" placeholder="Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
-
-            <div className="gender-input">
-              <label>
-                <input type="radio" name="gender" value="female" onChange={handleGenderChange} />
-                <img id="input_female" src={womenicon} alt="Female" />
-              </label>
-
-              <label>
-                <input type="radio" name="gender" value="male" onChange={handleGenderChange} />
-                <img id="input_male" src={manicon} alt="Male" />
-              </label>
-            </div>
-            
-            <button className='picture-button' onClick={handleTakePictureClick}>
-              <img src={cameraimage} alt="Take a Picture" className="camera-image-icon" />
-            </button>
-            <button className='upload-button' onClick={handleUploadButtonClick}>
-              <img src={uploadimage} alt="Upload Image" className="upload-image-icon" />
-            </button>
-          </div>
-        </div>
+    <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
+      <Grid item>
+        <Typography variant="h4" color="black">Upload Patient Info and ECG</Typography>
+      </Grid>
+      <Grid item>
+        <TextField 
+          label="Unique Patient Identifier"
+          variant="outlined"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
+          // select
+          // SelectProps={{
+          //   native: true,
+          // }}
+          sx={{ width: 300 }}
+        >
+          <option value=""></option>
+          {previousIdentifiers.map((id, index) => (
+            <option key={index} value={id}>{id}</option>
+          ))}
+        </TextField>
+      </Grid>
+      <Grid item>
+        <TextField 
+          label="Age"
+          variant="outlined"
+          type="number"
+          value={age}
+          onChange={(e) => setAge(e.target.value)}
+          inputProps={{ min: 0, max: 110 }}
+        />
+      </Grid>
+      <Grid item>
+        <ToggleButtonGroup
+          value={gender}
+          exclusive
+          onChange={(event, newGender) => setGender(newGender)}
+        >
+          <ToggleButton value="female">
+            <Female />
+          </ToggleButton>
+          <ToggleButton value="male">
+            <Male />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Grid>
+      <Grid item>
+        <Button variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
+          Open Camera
+        </Button>
+      </Grid>
+      <Grid item>
         <input
           type="file"
           accept="image/*"
@@ -147,20 +142,27 @@ function Home() {
           style={{ display: "none" }}
           onChange={handleFileInputChange}
         />
-        {isCameraOpen && (
+        <Button variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
+          Upload Image
+        </Button>
+      </Grid>
+      {isCameraOpen && (
+        <Grid item>
           <div className="camera-container">
             <video ref={videoRef} className="camera-view"></video>
-            <button className="capture-button" onClick={handleCapture}> </button>
-            <button className="flash-button" onClick={toggleFlash}>
-              {flashEnabled ? "⚡" : "⚡"}
-            </button>
-            <button className="toggle-camera-button" onClick={toggleCamera}>
-              🔄
-            </button>
+            <IconButton color="primary" onClick={handleCapture}>
+              <PhotoCamera />
+            </IconButton>
+            <IconButton color="primary" onClick={toggleFlash}>
+              {flashEnabled ? <FlashOn /> : <FlashOff />}
+            </IconButton>
+            <IconButton color="primary" onClick={toggleCamera}>
+              <FlipCameraAndroid />
+            </IconButton>
           </div>
-        )}
-      </div>
-    </>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 
