@@ -35,13 +35,12 @@ function Home() {
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const imageUrl = reader.result; // This is the data URL of the uploaded image
-        navigate('/confirmupload', { state: { imageUrl, age, gender } }); // Pass age and gender
-      };
-      reader.readAsDataURL(file); // Read the file as a data URL
+
+        const imageUrl = URL.createObjectURL(file);
+        navigate('/confirmupload', { state: { imageUrl,file, age, gender } }); // Pass age and gender
     }
+    
+    
   };
 
   const handleTakePictureClick = () => {

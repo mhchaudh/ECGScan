@@ -7,7 +7,7 @@ import "./ConfirmUpload.css";
 function ConfirmUpload() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl, age: initialAge, gender: initialGender } = location.state || {}; // Retrieve age and gender
+  const { imageUrl, file, age: initialAge, gender: initialGender } = location.state || {}; // Retrieve file, age, and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
@@ -17,16 +17,22 @@ function ConfirmUpload() {
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
+  const originalImageRef = useRef(null);
 
   useEffect(() => {
     if (!imageUrl) {
       navigate("/home"); // Redirect if no image is provided
       return;
     }
-    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => {
+    originalImageRef.current = img; // Store the original image
+    };
+    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image for display
   }, [imageUrl, navigate]);
 
-  // Function to resize image before display
+  // Function to resize image only for display
   const resizeImage = (src, maxWidth, maxHeight, callback) => {
     const img = new Image();
     img.onload = () => {
@@ -61,16 +67,17 @@ function ConfirmUpload() {
 
   const API_URL = import.meta.env.VITE_API_URL;
   const handleConfirm = async () => {
-    console.log("Confirmed cropped image: ", croppedImage || resizedImage);
+    console.log("Confirmed cropped image: ", croppedImage);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
 
-    const imageToSend = croppedImage || resizedImage;
+    if (!croppedImage) return;
+
     try {
       const response = await fetch(`${API_URL}/api/image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageToSend, age, gender }),
+        body: JSON.stringify({ image: croppedImage, age, gender }), // Send cropped image in original resolution
       });
       if (!response.ok) {
         console.error("Upload failed");
@@ -96,17 +103,17 @@ function ConfirmUpload() {
   };
 
   const onCropComplete = (crop) => {
-    if (imageRef.current && canvasRef.current) {
-      const image = imageRef.current;
+    if (originalImageRef.current && canvasRef.current) {
+      const image = originalImageRef.current; // Use the original image for cropping
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-
-      const scaleX = image.naturalWidth / image.width;
-      const scaleY = image.naturalHeight / image.height;
-
+  
+      const scaleX = image.naturalWidth / imageRef.current.width;
+      const scaleY = image.naturalHeight / imageRef.current.height;
+  
       canvas.width = crop.width * scaleX;
       canvas.height = crop.height * scaleY;
-
+  
       ctx.drawImage(
         image,
         crop.x * scaleX,
@@ -118,8 +125,8 @@ function ConfirmUpload() {
         canvas.width,
         canvas.height
       );
-
-      setCroppedImage(canvas.toDataURL("image/png"));
+  
+      setCroppedImage(canvas.toDataURL("image/png")); // Store cropped image in original resolution
     }
   };
 
