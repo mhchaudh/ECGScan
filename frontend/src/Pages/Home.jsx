@@ -45,7 +45,7 @@ function Home() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result;
-        navigate('/confirmupload', { state: { imageUrl, age, gender } });
+        navigate('/confirmupload', { state: { imageUrl, age, gender, identifier } });
       };
       reader.readAsDataURL(file);
     }
