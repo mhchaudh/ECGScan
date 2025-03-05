@@ -1,23 +1,24 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+// Refrenced: https://mui.com/material-ui/all-components/?srsltid=AfmBOoo3ZuM3R9qLhp_JDLn0Gp7fmQW_nsLmIcqM5lASyIL9qzzICiwf
 import { Button, Grid, TextField, ToggleButton, ToggleButtonGroup, Typography, IconButton } from "@mui/material";
 import { PhotoCamera, CloudUpload, Male, Female, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
 import './Home.css'; 
-import cameraimage from "../assets/camera-image.png";
-import uploadimage from "../assets/upload-icon.png";
 
 function Home() {
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const navigate = useNavigate();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [CapturedImage, setCapturedImage] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
-  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+  const [previousIdentifiers, setPreviousIdentifiers] = useState(() => {
+    return JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+  });
 
   const location = useLocation();
   const cameFromConfirm = location.state?.cameFromConfirm || false;
@@ -27,6 +28,12 @@ function Home() {
       handleTakePictureClick();
     }
   }, [cameFromConfirm]);
+
+  // Save identifier to localStorage
+  const handleIdentifierChange = (e) => {
+    const newIdentifier = e.target.value;
+    setIdentifier(newIdentifier);
+  };
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
@@ -65,12 +72,14 @@ function Home() {
     const imageUrl = canvas.toDataURL('image/png');
     setCapturedImage(imageUrl);
     setIsCameraOpen(false);
-    if (videoRef.current.srcObject){
+
+    if (videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
+
     setTimeout(() => {
       navigate('/confirm', { state: { imageUrl, age, gender, identifier } });
-    }, 500); 
+    }, 500);
   };
 
   const toggleFlash = () => {
@@ -78,87 +87,103 @@ function Home() {
   };
 
   const toggleCamera = () => {
-    setFacingMode(facingMode === "environment" ? "user" : "environment");
-    handleTakePictureClick();
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
+    setTimeout(handleTakePictureClick, 500); // Restart camera smoothly
   };
 
   return (
     <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
-      <Grid item>
-        <Typography variant="h4" color="black">Upload Patient Info and ECG</Typography>
-      </Grid>
-      <Grid item>
-        <TextField 
-          label="Unique Patient Identifier"
-          variant="outlined"
-          value={identifier}
-          onChange={(e) => setIdentifier(e.target.value)}
-          // select
-          // SelectProps={{
-          //   native: true,
-          // }}
-          sx={{ width: 300 }}
-        >
-          <option value=""></option>
-          {previousIdentifiers.map((id, index) => (
-            <option key={index} value={id}>{id}</option>
-          ))}
-        </TextField>
-      </Grid>
-      <Grid item>
-        <TextField 
-          label="Age"
-          variant="outlined"
-          type="number"
-          value={age}
-          onChange={(e) => setAge(e.target.value)}
-          inputProps={{ min: 0, max: 110 }}
-        />
-      </Grid>
-      <Grid item>
-        <ToggleButtonGroup
-          value={gender}
-          exclusive
-          onChange={(event, newGender) => setGender(newGender)}
-        >
-          <ToggleButton value="female">
-            <Female />
-          </ToggleButton>
-          <ToggleButton value="male">
-            <Male />
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Grid>
-      <Grid item>
-        <Button variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
-          Open Camera
-        </Button>
-      </Grid>
-      <Grid item>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          onChange={handleFileInputChange}
-        />
-        <Button variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
-          Upload Image
-        </Button>
-      </Grid>
-      {isCameraOpen && (
+      {!isCameraOpen ? (
+        <>
+          <Grid item>
+            <Typography variant="h4" color="black">Upload Patient Info and ECG</Typography>
+            {/* Typography replaces h headers*/}
+
+          </Grid>
+          <Grid item>
+
+            {/* I prompted ChatGPT to ask "How to use mui textfields with datalists" */}
+            {/* I prompted ChatGPT to ask "How to combine textfields with datalists in material ui" */}
+            <TextField // input field for mui
+                autoComplete="off"
+                label="Unique Patient Identifier"
+                variant="outlined"
+                value={identifier}
+                onChange={handleIdentifierChange}
+                sx={{ width: 300 }}
+                inputProps={{ list: "identifiers" }} // Link to datalist for suggestions
+              />
+              <datalist id="identifiers">
+                <option value=""></option>
+                {previousIdentifiers.map((id, index) => (
+                  <option key={index} value={id}>{id}</option>
+                ))}
+              </datalist>
+
+</Grid>
+          <Grid item>
+            <TextField 
+              label="Age"
+              variant="outlined"
+              type="number"
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              inputProps={{ min: 0, max: 110 }}
+            />
+          </Grid>
+          <Grid item>
+            <ToggleButtonGroup
+              value={gender}
+              exclusive
+              onChange={(event, newGender) => setGender(newGender)}
+            > 
+            {/* ToggleButton instead of radio buttons */}
+              <ToggleButton value="female">
+                <Female />
+              </ToggleButton>
+              <ToggleButton value="male">
+                <Male />
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
+          <Grid item>
+            <Button variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
+              Open Camera
+            </Button>
+          </Grid>
+          <Grid item>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleFileInputChange}
+            />
+            <Button variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
+              Upload Image
+            </Button>
+          </Grid>
+        </>
+      ) : (
         <Grid item>
           <div className="camera-container">
             <video ref={videoRef} className="camera-view"></video>
-            <IconButton color="primary" onClick={handleCapture}>
-              <PhotoCamera />
-            </IconButton>
-            <IconButton color="primary" onClick={toggleFlash}>
-              {flashEnabled ? <FlashOn /> : <FlashOff />}
-            </IconButton>
-            <IconButton color="primary" onClick={toggleCamera}>
-              <FlipCameraAndroid />
-            </IconButton>
+
+            <div className="camera-buttons">
+              <IconButton color="primary" className="flash-button" onClick={toggleFlash}>
+                {flashEnabled ? <FlashOn /> : <FlashOff />}
+              </IconButton>
+              <IconButton color="primary" className="toggle-camera-button" onClick={toggleCamera}>
+                <FlipCameraAndroid />
+              </IconButton>
+              <IconButton color="primary" className="capture-button" onClick={handleCapture}>
+                <PhotoCamera />
+              </IconButton>
+            </div>
+
+            <Button variant="contained" color="primary" onClick={handleCapture}>
+              Capture
+            </Button>
           </div>
         </Grid>
       )}

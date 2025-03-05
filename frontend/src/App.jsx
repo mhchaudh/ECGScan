@@ -28,7 +28,7 @@ function App() {
 
   return (
     <div>
-      <AppBar position="static">
+      <AppBar position="fixed">
         <Toolbar>
           <Typography variant="h6" sx={{ cursor: 'pointer' }} onClick={() => { navigate("/home"); }}>
             ECGenius
