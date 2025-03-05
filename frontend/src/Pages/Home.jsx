@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+// Refrenced: https://mui.com/material-ui/all-components/?srsltid=AfmBOoo3ZuM3R9qLhp_JDLn0Gp7fmQW_nsLmIcqM5lASyIL9qzzICiwf
 import { Button, Grid, TextField, ToggleButton, ToggleButtonGroup, Typography, IconButton } from "@mui/material";
 import { PhotoCamera, CloudUpload, Male, Female, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
 import './Home.css'; 
@@ -102,12 +103,14 @@ function Home() {
         <>
           <Grid item>
             <Typography variant="h4" color="black">Upload Patient Info and ECG</Typography>
+            {/* Typography replaces h headers*/}
+
           </Grid>
           <Grid item>
 
             {/* I prompted ChatGPT to ask "How to use mui textfields with datalists" */}
             {/* I prompted ChatGPT to ask "How to combine textfields with datalists in material ui" */}
-            <TextField
+            <TextField // input field for mui
                 label="Unique Patient Identifier"
                 variant="outlined"
                 value={identifier}
@@ -138,7 +141,8 @@ function Home() {
               value={gender}
               exclusive
               onChange={(event, newGender) => setGender(newGender)}
-            >
+            > 
+            {/* ToggleButton instead of radio buttons */}
               <ToggleButton value="female">
                 <Female />
               </ToggleButton>
