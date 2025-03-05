@@ -7,13 +7,15 @@ import "./ConfirmUpload.css";
 function ConfirmUpload() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl, file, age: initialAge, gender: initialGender } = location.state || {}; // Retrieve file, age, and gender
+  const { imageUrl, file, age: initialAge, gender: initialGender, identifier: initialIdentifier  } = location.state || {}; // Retrieve file, age, and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
   const [resizedImage, setResizedImage] = useState(null); // Store resized image
   const [age, setAge] = useState(initialAge || "");
   const [gender, setGender] = useState(initialGender || "");
+  const [identifier, setIdentifier] = useState(initialIdentifier || "");
+  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -70,6 +72,9 @@ function ConfirmUpload() {
     console.log("Confirmed cropped image: ", croppedImage);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
+    previousIdentifiers.push(identifier);
+    localStorage.setItem("uniqueIdentifiers", JSON.stringify(previousIdentifiers));
+
 
     if (!croppedImage) return;
 
@@ -77,7 +82,7 @@ function ConfirmUpload() {
       const response = await fetch(`${API_URL}/api/image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: croppedImage, age, gender }), // Send cropped image in original resolution
+        body: JSON.stringify({ image: croppedImage, age: age, gender: gender, identifier: identifier }), // Send cropped image in original resolution
       });
       if (!response.ok) {
         console.error("Upload failed");
@@ -142,10 +147,25 @@ function ConfirmUpload() {
   const handleGenderChange = (e) => {
     setGender(e.target.value);
   };
+  const handleIdentifierChange = (e) => {
+    setIdentifier(e.target.value);
+  }
 
   return (
     <div className="confirm-upload-container">
       <h2>Adjust Your Image</h2>
+      {/* Editable Identifier Input */}
+      <div className="identifier-input-container">
+        <label htmlFor="identifier">Identifier:</label>
+        <input
+          id="identifier"
+          type="text"
+          placeholder="Identifier"
+          value={identifier}
+          onChange={handleIdentifierChange}
+          autoComplete="off"
+        />
+      </div>
 
       {/* Editable Age Input */}
       <div className="age-input-container">

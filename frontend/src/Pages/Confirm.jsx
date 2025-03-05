@@ -38,7 +38,7 @@ function Confirm() {
       const response = await fetch(`${API_URL}/api/image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageToSend, age, gender }), // Include age and gender in the request body
+        body: JSON.stringify({ image: imageToSend, age: age, gender: gender,identifier:previousIdentifiers }), // Include age and gender in the request body
       });
       if (!response.ok) {
         console.error("Upload failed");

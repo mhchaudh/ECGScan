@@ -5,9 +5,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from PIL import Image
-import os
+import os, uuid
 
-def image_to_sequence(img, mode, method, *varargin):
+def image_to_sequence(img, mode, method, *varargin, age, gender, identifier):
     if len(varargin) < 1 or not varargin[0]:
         windowlen = 3
     else:
@@ -61,10 +61,11 @@ def image_to_sequence(img, mode, method, *varargin):
         plt.grid(True)
 
         # Save the figure in the same folder as the script
-        output_image_path = os.path.join(os.getcwd(), "digitized_ecg_signal.png")
+        output_folder = os.path.join(os.getcwd(), str(identifier))
+        os.makedirs(output_folder, exist_ok=True)
+        output_image_path = os.path.join(output_folder, f"{uuid.uuid4().hex}_{age}_{gender}.png")
         plt.savefig(output_image_path)
         print(f"ECG signal saved as {output_image_path}")
-
         plt.close()
 
     return data

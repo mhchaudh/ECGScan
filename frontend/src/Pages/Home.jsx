@@ -37,7 +37,7 @@ function Home() {
     if (file) {
 
         const imageUrl = URL.createObjectURL(file);
-        navigate('/confirmupload', { state: { imageUrl,file, age, gender } }); // Pass age and gender
+        navigate('/confirmupload', { state: { imageUrl,file, age, gender, identifier} }); // Pass age and gender
     }
     
     
