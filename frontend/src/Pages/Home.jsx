@@ -33,12 +33,6 @@ function Home() {
   const handleIdentifierChange = (e) => {
     const newIdentifier = e.target.value;
     setIdentifier(newIdentifier);
-
-    if (newIdentifier && !previousIdentifiers.includes(newIdentifier)) {
-      const updatedIdentifiers = [...previousIdentifiers, newIdentifier];
-      setPreviousIdentifiers(updatedIdentifiers);
-      localStorage.setItem("uniqueIdentifiers", JSON.stringify(updatedIdentifiers));
-    }
   };
 
   const handleUploadButtonClick = () => {
@@ -111,6 +105,7 @@ function Home() {
             {/* I prompted ChatGPT to ask "How to use mui textfields with datalists" */}
             {/* I prompted ChatGPT to ask "How to combine textfields with datalists in material ui" */}
             <TextField // input field for mui
+                autoComplete="off"
                 label="Unique Patient Identifier"
                 variant="outlined"
                 value={identifier}
