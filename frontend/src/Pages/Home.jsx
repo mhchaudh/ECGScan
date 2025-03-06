@@ -132,22 +132,44 @@ function Home() {
             />
           </Grid>
           <Grid item>
-            <ToggleButtonGroup
-              value={gender}
-              exclusive
-              onChange={(event, newGender) => setGender(newGender)}
-            > 
-            {/* ToggleButton instead of radio buttons */}
-              <ToggleButton value="female">
-                <Female />
-              </ToggleButton>
-              <ToggleButton value="male">
-                <Male />
-              </ToggleButton>
+          <ToggleButtonGroup
+
+          // I prompted ChatGPT to ask "Give me a guide on how to use mui toggle button groups"
+                value={gender}
+                exclusive
+                onChange={(event, newGender) => setGender(newGender)}
+                sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}
+              >
+                <ToggleButton
+                  value="male"
+                  selected={gender === "male"}
+                  sx={{
+                    backgroundColor: gender === "male" ? "#1976d2 !important" : "lightgray",
+                    color: "white !important", // Ensures white text at all times
+                    "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },
+                  }}
+                >
+                  <Male sx={{ marginRight: 1, color: "white" }} /> Male
+                </ToggleButton>
+
+                <ToggleButton
+                  value="female"
+                  selected={gender === "female"}
+                  sx={{
+                    backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
+                    color: "white !important", // Ensures white text at all times
+                    "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
+                  }}
+                >
+                  <Female sx={{ marginRight: 1, color: "white" }} /> Female
+                </ToggleButton>
             </ToggleButtonGroup>
+
           </Grid>
           <Grid item>
-            <Button variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
+            <Button 
+                sx={{ backgroundColor: "#4CAF50", color: "white", "&:hover": { backgroundColor: "#388E3C" } }}
+            variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
               Open Camera
             </Button>
           </Grid>
@@ -159,7 +181,10 @@ function Home() {
               style={{ display: "none" }}
               onChange={handleFileInputChange}
             />
-            <Button variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
+            <Button 
+                sx={{ backgroundColor: "#2196F3", color: "white", "&:hover": { backgroundColor: "#1976D2" } }}
+
+            variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
               Upload Image
             </Button>
           </Grid>
