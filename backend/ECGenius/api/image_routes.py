@@ -39,7 +39,7 @@ def create_image_and_digitize():
     
     # Define storage paths
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    identifier_folder = os.path.join(base_dir, 'OriginalImage')
+    identifier_folder = os.path.join(base_dir, f'{identifier_data}_OriginalImage')
     os.makedirs(identifier_folder, exist_ok=True)
     
     # Generate filename
