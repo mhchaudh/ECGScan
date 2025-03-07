@@ -1,29 +1,27 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+// Refrenced: https://mui.com/material-ui/all-components/?srsltid=AfmBOoo3ZuM3R9qLhp_JDLn0Gp7fmQW_nsLmIcqM5lASyIL9qzzICiwf
+import { Button, Grid, Typography, IconButton } from "@mui/material";
+import { PhotoCamera, CloudUpload, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
 import './Home.css'; 
-import cameraimage from "../assets/camera-image.png";
-import uploadimage from "../assets/upload-icon.png";
 
 function Home() {
   const fileInputRef = useRef(null);
   const videoRef = useRef(null);
   const navigate = useNavigate();
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const [CapturedImage, setCapturedImage] = useState(null);
+  const [capturedImage, setCapturedImage] = useState(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
 
   const location = useLocation();
   const cameFromConfirm = location.state?.cameFromConfirm || false;
-  const cameFromConfirmUpload = location.state?.cameFromConfirmUpload || false;
+
   useEffect(() => {
     if (cameFromConfirm) {
-      handleTakePictureClick(); // Automatically open the camera if coming from Confirm page
-    } else if (cameFromConfirmUpload) {
-      handleUploadButtonClick(); // Automatically open the file upload dialog if coming from ConfirmUpload page
+      handleTakePictureClick();
     }
-  }, [cameFromConfirm, cameFromConfirmUpload]);
-  
+  }, [cameFromConfirm]);
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
@@ -32,8 +30,12 @@ function Home() {
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-        const imageUrl = URL.createObjectURL(file);
-        navigate('/confirmupload', { state: { imageUrl, file } });
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result;
+        navigate('/confirmupload', { state: { imageUrl } });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -58,12 +60,14 @@ function Home() {
     const imageUrl = canvas.toDataURL('image/png');
     setCapturedImage(imageUrl);
     setIsCameraOpen(false);
-    if (videoRef.current.srcObject){
+
+    if (videoRef.current.srcObject) {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
+
     setTimeout(() => {
       navigate('/confirm', { state: { imageUrl } });
-    }, 500); 
+    }, 500);
   };
 
   const toggleFlash = () => {
@@ -71,45 +75,70 @@ function Home() {
   };
 
   const toggleCamera = () => {
-    setFacingMode(facingMode === "environment" ? "user" : "environment");
-    handleTakePictureClick();
+    setFacingMode((prev) => (prev === "environment" ? "user" : "environment"));
+    setTimeout(handleTakePictureClick, 500); // Restart camera smoothly
   };
 
+
   return (
-    <>
-      <div>
-        <div className="home">
-          <div className="uploading">
-            <h1 className="upload-title">Upload ECG Image</h1>
-            <button className='picture-button' onClick={handleTakePictureClick}>
-              <img src={cameraimage} alt="Take a Picture" className="camera-image-icon" />
-            </button>
-            <button className='upload-button' onClick={handleUploadButtonClick}>
-              <img src={uploadimage} alt="Upload Image" className="upload-image-icon" />
-            </button>
-          </div>
-        </div>
-        <input
-          type="file"
-          accept="image/*"
-          ref={fileInputRef}
-          style={{ display: "none" }}
-          onChange={handleFileInputChange}
-        />
-        {isCameraOpen && (
+    <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
+      {!isCameraOpen ? (
+        <>
+          <Grid item>
+            <Typography variant="h4" color="black">Upload or Take a Picture of your ECG Report</Typography>
+          </Grid>
+          <Grid item>
+            <Button 
+                sx={{ backgroundColor: "#4CAF50", color: "white", "&:hover": { backgroundColor: "#388E3C" }, padding: "20px 40px",  
+                fontSize: "1.5rem",   
+                height: "80px",        
+                minWidth: "250px" }}
+                variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
+              Open Camera
+            </Button>
+          </Grid>
+          <Grid item>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handleFileInputChange}
+            />
+            <Button 
+                sx={{ backgroundColor: "#2196F3", color: "white", "&:hover": { backgroundColor: "#1976D2" } , padding: "20px 40px",  
+                fontSize: "1.5rem",   
+                height: "80px",        
+                minWidth: "250px" }}
+                variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
+              Upload Image
+            </Button>
+          </Grid>
+        </>
+      ) : (
+        <Grid item>
           <div className="camera-container">
             <video ref={videoRef} className="camera-view"></video>
-            <button className="capture-button" onClick={handleCapture}> </button>
-            <button className="flash-button" onClick={toggleFlash}>
-              {flashEnabled ? "⚡" : "⚡"}
-            </button>
-            <button className="toggle-camera-button" onClick={toggleCamera}>
-              🔄
-            </button>
+
+            <div className="camera-buttons">
+              <IconButton color="primary" className="flash-button" onClick={toggleFlash}>
+                {flashEnabled ? <FlashOn /> : <FlashOff />}
+              </IconButton>
+              <IconButton color="primary" className="toggle-camera-button" onClick={toggleCamera}>
+                <FlipCameraAndroid />
+              </IconButton>
+              <IconButton color="primary" className="capture-button" onClick={handleCapture}>
+                <PhotoCamera />
+              </IconButton>
+            </div>
+
+            <Button variant="contained" color="primary" onClick={handleCapture}>
+              Capture
+            </Button>
           </div>
-        )}
-      </div>
-    </>
+        </Grid>
+      )}
+    </Grid>
   );
 }
 

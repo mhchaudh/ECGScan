@@ -56,29 +56,29 @@
     display: flex;
     justify-content: center;
     align-items: center;
-  }
+}
   
 .popup {
     background: white;
     padding: 20px;
     border-radius: 10px;
     text-align: center;
-  }
+}
 .popup-buttons button {
     margin: 10px;
     padding: 10px 15px;
     border: none;
     cursor: pointer;
     font-size: 16px;
-  }
+}
   
 .popup-buttons button:first-child {
     background: green;
     color: white;
-  }
+}
   
 .popup-buttons button:last-child {
     background: red;
     color: white;
-  }
+}
   
