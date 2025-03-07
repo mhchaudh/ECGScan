@@ -17,6 +17,7 @@ import { Male, Female } from "@mui/icons-material";
 function ConfirmUpload() {
   const location = useLocation();
   const navigate = useNavigate();
+
   const { imageUrl} = location.state || {}; // Retrieve file, age, and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
@@ -27,6 +28,7 @@ function ConfirmUpload() {
   const [identifier, setIdentifier] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -93,7 +95,7 @@ function ConfirmUpload() {
     }
   
     const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
-  
+
 
     localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
   
@@ -180,14 +182,13 @@ function ConfirmUpload() {
       handleConfirm(); // continue to confirm if we press yes
     }
   };
-  
+
 
   return (
     <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
       <Grid item>
         <Typography variant="h4" color="black">Adjust Your Image</Typography>
       </Grid>
-
       {/* Unique Patient Identifier Input */}
       <Grid item>
         <TextField
