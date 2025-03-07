@@ -22,11 +22,6 @@ function Home() {
     }
   }, [cameFromConfirm]);
 
-  // Save identifier to localStorage
-  const handleIdentifierChange = (e) => {
-    const newIdentifier = e.target.value;
-    setIdentifier(newIdentifier);
-  };
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
@@ -84,7 +79,6 @@ function Home() {
     setTimeout(handleTakePictureClick, 500); // Restart camera smoothly
   };
 
-<
   return (
     <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
       {!isCameraOpen ? (
