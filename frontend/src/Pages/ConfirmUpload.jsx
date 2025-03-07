@@ -7,15 +7,16 @@ import "./ConfirmUpload.css";
 function ConfirmUpload() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl, file, age: initialAge, gender: initialGender, identifier: initialIdentifier  } = location.state || {}; // Retrieve file, age, and gender
+  const { imageUrl} = location.state || {}; // Retrieve file, age, and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
   const [resizedImage, setResizedImage] = useState(null); // Store resized image
-  const [age, setAge] = useState(initialAge || "");
-  const [gender, setGender] = useState(initialGender || "");
-  const [identifier, setIdentifier] = useState(initialIdentifier || "");
+  const [age, setAge] = useState( "");
+  const [gender, setGender] = useState( "");
+  const [identifier, setIdentifier] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -65,7 +66,7 @@ function ConfirmUpload() {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home");
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } });
 
   const API_URL = import.meta.env.VITE_API_URL;
   const handleConfirm = async () => {
@@ -150,21 +151,38 @@ function ConfirmUpload() {
   const handleIdentifierChange = (e) => {
     setIdentifier(e.target.value);
   }
+  const handleConfirmClick = () => {
+    setShowConfirmPopup(true);
+  };
+  
+  const handlePopupResponse = (confirm) => {
+    setShowConfirmPopup(false);
+    if (confirm) {
+      handleConfirm(); // continue to confirm if we press yes
+    }
+  };
+  
 
   return (
     <div className="confirm-upload-container">
       <h2>Adjust Your Image</h2>
       {/* Editable Identifier Input */}
       <div className="identifier-input-container">
-        <label htmlFor="identifier">Identifier:</label>
-        <input
-          id="identifier"
-          type="text"
-          placeholder="Identifier"
-          value={identifier}
-          onChange={handleIdentifierChange}
-          autoComplete="off"
-        />
+      <label htmlFor="identifier">Identifier:</label>
+      <input
+        id="identifier"
+        type="text"
+        placeholder="Identifier"
+        value={identifier}
+        onChange={handleIdentifierChange}
+        list="identifier-options"
+        autoComplete="off"
+      />
+      <datalist id="identifier-options">
+        {previousIdentifiers.map((id, index) => (
+          <option key={index} value={id} />
+        ))}
+      </datalist>
       </div>
 
       {/* Editable Age Input */}
@@ -233,15 +251,26 @@ function ConfirmUpload() {
         </div>
       </div>
       <canvas ref={canvasRef} style={{ display: "none" }} />
+      
+      {/* Buttons */}
       <div className="button-group">
-        <button onClick={handleRetake}>Retake/Re-upload</button>
-        <button onClick={handleConfirm} disabled={!croppedImage}>
-          Confirm
-        </button>
-        <button onClick={handleDownload} disabled={!croppedImage}>
-          Download
-        </button>
+        <button onClick={handleRetake}>Re-upload</button>
+        <button onClick={handleConfirmClick} disabled={!croppedImage}>Confirm</button>
+        <button onClick={handleDownload} disabled={!croppedImage}>Download</button>
       </div>
+
+      {/* Confirmation Popup */}
+      {showConfirmPopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <p>Are you sure you want to submit?</p>
+            <div className="popup-buttons">
+              <button onClick={() => handlePopupResponse(true)}>Yes</button>
+              <button onClick={() => handlePopupResponse(false)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

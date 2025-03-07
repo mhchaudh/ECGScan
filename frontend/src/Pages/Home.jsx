@@ -3,8 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import './Home.css'; 
 import cameraimage from "../assets/camera-image.png";
 import uploadimage from "../assets/upload-icon.png";
-import manicon from "../assets/man-icon.png";
-import womenicon from "../assets/women-icon.png";
 
 function Home() {
   const fileInputRef = useRef(null);
@@ -14,19 +12,18 @@ function Home() {
   const [CapturedImage, setCapturedImage] = useState(null);
   const [flashEnabled, setFlashEnabled] = useState(false);
   const [facingMode, setFacingMode] = useState("environment");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState(""); // Add gender state
-  const [identifier, setIdentifier] = useState(""); 
-  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
 
   const location = useLocation();
   const cameFromConfirm = location.state?.cameFromConfirm || false;
-
+  const cameFromConfirmUpload = location.state?.cameFromConfirmUpload || false;
   useEffect(() => {
     if (cameFromConfirm) {
       handleTakePictureClick(); // Automatically open the camera if coming from Confirm page
+    } else if (cameFromConfirmUpload) {
+      handleUploadButtonClick(); // Automatically open the file upload dialog if coming from ConfirmUpload page
     }
-  }, [cameFromConfirm]);
+  }, [cameFromConfirm, cameFromConfirmUpload]);
+  
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
@@ -35,12 +32,9 @@ function Home() {
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-
         const imageUrl = URL.createObjectURL(file);
-        navigate('/confirmupload', { state: { imageUrl,file, age, gender, identifier} }); // Pass age and gender
+        navigate('/confirmupload', { state: { imageUrl, file } });
     }
-    
-    
   };
 
   const handleTakePictureClick = () => {
@@ -68,7 +62,7 @@ function Home() {
       videoRef.current.srcObject.getTracks().forEach(track => track.stop());
     }
     setTimeout(() => {
-      navigate('/confirm', { state: { imageUrl, age, gender, identifier } }); // Pass age and gender
+      navigate('/confirm', { state: { imageUrl } });
     }, 500); 
   };
 
@@ -81,56 +75,12 @@ function Home() {
     handleTakePictureClick();
   };
 
-  const handleAgeChange = (e) => {
-    if (e.target.value < 0 || e.target.value > 110) {
-      setAge("");
-      return;
-    }
-    setAge(e.target.value);
-  };
-
-  const handleGenderChange = (e) => {
-    setGender(e.target.value); // Update gender state
-  };
-  
-  const handleIdentifierChange = (e) => {
-    setIdentifier(e.target.value);
-  }
-
   return (
     <>
       <div>
         <div className="home">
           <div className="uploading">
-            <h1 className="upload-title">Upload Patient Info and ECG</h1>
-            <input
-              className="identifier-input"
-              list="identifiers"
-              placeholder="Unique Patient Identifier"
-              value={identifier}
-              onChange={handleIdentifierChange}
-              type="text"
-            />
-            {/* Prompted chatgpt to ask how to connect text input to dropdown list suggestions:  */}
-            <datalist id="identifiers">
-              {previousIdentifiers.map((id, index) => (
-                <option key={index} value={id} />
-              ))}
-            </datalist>
-            <input className="age-input" placeholder="Age" min="0" max="110" value={age} onChange={handleAgeChange} type="number"></input>
-
-            <div className="gender-input">
-              <label>
-                <input type="radio" name="gender" value="female" onChange={handleGenderChange} />
-                <img id="input_female" src={womenicon} alt="Female" />
-              </label>
-
-              <label>
-                <input type="radio" name="gender" value="male" onChange={handleGenderChange} />
-                <img id="input_male" src={manicon} alt="Male" />
-              </label>
-            </div>
-            
+            <h1 className="upload-title">Upload ECG Image</h1>
             <button className='picture-button' onClick={handleTakePictureClick}>
               <img src={cameraimage} alt="Take a Picture" className="camera-image-icon" />
             </button>

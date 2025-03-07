@@ -7,14 +7,16 @@ import "./Confirm.css";
 function Confirm() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl, age: initialAge, gender: initialGender, identifier: initialIdentifier  } = location.state || {}; // Retrieve age and gender
+  const { imageUrl} = location.state || {}; // Retrieve age and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [age, setAge] = useState(initialAge || ""); // Local state for age
-  const [gender, setGender] = useState(initialGender || ""); // Local state for gender
-  const [identifier, setIdentifier] = useState(initialIdentifier || "");
+  const [age, setAge] = useState( ""); // Local state for age
+  const [gender, setGender] = useState(""); // Local state for gender
+  const [identifier, setIdentifier] = useState( "");
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -108,6 +110,16 @@ function Confirm() {
   const handleIdentifierChange = (e) => {
     setIdentifier(e.target.value);
   }
+  const handleConfirmClick = () => {
+    setShowConfirmPopup(true);
+  };
+  
+  const handlePopupResponse = (confirm) => {
+    setShowConfirmPopup(false);
+    if (confirm) {
+      handleConfirm(); // continue to confirm if we press yes
+    }
+  };
 
   return (
     <div className="confirm-container">
@@ -115,15 +127,21 @@ function Confirm() {
 
       {/* Editable Identifier Input */}
       <div className="identifier-input-container">
-        <label htmlFor="identifier">Identifier:</label>
-        <input
-          id="identifier"
-          type="text"
-          placeholder="Identifier"
-          value={identifier}
-          onChange={handleIdentifierChange}
-          autoComplete="off"
-        />
+      <label htmlFor="identifier">Identifier:</label>
+      <input
+        id="identifier"
+        type="text"
+        placeholder="Identifier"
+        value={identifier}
+        onChange={handleIdentifierChange}
+        list="identifier-options"
+        autoComplete="off"
+      />
+      <datalist id="identifier-options">
+        {previousIdentifiers.map((id, index) => (
+          <option key={index} value={id} />
+        ))}
+      </datalist>
       </div>
 
       {/* Editable Age Input */}
@@ -194,9 +212,21 @@ function Confirm() {
       <canvas ref={canvasRef} style={{ display: "none" }} />
       <div className="button-group">
         <button onClick={handleRetake}>Retake</button>
-        <button onClick={handleConfirm} disabled={!croppedImage}>Confirm</button>
+        <button onClick={handleConfirmClick} disabled={!croppedImage}>Confirm</button>
         <button onClick={handleDownload} disabled={!croppedImage}>Download</button>
       </div>
+      {/* Confirmation Popup */}
+      {showConfirmPopup && (
+        <div className="popup-overlay">
+          <div className="popup">
+            <p>Are you sure you want to submit?</p>
+            <div className="popup-buttons">
+              <button onClick={() => handlePopupResponse(true)}>Yes</button>
+              <button onClick={() => handlePopupResponse(false)}>No</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
