@@ -53,7 +53,8 @@ def create_image_and_digitize():
     cropped_image_rgb = cropped_image.convert('RGB')  # Convert to RGB before saving as JPEG
     cropped_image_rgb.save(filepath)
 
-    image_path = f"{filepath}/{filename}" 
+    image_path = f"{filepath}" 
+    print(image_path)
 
     process_ecg_image(image_path)
 
@@ -68,4 +69,8 @@ def create_image_and_digitize():
     # Process the image using the image_to_sequence function
     #time_series_data = image_to_sequence(img_as_array, mode, method, grid_square_margin, plot_result,age = age_data, gender = gender_data, identifier = identifier_data)
 
-    return jsonify({'message': 'Image uploaded and processed successfully', 'filename': time_series_data.tolist()}), 200
+    return jsonify({
+        'message': 'Image uploaded and processed successfully',
+        'filename': filename,
+        'status': 'Success'
+    }), 200

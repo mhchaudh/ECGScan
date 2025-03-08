@@ -4,8 +4,8 @@ import numpy as np
 import wfdb
 import subprocess
 from PIL import Image
-from image_to_sequence import convert_image_to_sequence
-from utils import parse_yolo_output, crop_leads, remove_markers
+from .image_to_sequence import image_to_sequence, convert_image_to_sequence
+from .utils import parse_yolo_output, crop_leads, remove_markers
 
 # ECG Configuration
 LEADS = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"]
@@ -13,10 +13,10 @@ SAMPLING_RATE = 500  # ECG Sampling Rate
 OUTPUT_NAME = "Q0001"  # Default output name for WFDB
 RAW_OUTPUT_PATH = f"output/{OUTPUT_NAME}_raw.npy"  # Path to store raw floating-point ECG data
 
-def run_yolo_detection(image_path, weights='yolov7/yolov7_custom.pt', conf=0.5, img_size=640):
+def run_yolo_detection(image_path, weights='ECGenius/utils/image_converter/yolov7/yolov7_custom.pt', conf=0.5, img_size=640):
     """Runs YOLOv7 detection on the given ECG image."""
     command = [
-        'python3', 'yolov7/detect.py', '--weights', weights,
+        'python3', 'ECGenius/utils/image_converter/yolov7/detect.py', '--weights', weights,
         '--conf', str(conf), '--img-size', str(img_size),
         '--source', image_path, '--save-txt'
     ]
@@ -26,7 +26,7 @@ def process_ecg_leads(image_path, output_folder):
     """Runs the entire ECG lead extraction and processing pipeline."""
     run_yolo_detection(image_path)
     
-    txt_path = os.path.join("runs/detect/exp/labels/", os.path.basename(image_path).replace('.png', '.txt'))
+    txt_path = os.path.join("runs/detect/exp/labels/", os.path.basename(image_path).replace('.png', '.txt').replace('.jpg', '.txt'))
     #We have to remove this exp file after we are done using it, so yolo always produces exp instead of exp* followed by a number.
     image = Image.open(image_path)
     width, height = image.size
@@ -81,4 +81,3 @@ def process_ecg_image(image_path):
     cropped_images = process_ecg_leads(image_path, output_folder)
     convert_leads_to_wfdb(cropped_images)
     print("✅ ECG extraction and digitization complete.")
-
