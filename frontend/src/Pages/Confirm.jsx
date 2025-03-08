@@ -76,7 +76,7 @@ function Confirm() {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } });
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true }});
 
   const API_URL = import.meta.env.VITE_API_URL;
   const handleConfirm = async () => {
