@@ -3,32 +3,51 @@ import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./ConfirmUpload.css";
+import {
+  Grid,
+  Typography,
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+  TextField,
+  Dialog, DialogActions, DialogContent, DialogTitle
+} from "@mui/material";
+import { Male, Female } from "@mui/icons-material";
 
 function ConfirmUpload() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl, age: initialAge, gender: initialGender, identifier: initialIdentifier  } = location.state || {}; // Retrieve age and gender
+
+  const { imageUrl} = location.state || {}; // Retrieve file, age, and gender
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
   const [resizedImage, setResizedImage] = useState(null); // Store resized image
-  const [age, setAge] = useState(initialAge || "");
-  const [gender, setGender] = useState(initialGender || "");
-  const [identifier, setIdentifier] = useState(initialIdentifier || "");
+  const [age, setAge] = useState( "");
+  const [gender, setGender] = useState( "");
+  const [identifier, setIdentifier] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+  const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
+  const originalImageRef = useRef(null);
 
   useEffect(() => {
     if (!imageUrl) {
       navigate("/home"); // Redirect if no image is provided
       return;
     }
-    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image
+    const img = new Image();
+    img.src = imageUrl;
+    img.onload = () => {
+    originalImageRef.current = img; // Store the original image
+    };
+    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image for display
   }, [imageUrl, navigate]);
 
-  // Function to resize image before display
+  // Function to resize image only for display
   const resizeImage = (src, maxWidth, maxHeight, callback) => {
     const img = new Image();
     img.onload = () => {
@@ -59,22 +78,34 @@ function ConfirmUpload() {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home");
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } });
 
   const API_URL = import.meta.env.VITE_API_URL;
   const handleConfirm = async () => {
-    console.log("Confirmed cropped image: ", croppedImage || resizedImage);
+    console.log("Confirmed image: ", croppedImage || imageUrl);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
-    previousIdentifiers.push(identifier);
-    localStorage.setItem("uniqueIdentifiers", JSON.stringify(previousIdentifiers));
+  
+    const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+  
+    const uniqueIdentifiersSet = new Set(previousIdentifiers);
+  
+    if (identifier && !uniqueIdentifiersSet.has(identifier)) {
+      uniqueIdentifiersSet.add(identifier);
+    }
+  
+    const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
 
-    const imageToSend = croppedImage || resizedImage;
+
+    localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
+  
+    const imageToSend = croppedImage || imageUrl; 
+  
     try {
       const response = await fetch(`${API_URL}/api/image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageToSend, age, gender }),
+        body: JSON.stringify({ image: imageToSend, age: age, gender: gender, identifier: identifier }),
       });
       if (!response.ok) {
         console.error("Upload failed");
@@ -84,15 +115,14 @@ function ConfirmUpload() {
     } catch (error) {
       console.error("Error uploading image: ", error);
     }
-
+  
     navigate("/home");
   };
-
   const handleDownload = () => {
-    if (!croppedImage) return;
+    const imagetodownload = croppedImage || imageUrl
 
     const link = document.createElement("a");
-    link.href = croppedImage;
+    link.href = imagetodownload;
     link.download = "cropped-image.png";
     document.body.appendChild(link);
     link.click();
@@ -100,17 +130,17 @@ function ConfirmUpload() {
   };
 
   const onCropComplete = (crop) => {
-    if (imageRef.current && canvasRef.current) {
-      const image = imageRef.current;
+    if (originalImageRef.current && canvasRef.current) {
+      const image = originalImageRef.current; // Use the original image for cropping
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-
-      const scaleX = image.naturalWidth / image.width;
-      const scaleY = image.naturalHeight / image.height;
-
+  
+      const scaleX = image.naturalWidth / imageRef.current.width;
+      const scaleY = image.naturalHeight / imageRef.current.height;
+  
       canvas.width = crop.width * scaleX;
       canvas.height = crop.height * scaleY;
-
+  
       ctx.drawImage(
         image,
         crop.x * scaleX,
@@ -122,8 +152,8 @@ function ConfirmUpload() {
         canvas.width,
         canvas.height
       );
-
-      setCroppedImage(canvas.toDataURL("image/png"));
+  
+      setCroppedImage(canvas.toDataURL("image/png")); // Store cropped image in original resolution
     }
   };
 
@@ -139,104 +169,170 @@ function ConfirmUpload() {
   const handleGenderChange = (e) => {
     setGender(e.target.value);
   };
-
   const handleIdentifierChange = (e) => {
     setIdentifier(e.target.value);
   }
+  const handleConfirmClick = () => {
+    setShowConfirmPopup(true);
+  };
+  
+  const handlePopupResponse = (confirm) => {
+    setShowConfirmPopup(false);
+    if (confirm) {
+      handleConfirm(); // continue to confirm if we press yes
+    }
+  };
+
 
   return (
-    <div className="confirm-upload-container">
-      <h2>Adjust Your Image</h2>
-
-      {/* Editable Identifier Input */}
-      <div className="identifier-input-container">
-        <label htmlFor="identifier">Identifier:</label>
-        <input
-          id="identifier"
-          type="text"
-          placeholder="Identifier"
+    <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
+      <Grid item>
+        <Typography variant="h4" color="black">Adjust Your Image</Typography>
+      </Grid>
+      {/* Unique Patient Identifier Input */}
+      <Grid item>
+        <TextField
+          autoComplete="off"
+          label="Unique Patient Identifier"
+          variant="outlined"
           value={identifier}
           onChange={handleIdentifierChange}
-          autoComplete="off"
+          sx={{ width: 300 }}
+          inputProps={{ list: "identifiers" }} // Link to datalist for suggestions
         />
-      </div>
+        <datalist id="identifiers">
+          {previousIdentifiers.map((id, index) => (
+            <option key={index} value={id}>{id}</option>
+          ))}
+        </datalist>
+      </Grid>
 
-      {/* Editable Age Input */}
-      <div className="age-input-container">
-        <label htmlFor="age">Age:</label>
-        <input
-          id="age"
+      {/* Age Input */}
+      <Grid item>
+        <TextField
+          label="Age"
+          variant="outlined"
           type="number"
-          placeholder="Age"
-          min="0"
-          max="110"
           value={age}
           onChange={handleAgeChange}
+          inputProps={{ min: 0, max: 110 }}
         />
-      </div>
+      </Grid>
 
-      {/* Editable Gender Input */}
-      <div className="gender-input-container">
-        <label>Gender:</label>
-        <div className="gender-options">
-          <label>
-            <input
-              type="radio"
-              name="gender"
-              value="female"
-              checked={gender === "female"}
-              onChange={handleGenderChange}
-            />
-            Female
-          </label>
-          <label>
-            <input
-              type="radio"
-              name="gender"
-              value="male"
-              checked={gender === "male"}
-              onChange={handleGenderChange}
-            />
-            Male
-          </label>
-        </div>
-      </div>
-
-      <div className="image-container">
-        <ReactCrop
-          src={resizedImage} // Use resized image for cropping
-          crop={crop}
-          onChange={setCrop}
-          onComplete={onCropComplete}
-          ruleOfThirds
+      {/* Gender Input */}
+      <Grid item>
+        <ToggleButtonGroup
+          value={gender}
+          exclusive
+          onChange={handleGenderChange}
+          sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}
         >
-          <img
-            src={resizedImage} // Use resized image
-            alt="Uploaded"
-            ref={imageRef}
-            className="confirm-upload-image"
-          />
-        </ReactCrop>
-        <div className="cropped-preview">
-          <h3>Cropped Image:</h3>
-          {croppedImage ? (
-            <img src={croppedImage} alt="Cropped Preview" className="cropped-image" />
-          ) : (
-            <p>No cropped image yet</p>
-          )}
+          <ToggleButton
+            value="male"
+            selected={gender === "male"}
+            sx={{
+              backgroundColor: gender === "male" ? "#1976d2 !important" : "lightgray",
+              color: "white !important", // Ensures white text at all times
+              "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },
+            }}
+          >
+            <Male sx={{ marginRight: 1, color: "white" }} /> Male
+          </ToggleButton>
+
+          <ToggleButton
+            value="female"
+            selected={gender === "female"}
+            sx={{
+              backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
+              color: "white !important", // Ensures white text at all times
+              "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
+            }}
+          >
+            <Female sx={{ marginRight: 1, color: "white" }} /> Female
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Grid>
+
+      {/* Image Cropping Section */}
+      <Grid item>
+        <div className="image-container">
+          <ReactCrop
+            src={imageUrl}
+            crop={crop}
+            onChange={setCrop}
+            onComplete={onCropComplete}
+            ruleOfThirds
+          >
+            <img
+              src={imageUrl}
+              alt="Captured"
+              ref={imageRef}
+              className="confirm-image"
+            />
+          </ReactCrop>
+          <div className="cropped-preview">
+            <Typography variant="h6" gutterBottom>
+              Cropped Image:
+            </Typography>
+            {croppedImage ? (
+              <img src={croppedImage} alt="Cropped Preview" className="cropped-image" />
+            ) : (
+              <Typography variant="body1">No cropped image yet</Typography>
+            )}
+          </div>
         </div>
-      </div>
+      </Grid>
+
       <canvas ref={canvasRef} style={{ display: "none" }} />
-      <div className="button-group">
-        <button onClick={handleRetake}>Retake/Re-upload</button>
-        <button onClick={handleConfirm} disabled={!croppedImage}>
-          Confirm
-        </button>
-        <button onClick={handleDownload} disabled={!croppedImage}>
-          Download
-        </button>
-      </div>
-    </div>
+
+      {/* Buttons */}
+      <Grid item>
+        <Grid container spacing={2}>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="secondary"
+              onClick={handleRetake}
+            >
+              Retake
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleConfirmClick}
+            >
+              Confirm
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={handleDownload}
+            >
+              Download
+            </Button>
+          </Grid>
+        </Grid>
+      </Grid>
+      {/* Confirmation Dialog (Popup) */}
+      <Dialog open={showConfirmPopup} onClose={() => setShowConfirmPopup(false)}>
+        <DialogTitle>Confirm Submission</DialogTitle>
+        <DialogContent>
+          <p>Are you sure you want to submit?</p>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handlePopupResponse(true)} color="primary">
+            Yes
+          </Button>
+          <Button onClick={() => handlePopupResponse(false)} color="secondary">
+            No
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Grid>
   );
 }
 

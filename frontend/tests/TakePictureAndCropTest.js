@@ -66,9 +66,9 @@ function sleep(ms){
             .move({ x: startX, y: startY }) 
             .press() 
             .pause(500)
-            .move({ x: 100, y: 100, origin: 'pointer' }) 
+            .move({ x: 50, y: 50, origin: 'pointer' }) 
             .pause(500)
-            .move({ x: 100, y: 100, origin: 'pointer' }) 
+            .move({ x: 50, y: 50, origin: 'pointer' }) 
             .pause(500)
             .release() 
             .perform();

@@ -1,17 +1,18 @@
 import './App.css';
 import { useState, useEffect } from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import AboutUs from './Pages/AboutUs';
 import Home from './Pages/Home'; 
 import Confirm from './Pages/Confirm';
 import ConfirmUpload from './Pages/ConfirmUpload';
 
 // Import Material UI components
-import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Button, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 function App() {
-  const [dropdownOpen, setDropdownOpen] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   const toggleDropdown = (event) => {
@@ -24,7 +25,12 @@ function App() {
       sessionStorage.setItem("hasVisited", "true");
       navigate("/home");
     }
+    setIsLoading(false);
   }, [navigate]);
+
+  if (isLoading) {
+    return null; 
+  }
 
   return (
     <div>
@@ -51,6 +57,7 @@ function App() {
 
       <div className="main-content">
         <Routes>
+          <Route path="/" element={<Navigate to="/home" replace />} />
           <Route path="/home" element={<Home />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/confirm" element={<Confirm />} />
