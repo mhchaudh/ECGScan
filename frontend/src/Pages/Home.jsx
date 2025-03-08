@@ -15,12 +15,17 @@ function Home() {
   const [facingMode, setFacingMode] = useState("environment");
   const location = useLocation();
   const cameFromConfirm = location.state?.cameFromConfirm || false;
+  const cameFromConfirmUpload = location.state?.cameFromConfirmUpload || false;
 
   useEffect(() => {
     if (cameFromConfirm) {
       handleTakePictureClick();
     }
-  }, [cameFromConfirm]);
+    else if (cameFromConfirmUpload){
+      handleUploadButtonClick();
+
+    }
+  }, [cameFromConfirm, cameFromConfirmUpload]);
 
 
   const handleUploadButtonClick = () => {
