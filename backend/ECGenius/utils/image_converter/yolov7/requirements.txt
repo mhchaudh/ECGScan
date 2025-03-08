@@ -1,0 +1,55 @@
+# Base dependencies
+numpy==1.26.4
+opencv-python>=4.1.1
+pillow==10.3.0
+scipy>=1.10.0
+matplotlib==3.7.4
+
+# Flask and Web Server Dependencies
+blinker==1.9.0
+click==8.1.8
+Flask==3.1.0
+Flask-Cors==5.0.0
+itsdangerous==2.2.0
+Jinja2==3.1.5
+MarkupSafe==3.0.2
+python-dotenv==1.0.1
+Werkzeug==3.1.3
+
+# PyTorch and Vision Libraries
+torch==2.2.0
+torchvision==0.17
+pytesseract>=0.3.10
+
+# Additional Yolov7 Dependencies
+PyYAML>=5.3.1
+requests>=2.23.0
+tqdm>=4.41.0
+protobuf<4.21.3
+
+# Logging & Monitoring
+tensorboard>=2.4.1
+
+# Data & Visualization
+pandas>=1.1.4
+seaborn>=0.11.0
+wfdb
+
+# System Utilities
+ipython
+psutil
+thop
+
+# Export Utilities (Optional)
+# coremltools>=4.1
+# onnx>=1.9.0
+# onnx-simplifier>=0.3.6
+# scikit-learn==0.19.2
+# tensorflow>=2.4.1
+# tensorflowjs>=3.9.0
+# openvino-dev
+
+# Image Augmentation & COCO tools (Optional)
+# albumentations>=1.0.3
+# pycocotools>=2.0
+# roboflow
