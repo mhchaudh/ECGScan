@@ -1,6 +1,9 @@
 name: Self-Hosted Runner Test
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   test-runner:
