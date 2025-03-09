@@ -50,9 +50,7 @@ function AboutUs() {
             ].map((name, index) => (
               <ListItem key={index} sx={{ py: 0.5 }}>
                 <ListItemText primary={<strong>{name}</strong>}
-                sx={{
-                  color: (theme) => theme.palette.mode === 'dark' ? 'white' : 'black'
-                }} />
+                sx={{ color: "black" }} />
               </ListItem>
             ))}
           </List>
