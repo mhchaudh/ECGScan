@@ -65,7 +65,7 @@ function App() {
           </Typography>
           <Box sx={{ flexGrow: 10 }} />
           <IconButton color="inherit" onClick={toggleDropdown}>
-            <MenuIcon className="menu-icon"/>
+            <MenuIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
