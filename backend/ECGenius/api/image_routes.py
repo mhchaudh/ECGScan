@@ -64,6 +64,9 @@ def create_image_and_digitize():
     # Cleanup: Delete the "runs" folder and "traced_model.pt" file after processing
     runs_path = os.path.join(backend_dir, "runs")
     traced_model_path = os.path.join(backend_dir, "traced_model.pt")
+    output_path = os.path.join(backend_dir, f"output_{identifier_data}")
+    folder_path = os.path.join(output_path, filename)
+    file_path = os.path.join(folder_path, 'Q0001.hea')
 
     if os.path.exists(runs_path) and os.path.isdir(runs_path):
         shutil.rmtree(runs_path)  # Remove "runs" folder
@@ -72,6 +75,14 @@ def create_image_and_digitize():
     if os.path.exists(traced_model_path) and os.path.isfile(traced_model_path):
         os.remove(traced_model_path)  # Remove "traced_model.pt"
         print(f"Deleted file: {traced_model_path}")
+    with open(file_path, 'a') as file:
+        file.write(f"#Age: {age_data}\n")
+        file.write(f"#Sex: {gender_data}\n")
+        file.write("Dx: Unknown\n")
+        file.write("Rx: Unknown\n")
+        file.write("Hx: Unknown\n")
+        file.write("Sx: Unknown\n")
+
 
     return jsonify({
         'message': 'Image uploaded and processed successfully',
