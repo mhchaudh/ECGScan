@@ -6,6 +6,7 @@ import subprocess
 from PIL import Image
 from .image_to_sequence import image_to_sequence, convert_image_to_sequence
 from .utils import parse_yolo_output, crop_leads, remove_markers
+import sys
 
 # ECG Configuration
 LEADS = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"]
@@ -14,11 +15,13 @@ OUTPUT_NAME = "Q0001"  # Default output name for WFDB
 RAW_OUTPUT_PATH = f"output/{OUTPUT_NAME}_raw.npy"  # Path to store raw floating-point ECG data
 
 def run_yolo_detection(image_path, weights='ECGenius/utils/image_converter/yolov7/yolov7_custom.pt', conf=0.5, img_size=640):
-    """Runs YOLOv7 detection on the given ECG image."""
     command = [
-        'python3', 'ECGenius/utils/image_converter/yolov7/detect.py', '--weights', weights,
-        '--conf', str(conf), '--img-size', str(img_size),
-        '--source', image_path, '--save-txt'
+        sys.executable, 'ECGenius/utils/image_converter/yolov7/detect.py',
+        '--weights', weights,
+        '--conf', str(conf),
+        '--img-size', str(img_size),
+        '--source', image_path,
+        '--save-txt'
     ]
     subprocess.run(command, check=True)
 
