@@ -2,9 +2,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-
 }
-
 
 body {
   background-color: white;
@@ -46,7 +44,7 @@ body {
 
 .dropbtn:focus,
 .dropbtn:focus-visible {
-  outline: 2px solid black; 
+  outline: none; 
 }
 
 .dropdown-content {
@@ -66,6 +64,11 @@ body {
   text-decoration: none;
   display: block;
   font-size: 16px;
+  border-bottom: 1px solid #ddd; 
+}
+
+.dropdown-content a:last-child {
+  border-bottom: none;
 }
 
 .dropdown-content a:hover {
@@ -85,10 +88,15 @@ body {
   font-weight: bold;
   width: 100vw;
   box-sizing: border-box;
-  padding-bottom: 400px;
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 2rem; 
 }
 
 .about-us-container {
   margin: 50px;
 }
 
+.MuiIconButton-root:focus {
+  outline: none;
+}

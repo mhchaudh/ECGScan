@@ -1,22 +1,26 @@
 .camera-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: black;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  
-  .camera-view {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-  }
-  .camera-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.camera-view {
+  width: 100%;
+  height: auto;
+  max-height: 70vh; /* Adjusted to leave space for buttons */
+  object-fit: contain;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.camera-container {
   position: relative;
   width: 100%;
   max-width: 500px; /* Adjust as needed */
@@ -32,16 +36,8 @@
 
 .camera-buttons {
   position: absolute;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(255, 255, 255, 0.8);
-  padding: 10px;
-  border-radius: 20px;
+  width: 100%;
+  height: 100%;
 }
 
 .camera-buttons .MuiIconButton-root {
@@ -52,35 +48,44 @@
 .camera-buttons .MuiIconButton-root:hover {
   background-color: rgba(255, 255, 255, 1);
 }
-  .capture-button {
-    position: absolute;
-    bottom: 20px;
-    width: 70px;
-    height: 70px;
-    background-color: white;
-    border: 5px solid #ccc;
-    border-radius: 50%;
-    cursor: pointer;
-  }
 
-.camera-view {
-  width: 100%;
-  height: auto;
-  max-height: 70vh; /* Adjusted to leave space for buttons */
-  object-fit: contain;
-}
-
-.camera-buttons {
+.flash-button {
   position: absolute;
-  bottom: 10%;
-  width: 100%;
+  top: 5px;
+  left: 10px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 12px;
+  cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 30px; /* Increased spacing between buttons */
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-camera-button {
+  position: absolute;
+  top: 5px;
+  right: -390px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  padding: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 50px;
+  height: 50px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .capture-button {
+  position: absolute;
+  bottom: -620px;
+  left: 33%;
+  transform: translateX(-50%);
   width: 80px;
   height: 80px;
   background-color: white;
@@ -92,60 +97,40 @@
   align-items: center;
 }
 
-.flash-button, .toggle-camera-button {
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 50%;
-  padding: 12px;
+.flash-button:hover, .toggle-camera-button:hover, .capture-button:hover {
+  background-color: rgba(255, 255, 255, 1);
+}
+
+.preview-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.preview-image {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 20px;
+}
+
+.preview-container button {
+  margin: 5px;
+  padding: 10px;
+  font-size: 16px;
   cursor: pointer;
+}
+
+.gender-input label {
+  margin: 25px;
+}
+
+.home {
   display: flex;
   justify-content: center;
-  align-items: center;
-  width: 50px;
-  height: 50px;
 }
 
-.flash-button, .toggle-camera-button {
-  background-color: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
-  padding: 10px;
-  cursor: pointer;
+.uploading {
+  padding: 50px;
+  display: inline-block;
+  text-align: center;
 }
-
-  
-  .preview-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .preview-image {
-    width: 100%;
-    max-width: 500px;
-    margin-bottom: 20px;
-  }
-  
-  .preview-container button {
-    margin: 5px;
-    padding: 10px;
-    font-size: 16px;
-    cursor: pointer;
-
-  }
-
-
-
-  .gender-input label{
-    margin: 25px;
-  }
-
-  .home {
-    display: flex;
-    justify-content: center;
-  }
-
-  .uploading {
-    padding: 50px;
-    display: inline-block;
-    text-align: center;
-  }
-

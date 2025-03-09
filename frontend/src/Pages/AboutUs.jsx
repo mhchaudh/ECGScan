@@ -1,4 +1,5 @@
 import { Container, Typography, List, ListItem, ListItemText } from "@mui/material";
+import './AboutUs.css';
 
 function AboutUs() {
   return (
@@ -21,7 +22,7 @@ function AboutUs() {
         ECGScan is developed in collaboration with medical and technology experts to enhance ECG interpretation for clinicians.
       </Typography>
       {/* Project Leads */}
-      <Typography variant="h5" component="h3" className="about-us-subtitle" gutterBottom>
+      <Typography variant="h4" component="h2" className="about-us-subtitle" gutterBottom>
         Project Leads
       </Typography>
       <Typography variant="body1" paragraph>
@@ -29,10 +30,10 @@ function AboutUs() {
         and <strong>Dr. Mohamed Abdalla (PhD)</strong>, an Assistant Professor at the University of Alberta.
       </Typography>
       {/* Development Team */}
-      <Typography variant="h5" component="h3" className="about-us-subtitle" gutterBottom>
+      <Typography variant="h4" component="h2" className="about-us-subtitle" gutterBottom>
         Development Team
       </Typography>
-      <List>
+      <List className="about-us-team-list">
         <ListItem>
           <ListItemText primary={<strong>Abdullah Faisal</strong>} />
         </ListItem>

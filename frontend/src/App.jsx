@@ -5,18 +5,24 @@ import AboutUs from './Pages/AboutUs';
 import Home from './Pages/Home'; 
 import Confirm from './Pages/Confirm';
 import ConfirmUpload from './Pages/ConfirmUpload';
+import logo from './assets/1-3b2842e1-removebg-preview.png'; 
 
 // Import Material UI components
-import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box, Switch } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
 
   const toggleDropdown = (event) => {
     setDropdownOpen(dropdownOpen ? null : event.currentTarget);
+  };
+
+  const handleDarkModeToggle = () => {
+    setDarkMode(!darkMode);
   };
 
   useEffect(() => {
@@ -33,15 +39,25 @@ function App() {
   }
 
   return (
-    <div>
-      <AppBar position="fixed">
+    <div style={{ backgroundColor: darkMode ? '#121212' : '#d5e1ed', minHeight: '100vh', color: darkMode ? '#ffffff' : '#000000' }}>
+      <AppBar position="fixed" style={{ backgroundColor: darkMode ? '#333333' : '#3f51b5' }}>
         <Toolbar>
-          <Typography variant="h6" sx={{ cursor: 'pointer' }} onClick={() => { navigate("/home"); }}>
+          <img 
+            src={logo}
+            alt="ECGenius Logo" 
+            style={{ cursor: 'pointer', height: '50px', marginRight: '3px' , marginLeft: '-15px' }} 
+            onClick={() => { navigate("/home"); }}
+          />
+          <Typography 
+            variant="h6" 
+            sx={{ cursor: 'pointer', fontFamily: 'Monaco, monospace', fontWeight: 'bolder', fontSize: '2rem' }} 
+            onClick={() => { navigate("/home"); }}
+          >
             ECGenius
           </Typography>
-          <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ flexGrow: 10 }} />
           <IconButton color="inherit" onClick={toggleDropdown}>
-            <MenuIcon />
+            <MenuIcon sx={{ fontSize: '2rem', marginRight: '-12px' }}/>
           </IconButton>
         </Toolbar>
       </AppBar>
@@ -51,8 +67,12 @@ function App() {
         open={Boolean(dropdownOpen)}
         onClose={() => setDropdownOpen(null)}
       >
-        <MenuItem onClick={() => navigate("/home")}>Home</MenuItem>
-        <MenuItem onClick={() => navigate("/about")}>About</MenuItem>
+        <MenuItem onClick={() => navigate("/home")} sx={{ borderBottom: '1px solid #ddd' }}>Home</MenuItem>
+        <MenuItem onClick={() => navigate("/about")} sx={{ borderBottom: '1px solid #ddd' }}>About</MenuItem>
+        <MenuItem>
+          Dark Mode
+          <Switch checked={darkMode} onChange={handleDarkModeToggle} />
+        </MenuItem>
       </Menu>
 
       <div className="main-content">
