@@ -8,12 +8,12 @@ function AboutUs() {
       <Container maxWidth="md" sx={{ py: 4, backgroundColor: "background.paper", flexGrow: 1 }}>
         {/* Main title */}
         <Typography variant="h3" component="h1" gutterBottom sx={{ fontWeight: "bold", color: "primary.main" }}>
-          About ECGScan
+          About ECGenius
         </Typography>
 
         {/* Description */}
         <Typography variant="body1" paragraph sx={{ lineHeight: 1.6, color: "text.primary" }}>
-          ECGScan is an open-source mobile web application designed to aid clinicians and other healthcare professionals in interpreting electrocardiograms (ECGs). ECGScan allows users to upload or capture ECG images, process them on-device, and match the extracted waveforms to a comprehensive database of ECG patterns for diagnostic insights.
+        ECGenius is an open-source mobile web application designed to aid clinicians and other healthcare professionals in interpreting electrocardiograms (ECGs). ECGScan allows users to upload or capture ECG images, process them on-device, and match the extracted waveforms to a comprehensive database of ECG patterns for diagnostic insights.
         </Typography>
 
         {/* Team Section */}
@@ -22,7 +22,7 @@ function AboutUs() {
             Our Team
           </Typography>
           <Typography variant="body1" paragraph sx={{ color: "text.primary" }}>
-            ECGScan is developed in collaboration with medical and technology experts to enhance ECG interpretation for clinicians.
+          ECGenius is developed in collaboration with medical and technology experts to enhance ECG interpretation for clinicians.
           </Typography>
 
           {/* Project Leads */}
@@ -68,7 +68,7 @@ function AboutUs() {
       {/* Copyright */}
       <Box sx={{ py: 2, backgroundColor: "background.paper", textAlign: "center" }}>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
-          © {new Date().getFullYear()} ECGScan. Open-source under the BSD license.
+          © {new Date().getFullYear()} ECGenius. Open-source under the BSD license.
         </Typography>
       </Box>
     </Box>
