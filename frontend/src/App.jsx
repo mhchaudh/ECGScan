@@ -34,30 +34,38 @@ function App() {
     setIsLoading(false);
   }, [navigate]);
 
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
+  }, [darkMode]);
+
   if (isLoading) {
     return null; 
   }
 
   return (
-    <div style={{ backgroundColor: darkMode ? '#121212' : '#d5e1ed', minHeight: '100vh', color: darkMode ? '#ffffff' : '#000000' }}>
-      <AppBar position="fixed" style={{ backgroundColor: darkMode ? '#333333' : '#3f51b5' }}>
+    <div className={`app-container ${darkMode ? "dark-mode" : ""}`}>
+      <AppBar position="fixed" className="app-bar">
         <Toolbar>
           <img 
             src={logo}
             alt="ECGenius Logo" 
-            style={{ cursor: 'pointer', height: '50px', marginRight: '3px' , marginLeft: '-15px' }} 
+            className="logo"
             onClick={() => { navigate("/home"); }}
           />
           <Typography 
             variant="h6" 
-            sx={{ cursor: 'pointer', fontFamily: 'Monaco, monospace', fontWeight: 'bolder', fontSize: '2rem' }} 
+            className="app-title"
             onClick={() => { navigate("/home"); }}
           >
             ECGenius
           </Typography>
           <Box sx={{ flexGrow: 10 }} />
           <IconButton color="inherit" onClick={toggleDropdown}>
-            <MenuIcon sx={{ fontSize: '2rem', marginRight: '-12px' }}/>
+            <MenuIcon className="menu-icon"/>
           </IconButton>
         </Toolbar>
       </AppBar>
@@ -67,8 +75,8 @@ function App() {
         open={Boolean(dropdownOpen)}
         onClose={() => setDropdownOpen(null)}
       >
-        <MenuItem onClick={() => navigate("/home")} sx={{ borderBottom: '1px solid #ddd' }}>Home</MenuItem>
-        <MenuItem onClick={() => navigate("/about")} sx={{ borderBottom: '1px solid #ddd' }}>About</MenuItem>
+        <MenuItem onClick={() => navigate("/home")} className="menu-item">Home</MenuItem>
+        <MenuItem onClick={() => navigate("/about")} className="menu-item">About</MenuItem>
         <MenuItem>
           Dark Mode
           <Switch checked={darkMode} onChange={handleDarkModeToggle} />
