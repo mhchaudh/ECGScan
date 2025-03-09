@@ -8,35 +8,44 @@ body {
   color: black;
   margin: 0;
   padding: 0;
-  overflow-x: hidden; 
+  overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 body.dark-mode {
   background-color: #121212;
   color: white;
 }
+
 .dark-mode,
 .dark-mode .app-container,
 .dark-mode .app-title,
-.dark-mode h1, 
-.dark-mode h2, 
-.dark-mode h3, 
-.dark-mode h4, 
-.dark-mode h5, 
-.dark-mode h6, 
-.dark-mode p, 
-.dark-mode span, 
-.dark-mode a, 
-.dark-mode label, 
-.dark-mode button, 
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6,
+.dark-mode p,
+.dark-mode span,
+.dark-mode a,
+.dark-mode label,
+.dark-mode button,
 .dark-mode .MuiTypography-root,
 .dark-mode .MuiMenuItem-root,
 .dark-mode .MuiPaper-root,
 .dark-mode .MuiMenu-list,
 .dark-mode .MuiMenuItem-root,
-.dark-mode .menu-item {
+.MuiContainer-root,
+.dark-mode .menu-item {   
   color: white !important;
 }
+
+.dark-mode .MuiTypography-root,
+.dark-mode .MuiListItemText-root {
+  color: white !important;
+}
+
 .app-container {
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -45,30 +54,35 @@ body.dark-mode {
 .app-bar {
   background-color: #3f51b5 !important;
 }
+
 .dark-mode .app-bar {
   background-color: #333 !important;
 }
+
 .logo {
   cursor: pointer;
   height: 50px;
   margin-right: 3px;
   margin-left: -15px;
 }
+
 .app-title {
   cursor: pointer;
   font-family: 'Monaco, monospace';
   font-weight: bolder;
   font-size: 2rem;
 }
+
 .main-content {
-  padding-top: 5rem; 
+  padding-top: 5rem;
   font-weight: bold;
   width: 100vw;
   box-sizing: border-box;
   flex: 1;
   overflow: auto;
-  padding-bottom: 2rem; 
+  padding-bottom: 2rem;
 }
+
 .MuiMenu-paper {
   background-color: white !important;
 }
@@ -76,6 +90,7 @@ body.dark-mode {
 .dark-mode .MuiMenu-paper {
   background-color: #333 !important;
 }
+
 .menu-item {
   border-bottom: 1px solid #ddd;
   color: black !important;
@@ -84,6 +99,10 @@ body.dark-mode {
 .dark-mode .menu-item {
   color: white !important;
   border-bottom: 1px solid #555;
+}
+.dark-mode .MuiContainer-root {
+  background-color: #121212 !important;
+  color: white !important;
 }
 
 .dark-mode button,
@@ -94,6 +113,7 @@ body.dark-mode {
   color: white;
   border: 1px solid #555;
 }
+
 .MuiIconButton-root:focus {
   outline: none;
 }

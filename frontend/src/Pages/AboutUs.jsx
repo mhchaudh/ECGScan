@@ -26,6 +26,7 @@ function AboutUs() {
           </Typography>
 
           {/* Project Leads */}
+        
           <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: "bold", mt: 3, color: "primary.main" }}>
             Project Leads
           </Typography>
@@ -48,7 +49,7 @@ function AboutUs() {
               "Ricardo Garcia",
             ].map((name, index) => (
               <ListItem key={index} sx={{ py: 0.5 }}>
-                <ListItemText primary={<strong style={{ color: "black" }}>{name}</strong>} />
+                <ListItemText primary={<strong>{name}</strong>} />
               </ListItem>
             ))}
           </List>
