@@ -25,3 +25,4 @@ matplotlib==3.7.4
 #Make sure to pip install this file after doing pip install on the Yolov7 requirements file, in order to overwrite the torch version.
 torchvision==0.20
 torch==2.5.0
+wfdb==4.2.0
