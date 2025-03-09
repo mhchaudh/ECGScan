@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 // Refrenced: https://mui.com/material-ui/all-components/?srsltid=AfmBOoo3ZuM3R9qLhp_JDLn0Gp7fmQW_nsLmIcqM5lASyIL9qzzICiwf
 import { Button, Grid, Typography, IconButton } from "@mui/material";
 import { PhotoCamera, CloudUpload, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
+import logo from '../assets/1-3b2842e1-removebg-preview.png'; 
 import './Home.css'; 
 
 function Home() {
@@ -26,7 +27,6 @@ function Home() {
 
     }
   }, [cameFromConfirm, cameFromConfirmUpload]);
-
 
   const handleUploadButtonClick = () => {
     fileInputRef.current.click();
@@ -85,18 +85,27 @@ function Home() {
   };
 
   return (
-    <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
+    <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column" style={{ height: '100vh' }}>
       {!isCameraOpen ? (
         <>
           <Grid item>
-            <Typography variant="h4" color="black">Upload or Take a Picture of your ECG Report</Typography>
+            <img 
+              src={logo}
+              alt="ECGenius Logo" 
+              style={{ height: '200px', marginBottom: '20px' }} 
+            />
+          </Grid>
+          <Grid item>
+            <Typography variant="h4" color="black" align="center" style={{ fontWeight: 'bold', marginBottom: '20px', fontFamily: 'Monaco' }}>
+              Take or Upload ECG Report
+            </Typography>
           </Grid>
           <Grid item>
             <Button 
-                sx={{ backgroundColor: "#4CAF50", color: "white", "&:hover": { backgroundColor: "#388E3C" }, padding: "20px 40px",  
+                sx={{ backgroundColor: "#4CAF50", color: "white", "&:hover": { backgroundColor: "#388E3C" }, padding: "20px 46px",  
                 fontSize: "1.5rem",   
                 height: "80px",        
-                minWidth: "250px" }}
+                minWidth: "250px", fontFamily: 'Monaco' }}
                 variant="contained" color="primary" startIcon={<PhotoCamera />} onClick={handleTakePictureClick}>
               Open Camera
             </Button>
@@ -113,7 +122,7 @@ function Home() {
                 sx={{ backgroundColor: "#2196F3", color: "white", "&:hover": { backgroundColor: "#1976D2" } , padding: "20px 40px",  
                 fontSize: "1.5rem",   
                 height: "80px",        
-                minWidth: "250px" }}
+                minWidth: "250px", fontFamily: 'Monaco' }}
                 variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
               Upload Image
             </Button>
@@ -135,10 +144,6 @@ function Home() {
                 <PhotoCamera />
               </IconButton>
             </div>
-
-            <Button variant="contained" color="primary" onClick={handleCapture}>
-              Capture
-            </Button>
           </div>
         </Grid>
       )}

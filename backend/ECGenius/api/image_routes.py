@@ -4,7 +4,8 @@ import numpy as np
 from PIL import Image
 import io
 from ..utils.image_converter.image_to_sequence import image_to_sequence, convert_image_to_sequence
-from ..utils.image_converter.ecg_processing import *
+from ..utils.image_converter.ecg_processing import process_ecg_image
+import shutil  # To remove folders/files
 
 image_bp = Blueprint('image_bp', __name__)
 
@@ -39,13 +40,15 @@ def create_image_and_digitize():
     image = Image.open(image_file)
 
     # Define storage paths
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    identifier_folder = os.path.join(base_dir, f'{identifier_data}_OriginalImage')
-    os.makedirs(identifier_folder, exist_ok=True)
+    backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    print(backend_dir)
+    identifier_folder = os.path.join(backend_dir, f'{identifier_data}_OriginalImage')  
+    os.makedirs(identifier_folder, exist_ok=True)  # Ensure folder exists
 
     # Generate filename
-    filename = f"{uuid.uuid4().hex}_{age_data}_{gender_data}.jpg"
-    filepath = os.path.join(identifier_folder, filename)
+    filename = f"{uuid.uuid4().hex}_{age_data}_{gender_data}"
+    filenamejpg = f"{filename}.jpg"
+    filepath = os.path.join(identifier_folder, filenamejpg)
 
     image = image.convert('RGBA')  # Convert to RGBA to handle transparency
     bbox = image.getbbox()  # Get bounding box of non-white areas
@@ -56,21 +59,33 @@ def create_image_and_digitize():
     image_path = f"{filepath}" 
     print(image_path)
 
-    process_ecg_image(image_path)
+    process_ecg_image(image_path, identifier_data, filename)
 
-    # Convert cropped image to numpy array for processing
-    #img_as_array = np.array(cropped_image)
+    # Cleanup: Delete the "runs" folder and "traced_model.pt" file after processing
+    runs_path = os.path.join(backend_dir, "runs")
+    traced_model_path = os.path.join(backend_dir, "traced_model.pt")
+    output_path = os.path.join(backend_dir, f"output_{identifier_data}")
+    folder_path = os.path.join(output_path, filename)
+    file_path = os.path.join(folder_path, 'Q0001.hea')
 
-    #mode = "dark-foreground"
-    #method = "all_left_right_neighbors"
-    #grid_square_margin = 3
-    #plot_result = True
+    if os.path.exists(runs_path) and os.path.isdir(runs_path):
+        shutil.rmtree(runs_path)  # Remove "runs" folder
+        print(f"Deleted folder: {runs_path}")
 
-    # Process the image using the image_to_sequence function
-    #time_series_data = image_to_sequence(img_as_array, mode, method, grid_square_margin, plot_result,age = age_data, gender = gender_data, identifier = identifier_data)
+    if os.path.exists(traced_model_path) and os.path.isfile(traced_model_path):
+        os.remove(traced_model_path)  # Remove "traced_model.pt"
+        print(f"Deleted file: {traced_model_path}")
+    with open(file_path, 'a') as file:
+        file.write(f"#Age: {age_data}\n")
+        file.write(f"#Sex: {gender_data}\n")
+        file.write("Dx: Unknown\n")
+        file.write("Rx: Unknown\n")
+        file.write("Hx: Unknown\n")
+        file.write("Sx: Unknown\n")
+
 
     return jsonify({
         'message': 'Image uploaded and processed successfully',
-        'filename': filename,
+        'filename': filenamejpg,
         'status': 'Success'
     }), 200

@@ -5,18 +5,24 @@ import AboutUs from './Pages/AboutUs';
 import Home from './Pages/Home'; 
 import Confirm from './Pages/Confirm';
 import ConfirmUpload from './Pages/ConfirmUpload';
+import logo from './assets/1-3b2842e1-removebg-preview.png'; 
 
 // Import Material UI components
-import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box, Switch } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
 
   const toggleDropdown = (event) => {
     setDropdownOpen(dropdownOpen ? null : event.currentTarget);
+  };
+
+  const handleDarkModeToggle = () => {
+    setDarkMode(!darkMode);
   };
 
   useEffect(() => {
@@ -28,18 +34,36 @@ function App() {
     setIsLoading(false);
   }, [navigate]);
 
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add("dark-mode");
+    } else {
+      document.body.classList.remove("dark-mode");
+    }
+  }, [darkMode]);
+
   if (isLoading) {
     return null; 
   }
 
   return (
-    <div>
-      <AppBar position="fixed">
+    <div className={`app-container ${darkMode ? "dark-mode" : ""}`}>
+      <AppBar position="fixed" className="app-bar">
         <Toolbar>
-          <Typography variant="h6" sx={{ cursor: 'pointer' }} onClick={() => { navigate("/home"); }}>
+          <img 
+            src={logo}
+            alt="ECGenius Logo" 
+            className="logo"
+            onClick={() => { navigate("/home"); }}
+          />
+          <Typography 
+            variant="h6" 
+            className="app-title"
+            onClick={() => { navigate("/home"); }}
+          >
             ECGenius
           </Typography>
-          <Box sx={{ flexGrow: 1 }} />
+          <Box sx={{ flexGrow: 10 }} />
           <IconButton color="inherit" onClick={toggleDropdown}>
             <MenuIcon />
           </IconButton>
@@ -51,8 +75,12 @@ function App() {
         open={Boolean(dropdownOpen)}
         onClose={() => setDropdownOpen(null)}
       >
-        <MenuItem onClick={() => navigate("/home")}>Home</MenuItem>
-        <MenuItem onClick={() => navigate("/about")}>About</MenuItem>
+        <MenuItem onClick={() => navigate("/home")} className="menu-item">Home</MenuItem>
+        <MenuItem onClick={() => navigate("/about")} className="menu-item">About</MenuItem>
+        <MenuItem>
+          Dark Mode
+          <Switch checked={darkMode} onChange={handleDarkModeToggle} />
+        </MenuItem>
       </Menu>
 
       <div className="main-content">
