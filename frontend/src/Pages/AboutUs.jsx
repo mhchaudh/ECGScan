@@ -1,4 +1,5 @@
 import { Container, Typography, List, ListItem, ListItemText, Box } from "@mui/material";
+import React from "react";
 
 // I prompted ChatGPT to help refactor the AboutUs component to make it more readable and concise.
 
