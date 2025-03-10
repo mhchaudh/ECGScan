@@ -9,6 +9,7 @@ nav:
   - Software Design: softwareDesign.md
   - Team Work: teamWork.md
   - Project Management: projectManagement.md
+  - UX, UI Design: UX-UI-design.md
   - Images:
       - Major Data Elements: images/majorDataElements.png
       - Sequence Diagram: images/sequenceDiagram.png
