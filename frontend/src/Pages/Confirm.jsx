@@ -17,35 +17,37 @@ import { Male, Female } from "@mui/icons-material";
 function Confirm() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl} = location.state || {}; // Retrieve file, age, and gender
+  const { imageUrl } = location.state || {}; // Retrieve the file from navigation state
 
+  // State hooks for managing cropping, form data, and confirmation popup
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [resizedImage, setResizedImage] = useState(null); // Store resized image
-  const [age, setAge] = useState( "");
-  const [gender, setGender] = useState( "");
+  const [resizedImage, setResizedImage] = useState(null); // Store resized image for display purposes
+  const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
 
+  // Refs for handling image elements
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
   const originalImageRef = useRef(null);
 
   useEffect(() => {
     if (!imageUrl) {
-      navigate("/home"); // Redirect if no image is provided
+      navigate("/home"); // Redirect to home if no image is provided
       return;
     }
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
-    originalImageRef.current = img; // Store the original image
+      originalImageRef.current = img; // Store the original image
     };
     resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image for display
   }, [imageUrl, navigate]);
 
-  // Function to resize image only for display
+  // Resize image only for display purposes
   const resizeImage = (src, maxWidth, maxHeight, callback) => {
     const img = new Image();
     img.onload = () => {
@@ -70,37 +72,30 @@ function Confirm() {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, width, height);
-
-      callback(canvas.toDataURL("image/png")); // Convert to Base64
+      callback(canvas.toDataURL("image/png")); // Convert to base64
     };
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true }});
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); //navigate to home and automatically press the take picture button
 
   const API_URL = import.meta.env.VITE_API_URL;
+
+  // Handle confirmation of image submission
   const handleConfirm = async () => {
     console.log("Confirmed image: ", croppedImage || imageUrl);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
-  
-  
-    const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
-  
-    
-    const uniqueIdentifiersSet = new Set(previousIdentifiers);
 
+    const uniqueIdentifiersSet = new Set(previousIdentifiers);
     if (identifier && !uniqueIdentifiersSet.has(identifier)) {
       uniqueIdentifiersSet.add(identifier);
     }
-  
-    
     const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
-  
     localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-  
+
     const imageToSend = croppedImage || imageUrl;
-  
+
     try {
       const response = await fetch(`${API_URL}/api/image`, {
         method: "POST",
@@ -115,12 +110,12 @@ function Confirm() {
     } catch (error) {
       console.error("Error uploading image: ", error);
     }
-  
     navigate("/home");
   };
-  const handleDownload = () => {
-    const imagetodownload = croppedImage || imageUrl
 
+  // Handle image download
+  const handleDownload = () => {
+    const imagetodownload = croppedImage || imageUrl;
     const link = document.createElement("a");
     link.href = imagetodownload;
     link.download = "cropped-image.png";
@@ -129,18 +124,17 @@ function Confirm() {
     document.body.removeChild(link);
   };
 
+  // Handle image cropping
   const onCropComplete = (crop) => {
     if (originalImageRef.current && canvasRef.current) {
-      const image = originalImageRef.current; // Use the original image for cropping
+      const image = originalImageRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
-  
       const scaleX = image.naturalWidth / imageRef.current.width;
       const scaleY = image.naturalHeight / imageRef.current.height;
-  
+
       canvas.width = crop.width * scaleX;
       canvas.height = crop.height * scaleY;
-  
       ctx.drawImage(
         image,
         crop.x * scaleX,
@@ -152,8 +146,8 @@ function Confirm() {
         canvas.width,
         canvas.height
       );
-  
-      setCroppedImage(canvas.toDataURL("image/png")); // Store cropped image in original resolution
+
+      setCroppedImage(canvas.toDataURL("image/png")); // Store cropped image
     }
   };
 
@@ -166,20 +160,13 @@ function Confirm() {
     setAge(value);
   };
 
-  const handleGenderChange = (e) => {
-    setGender(e.target.value);
-  };
-  const handleIdentifierChange = (e) => {
-    setIdentifier(e.target.value);
-  }
-  const handleConfirmClick = () => {
-    setShowConfirmPopup(true);
-  };
-  
+  const handleGenderChange = (e) => setGender(e.target.value);
+  const handleIdentifierChange = (e) => setIdentifier(e.target.value);
+  const handleConfirmClick = () => setShowConfirmPopup(true);
   const handlePopupResponse = (confirm) => {
     setShowConfirmPopup(false);
     if (confirm) {
-      handleConfirm(); // continue to confirm if we press yes
+      handleConfirm();
     }
   };
 
@@ -317,7 +304,7 @@ function Confirm() {
           </Grid>
         </Grid>
       </Grid>
-      {/* Confirmation Dialog (Popup) */}
+      {/* Confirmation Popup */}
       <Dialog open={showConfirmPopup} onClose={() => setShowConfirmPopup(false)}>
         <DialogTitle>Confirm Submission</DialogTitle>
         <DialogContent>
