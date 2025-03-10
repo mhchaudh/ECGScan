@@ -1,0 +1,13 @@
+name: Self-Hosted Runner Test
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test-runner:
+    runs-on: self-hosted
+    steps:
+      - name: Verify Runner
+        run: echo "Self-hosted runner is working!"

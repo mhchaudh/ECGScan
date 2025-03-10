@@ -1,85 +1,119 @@
-body {
-  background-color: white;
+* {
   margin: 0;
   padding: 0;
-  overflow-x: hidden; 
+  box-sizing: border-box;
 }
-
-.top-bar {
-  background-color: rgb(31, 80, 87);
-  color: white;
-  padding: 1rem;
-  text-align: center;
-  font-size: 2rem;
-  font-weight: bold;
-  width: 100vw;
-  position: fixed;
-  top: 0;
-  left: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.dropdown {
-  position: relative;
-  display: inline-block;
-  margin-right: 1cm; 
-}
-
-.dropbtn {
-  background-color: transparent;
-  color: white;
-  padding: 10px;
-  font-size: 24px;
-  border: none;
-  cursor: pointer;
-}
-
-.dropbtn:focus,
-.dropbtn:focus-visible {
-  outline: 2px solid black; 
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  right: 0;
+body {
   background-color: white;
-  min-width: 110px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-  border-radius: 8px;
-}
-
-.dropdown-content a {
   color: black;
-  padding: 12px 16px;
-  text-decoration: none;
-  display: block;
-  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.dropdown-content a:hover {
-  background-color: #ddd;
+body.dark-mode {
+  background-color: #121212;
+  color: white;
 }
 
-.dropdown:hover .dropdown-content {
-  display: block;
+.dark-mode,
+.dark-mode .app-container,
+.dark-mode .app-title,
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4,
+.dark-mode h5,
+.dark-mode h6,
+.dark-mode p,
+.dark-mode span,
+.dark-mode a,
+.dark-mode label,
+.dark-mode button,
+.dark-mode .MuiTypography-root,
+.dark-mode .MuiMenuItem-root,
+.dark-mode .MuiPaper-root,
+.dark-mode .MuiMenu-list,
+.dark-mode .MuiMenuItem-root,
+.MuiContainer-root,
+.dark-mode .menu-item {   
+  color: white !important;
 }
 
-.dropdown:hover .dropbtn {
-  background-color: transparent;
+.dark-mode .MuiTypography-root,
+.dark-mode .MuiListItemText-root {
+  color: white !important;
+}
+
+.app-container {
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.app-bar {
+  background-color: #3f51b5 !important;
+}
+
+.dark-mode .app-bar {
+  background-color: #333 !important;
+}
+
+.logo {
+  cursor: pointer;
+  height: 50px;
+  margin-right: 3px;
+  margin-left: -15px;
+}
+
+.app-title {
+  cursor: pointer;
+  font-family: 'Monaco, monospace';
+  font-weight: bolder;
+  font-size: 2rem;
 }
 
 .main-content {
-  padding-top: 4rem; 
+  padding-top: 5rem;
   font-weight: bold;
   width: 100vw;
   box-sizing: border-box;
+  flex: 1;
+  overflow: auto;
+  padding-bottom: 2rem;
 }
 
-.about-us-container {
-  margin: 50px;
+.MuiMenu-paper {
+  background-color: white !important;
 }
 
+.dark-mode .MuiMenu-paper {
+  background-color: #333 !important;
+}
+
+.menu-item {
+  border-bottom: 1px solid #ddd;
+  color: black !important;
+}
+
+.dark-mode .menu-item {
+  color: white !important;
+  border-bottom: 1px solid #555;
+}
+.dark-mode .MuiContainer-root {
+  background-color: #121212 !important;
+  color: white !important;
+}
+
+.dark-mode button,
+.dark-mode input,
+.dark-mode select,
+.dark-mode textarea {
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
+}
+
+.MuiIconButton-root:focus {
+  outline: none;
+}

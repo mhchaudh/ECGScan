@@ -7,3 +7,22 @@ Jinja2==3.1.5
 MarkupSafe==3.0.2
 python-dotenv==1.0.1
 Werkzeug==3.1.3
+
+# Libraries for image_to_sequence.py, using library versions listed in the multiple 
+# requirements.txt files in https://github.com/alphanumericslab/ecg-image-kit, for compatibility. 
+numpy==1.26.4
+opencv_python==4.8.1.78
+# opencv-python==4.6.0.66 ecg-image-generator file
+# opencv-python==4.8.1.78 roi file
+# opencv-python>=4.1.1 yolov7 file
+scipy>=1.10.0 
+pillow==10.3.0
+
+# matplotlib version from yolov7 requirements file. Found at this link 
+# https://github.com/alphanumericslab/ecg-image-kit/tree/main/codes/ecg-image-digitizer/roi/yolov7, for compatibility with yolov7 code.
+matplotlib==3.7.4
+
+#Make sure to pip install this file after doing pip install on the Yolov7 requirements file, in order to overwrite the torch version.
+torchvision==0.20
+torch==2.5.0
+wfdb==4.2.0
