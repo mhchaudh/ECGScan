@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-// Referenced: https://mui.com/material-ui/all-components/
+// Refrenced: https://mui.com/material-ui/all-components/?srsltid=AfmBOoo3ZuM3R9qLhp_JDLn0Gp7fmQW_nsLmIcqM5lASyIL9qzzICiwf
 import { Button, Grid, Typography, IconButton } from "@mui/material";
 import { PhotoCamera, CloudUpload, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
 import logo from '../assets/1-3b2842e1-removebg-preview.png'; 
@@ -19,7 +19,7 @@ function Home() {
   // check if the user is coming from confirmation pages
   const cameFromConfirm = location.state?.cameFromConfirm || false;
   const cameFromConfirmUpload = location.state?.cameFromConfirmUpload || false;
-
+  // if it is from picture, we retake the picture, if not, we retake the upload
   useEffect(() => {
     if (cameFromConfirm) {
       handleTakePictureClick();
