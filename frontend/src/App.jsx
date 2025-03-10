@@ -7,24 +7,25 @@ import Confirm from './Pages/Confirm';
 import ConfirmUpload from './Pages/ConfirmUpload';
 import logo from './assets/1-3b2842e1-removebg-preview.png'; 
 
-// Import Material UI components
 import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box, Switch } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 
 function App() {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const navigate = useNavigate();
+  const [dropdownOpen, setDropdownOpen] = useState(false); 
+  const [isLoading, setIsLoading] = useState(true); 
+  const [darkMode, setDarkMode] = useState(false); 
+  const navigate = useNavigate(); 
 
+  // dropdown(home and aboutus)
   const toggleDropdown = (event) => {
     setDropdownOpen(dropdownOpen ? null : event.currentTarget);
   };
-
+  // dark mode
   const handleDarkModeToggle = () => {
     setDarkMode(!darkMode);
   };
 
+  // this is to check if the user has visited before if not we navigate to /home
   useEffect(() => {
     const hasVisited = sessionStorage.getItem("hasVisited");
     if (!hasVisited) {
@@ -33,7 +34,8 @@ function App() {
     }
     setIsLoading(false);
   }, [navigate]);
-
+ 
+  // this is to apply the dark mode to the body once selected
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add("dark-mode");
@@ -42,12 +44,14 @@ function App() {
     }
   }, [darkMode]);
 
+  // Show nothing while loading
   if (isLoading) {
     return null; 
   }
 
   return (
     <div className={`app-container ${darkMode ? "dark-mode" : ""}`}>
+     
       <AppBar position="fixed" className="app-bar">
         <Toolbar>
           <img 
@@ -63,12 +67,13 @@ function App() {
           >
             ECGenius
           </Typography>
-          <Box sx={{ flexGrow: 10 }} />
+          <Box sx={{ flexGrow: 10 }} /> 
           <IconButton color="inherit" onClick={toggleDropdown}>
             <MenuIcon />
           </IconButton>
         </Toolbar>
       </AppBar>
+
 
       <Menu
         anchorEl={dropdownOpen}
