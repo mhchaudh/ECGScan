@@ -13,12 +13,12 @@
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^6.4.6",
-    "chromedriver": "^133.0.1",
+    "chromedriver": "^133.0.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-image-crop": "^11.0.7",
     "react-router-dom": "^7.1.5",
-    "selenium-webdriver": "^4.28.1"
+    "selenium-webdriver": "^4.29.0"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0",
