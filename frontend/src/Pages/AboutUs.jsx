@@ -70,7 +70,7 @@ function AboutUs() {
 
 
       {/* Copyright */}
-      <Box sx={{ py: 2, backgroundColor: "background.paper", textAlign: "center" }}>
+      <Box sx={{ py: 2, textAlign: "center" }}>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
           © {new Date().getFullYear()} ECGenius. Open-source under the BSD license.
         </Typography>

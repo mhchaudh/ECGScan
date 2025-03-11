@@ -230,7 +230,7 @@ function ConfirmUpload() {
             sx={{
               backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
               color: "white !important", // Ensures white text at all times
-              "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
+              "&:hover": { backgroundColor: gender === "female" ? "#1565c0 !important" : "gray" },
             }}
           >
             <Female sx={{ marginRight: 1, color: "white" }} /> Female

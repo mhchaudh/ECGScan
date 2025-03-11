@@ -40,12 +40,29 @@ body.dark-mode {
 .dark-mode .menu-item {   
   color: white !important;
 }
+.dark-mode .MuiDialog-paper {
+  background-color: #121212 !important;
+  color: white !important;
+}
+.dark-mode .MuiDialogTitle-root,
+.dark-mode .MuiDialogContent-root,
+.dark-mode .MuiDialogActions-root {
+  color: white !important;
+}
+.dark-mode .MuiButton-root {
+  color: white !important;
+}
 
+.dark-mode .MuiButton-root.MuiButton-textPrimary {
+  color: white !important;
+}
+.dark-mode .MuiButton-root.MuiButton-textSecondary {
+  color: white !important;
+}
 .dark-mode .MuiTypography-root,
 .dark-mode .MuiListItemText-root {
   color: white !important;
 }
-
 .app-container {
   min-height: 100vh;
   transition: background-color 0.3s ease, color 0.3s ease;
@@ -58,21 +75,18 @@ body.dark-mode {
 .dark-mode .app-bar {
   background-color: #333 !important;
 }
-
 .logo {
   cursor: pointer;
   height: 50px;
   margin-right: 3px;
   margin-left: -15px;
 }
-
 .app-title {
   cursor: pointer;
   font-family: 'Monaco, monospace';
   font-weight: bolder;
   font-size: 2rem;
 }
-
 .main-content {
   padding-top: 5rem;
   font-weight: bold;
@@ -82,20 +96,16 @@ body.dark-mode {
   overflow: auto;
   padding-bottom: 2rem;
 }
-
 .MuiMenu-paper {
   background-color: white !important;
 }
-
 .dark-mode .MuiMenu-paper {
   background-color: #333 !important;
 }
-
 .menu-item {
   border-bottom: 1px solid #ddd;
   color: black !important;
 }
-
 .dark-mode .menu-item {
   color: white !important;
   border-bottom: 1px solid #555;
@@ -104,7 +114,6 @@ body.dark-mode {
   background-color: #121212 !important;
   color: white !important;
 }
-
 .dark-mode button,
 .dark-mode input,
 .dark-mode select,
@@ -113,7 +122,6 @@ body.dark-mode {
   color: white;
   border: 1px solid #555;
 }
-
 .MuiIconButton-root:focus {
   outline: none;
 }
