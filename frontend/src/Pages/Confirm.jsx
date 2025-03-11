@@ -162,7 +162,14 @@ function Confirm() {
 
   const handleGenderChange = (e) => setGender(e.target.value);
   const handleIdentifierChange = (e) => setIdentifier(e.target.value);
-  const handleConfirmClick = () => setShowConfirmPopup(true);
+  const handleConfirmClick = () => {
+    if (!identifier || !age || !gender) {
+      alert("Please fill in all the required fields");
+      return; 
+    }
+    setShowConfirmPopup(true); 
+  };
+  
   const handlePopupResponse = (confirm) => {
     setShowConfirmPopup(false);
     if (confirm) {
