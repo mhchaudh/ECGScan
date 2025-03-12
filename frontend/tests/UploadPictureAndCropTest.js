@@ -1,48 +1,56 @@
 import { Builder, By, until } from "selenium-webdriver";
 import chrome from "selenium-webdriver/chrome.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";  // Add fs to check if the file exists
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-(async function testTakePictureAndCropField() {
-    let driver = await new Builder().forBrowser("chrome").setChromeOptions(new chrome.Options().addArguments("--use-fake-ui-for-media-stream")).build();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+(async function testUploadImageAndConfirm() {
+    let driver = await new Builder().forBrowser("chrome").setChromeOptions(new chrome.Options()).build();
     try {
         console.log("Opening the web app...");
         await driver.get("http://localhost:5173");
         await sleep(1000);
 
-        console.log("Looking for the Open Camera button...");
-        let openCameraButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Open Camera')]")), 5000).catch((error) => {
-            console.error("Failed to find the Open Camera button:", error);
-            throw new Error("Open Camera button not found");
+        console.log("Looking for the Upload Image button...");
+        let uploadButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Upload Image')]")), 5000).catch((error) => {
+            console.error("Failed to find the Upload Image button:", error);
+            throw new Error("Upload Image button not found");
         });
-        console.log("Open Camera button found. Clicking...");
-        await openCameraButton.click();
+
+        console.log("Upload Image button found. Clicking...");
+        await uploadButton.click();
         await sleep(1000);
 
-        await driver.wait(until.elementLocated(By.css("video.camera-view")), 5000).catch((error) => {
-            console.error("Camera view not found:", error);
-            throw new Error("Camera not opened successfully");
+        console.log("Uploading test.png...");
+        let fileInput = await driver.wait(until.elementLocated(By.xpath("//input[@type='file']")), 5000).catch((error) => {
+            console.error("Failed to find file input field:", error);
+            throw new Error("File input field not found");
         });
-        console.log("Camera opened successfully.");
-        await sleep(1000);
 
-        console.log("Looking for Capture button...");
-        let captureButton = await driver.wait(until.elementLocated(By.className("capture-button")), 5000).catch((error) => {
-            console.error("Failed to find capture button:", error);
-            throw new Error("Capture button not found");
-        });
-        console.log("Capture button found. Clicking...");
-        await captureButton.click();
-        await sleep(1000);
+        // Update file path to look in test_images folder
+        let filePath = path.resolve(__dirname, "test_images", "test.png");
+        if (!fs.existsSync(filePath)) {
+            console.error("Test image file does not exist at:", filePath);
+            throw new Error("Test image file not found");
+        }
+
+        await fileInput.sendKeys(filePath);
+        await sleep(2000);
 
         console.log("Waiting for navigation to confirmation page...");
-        await driver.wait(until.urlContains("/confirm"), 10000).catch((error) => {
-            console.error("Navigation to confirmation page failed:", error);
+        await driver.wait(until.urlContains("/confirmupload"), 10000).catch((error) => {
+            console.error("Failed to navigate to confirmation page:", error);
             throw new Error("Navigation to confirmation page failed");
         });
-        console.log("Picture captured and navigated to confirmation page.");
+
+        console.log("Image uploaded and navigated to confirmation page.");
         await sleep(1000);
 
         console.log("Filling out identifier field...");
@@ -65,8 +73,8 @@ function sleep(ms) {
 
         console.log("Selecting gender...");
         let maleButton = await driver.wait(until.elementLocated(By.xpath("//button[@value='male' and @aria-pressed='false']")), 5000).catch((error) => {
-            console.error("Failed to find gender button:", error);
-            throw new Error("Gender selection button not found");
+            console.error("Failed to find male gender button:", error);
+            throw new Error("Male gender button not found");
         });
         await maleButton.click();
         await sleep(500);
@@ -76,21 +84,23 @@ function sleep(ms) {
             console.error("Failed to find Confirm button:", error);
             throw new Error("Confirm button not found");
         });
+
         await sleep(1000);
         await confirmButton.click();
 
         console.log("Handling confirmation popup...");
         let yesButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Yes')]")), 5000).catch((error) => {
-            console.error("Failed to find Yes button in popup:", error);
-            throw new Error("Yes button not found in confirmation popup");
+            console.error("Failed to find 'Yes' button on confirmation popup:", error);
+            throw new Error("Confirmation popup 'Yes' button not found");
         });
+
         await sleep(1000);
         await yesButton.click();
 
         console.log("Waiting for navigation to /home...");
         await sleep(1000);
         await driver.wait(until.urlContains("/home"), 10000).catch((error) => {
-            console.error("Navigation to /home failed:", error);
+            console.error("Failed to navigate to /home:", error);
             throw new Error("Navigation to /home failed");
         });
         console.log("Successfully navigated to /home after confirming.");
