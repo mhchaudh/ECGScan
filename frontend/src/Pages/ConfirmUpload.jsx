@@ -79,69 +79,160 @@ function ConfirmUpload() {
   const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } }); //navigate to home and automatically press the upload button
 
   const API_URL = import.meta.env.VITE_API_URL;
-
   const handleConfirm = async () => {
-    console.log("Confirmed image: ", croppedImage || imageUrl);
-    console.log("Age: ", age);
-    console.log("Gender: ", gender);
-  
-    const uniqueIdentifiersSet = new Set(previousIdentifiers);
-    if (identifier && !uniqueIdentifiersSet.has(identifier)) {
-      uniqueIdentifiersSet.add(identifier);
-    }
-    const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
-    localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-  
-    const imageToSend = croppedImage || imageUrl;
-  
     try {
-      // Upload the image first
-      const uploadResponse = await fetch(`${API_URL}/api/image`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: imageToSend,
-          age: age,
-          gender: gender,
-          identifier: identifier
-        }),
-      });
-      if (!uploadResponse.ok) {
-        console.error("Upload failed, proceeding with classification anyway.");
-      } else {
-        console.log("Image uploaded successfully");
-      }
-    } catch (error) {
-      console.error("Error uploading image: ", error);
-    }
+      console.log("Confirmed image: ", croppedImage || imageUrl);
+      console.log("Age: ", age);
+      console.log("Gender: ", gender);
   
-    try {
-      setLoading(true);
-      // Now classify the ECG
-      const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ecg: "dummy_ecg_signal",
-          sex: gender || "male",
-          age: age || 30
-        }),
-      });
-      if (!classifyResponse.ok) {
-        console.error("Classification failed");
-        setLoading(false);
-        return;
+      const uniqueIdentifiersSet = new Set(previousIdentifiers);
+      if (identifier && !uniqueIdentifiersSet.has(identifier)) {
+        uniqueIdentifiersSet.add(identifier);
       }
-      const classifyData = await classifyResponse.json();
-      // Fake a 5-second loading delay
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      setLoading(false);
-      navigate("/ecg-results", { state: { results: classifyData } });
+      const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
+      localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
+  
+      // Remove image data from localStorage, only store metadata
+      const historyData = JSON.parse(localStorage.getItem("history")) || [];
+  
+      // Create a new history item without storing the image
+      const newHistoryItem = {
+        identifier: identifier,
+        age: age,
+        gender: gender,
+        timestamp: new Date().toISOString(),
+      };
+  
+      // Add new history item to the beginning of the array
+      historyData.unshift(newHistoryItem);
+  
+      // Limit the history array to the latest few items, e.g., last 10 items.
+      if (historyData.length > 10) {
+        historyData.pop(); // Keep the last 10 entries
+      }
+  
+      localStorage.setItem("history", JSON.stringify(historyData)); // Save the updated history
+  
+      // Store the image as Base64 in localStorage with a unique key
+      const imageToSave = croppedImage || imageUrl; // Use cropped image or original
+      const image = new Image();
+      image.src = imageToSave;
+  
+      image.onload = async function () {
+        // Resize the image before saving it to localStorage to avoid quota issues
+        resizedImage2(image, 500, 500, async function (resizedBase64) {
+          // Save the resized Base64 image data in localStorage with a unique key
+          localStorage.setItem(`imgData_${identifier}`, resizedBase64);
+          console.log("Image saved to localStorage");
+  
+          // Proceed with the rest of the code after storing the image
+          try {
+            // Upload the image if needed (optional)
+            const uploadResponse = await fetch(`${API_URL}/api/image`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image: imageToSave,
+                age: age,
+                gender: gender,
+                identifier: identifier,
+              }),
+            });
+  
+            if (!uploadResponse.ok) {
+              console.error("Upload failed, proceeding with classification anyway.");
+            } else {
+              console.log("Image uploaded successfully");
+            }
+  
+            setLoading(true);
+            // Classify the ECG
+            const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ecg: "dummy_ecg_signal",
+                sex: gender || "male",
+                age: age || 30,
+              }),
+            });
+  
+            if (!classifyResponse.ok) {
+              console.error("Classification failed");
+              setLoading(false);
+              return;
+            }
+  
+            const classifyData = await classifyResponse.json();
+  
+            // Store the classification result in localStorage
+            localStorage.setItem(`classificationResult_${identifier}`, JSON.stringify(classifyData));
+  
+            // Fetch the processed image from the backend
+            const imageResponse = await fetch(`${API_URL}/api/image`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image: croppedImage || imageUrl, // Send the image data (cropped or original)
+                age: age,
+                gender: gender,
+                identifier: identifier,
+              }),
+            });
+  
+            const imageData = await imageResponse.json();
+            const base64Image = imageData.image; // Base64 encoded image
+  
+            // Fake a 5-second loading delay
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            setLoading(false);
+  
+            // Navigate to results page with classification data and image
+            navigate("/ecg-results", {
+              state: {
+                identifier: identifier, // Pass the identifier to fetch the correct result
+              },
+            });
+          } catch (error) {
+            console.error("Error classifying ECG: ", error);
+            setLoading(false);
+          }
+        });
+      };
     } catch (error) {
-      console.error("Error classifying ECG: ", error);
-      setLoading(false);
+      console.error("Error saving image to localStorage: ", error);
     }
   };
+  // Function to resize the image before saving it to localStorage
+  function resizedImage2(img, maxWidth, maxHeight, callback) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+  
+    let width = img.width;
+    let height = img.height;
+  
+    // Maintain aspect ratio
+    if (width > height) {
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+    } else {
+      if (height > maxHeight) {
+        width = Math.round((width * maxHeight) / height);
+        height = maxHeight;
+      }
+    }
+  
+    canvas.width = width;
+    canvas.height = height;
+  
+    ctx.drawImage(img, 0, 0, width, height);
+  
+    callback(canvas.toDataURL("image/png")); // Call the callback with the resized image
+  }
+  
+  
   
   
 

@@ -58,6 +58,12 @@ def create_image_and_digitize():
     cropped_image = image.crop(bbox)
     cropped_image_rgb = cropped_image.convert('RGB')  # convert to RGB for JPEG format
     cropped_image_rgb.save(filepath)  # save the image
+    enhanced_image = cropped_image_rgb  # Assuming you enhance the image here
+
+    # Convert the enhanced image to base64 to send to frontend
+    buffered = io.BytesIO()
+    enhanced_image.save(buffered, format="JPEG")
+    enhanced_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     image_path = f"{filepath}"
     print(image_path)
@@ -92,5 +98,6 @@ def create_image_and_digitize():
     return jsonify({
         'message': 'Image uploaded and processed successfully',
         'filename': filenamejpg,
+        'image': enhanced_image_base64,
         'status': 'Success'
     }), 200

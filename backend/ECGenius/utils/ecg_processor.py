@@ -203,6 +203,19 @@ def classify_ecg_function(ecg, sex, age):
     selected_diagnoses = random.sample(diagnoses, num_diagnoses)
     results = {diag: round(random.uniform(0.2, 0.9), 2) for diag in selected_diagnoses}
 
-    lead_results = [("lead1", 0.1, 0.3), ("lead2", 0.4, 0.6)]
+    def generate_random_ecg_leads():
+    # List of standard ECG leads
+        leads = ["I", "II", "III", "aVR", "aVL", "aVF", "V1", "V2", "V3", "V4", "V5", "V6"]
+        
+        # Generate random start and stop times for each lead
+        lead_results = []
+        for lead in leads:
+            start = round(random.uniform(0.0, 1.0), 2)  # Random start time between 0.0 and 1.0
+            stop = round(start + random.uniform(0.1, 0.5), 2)  # Stop time is start + random duration
+            lead_results.append((lead, start, stop))
+        return lead_results
+
+    # Example usage
+    lead_results = generate_random_ecg_leads()
     
     return results, lead_results
