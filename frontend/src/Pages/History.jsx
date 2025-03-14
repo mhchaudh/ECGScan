@@ -24,12 +24,12 @@ function History() {
 
     // Add the image data (Base64 string) and classification result to each history item
     const updatedHistory = storedHistory.map((item) => {
-      // Fetch the image using the unique key based on the identifier
-      const imageKey = `imgData_${item.identifier}`;
+      // Fetch the image using the unique key based on the uniqueId
+      const imageKey = `imgData_${item.uniqueId}`;
       const savedImage = localStorage.getItem(imageKey);
 
-      // Fetch the classification result using the unique key based on the identifier
-      const classificationKey = `classificationResult_${item.identifier}`;
+      // Fetch the classification result using the unique key based on the uniqueId
+      const classificationKey = `classificationResult_${item.uniqueId}`;
       const classificationResult = JSON.parse(localStorage.getItem(classificationKey));
 
       return {
@@ -53,8 +53,8 @@ function History() {
   };
 
   // Handle navigation to ECGResults page
-  const handleViewECGResults = (identifier) => {
-    navigate("/ecg-results", { state: { identifier } });
+  const handleViewECGResults = (uniqueId) => {
+    navigate("/ecg-results", { state: { uniqueId } });
   };
 
   return (
@@ -96,7 +96,7 @@ function History() {
                 <Button
                   size="small"
                   color="secondary"
-                  onClick={() => handleViewECGResults(item.identifier)}
+                  onClick={() => handleViewECGResults(item.uniqueId)}
                   sx={{ width: "100%" }}
                 >
                   View ECG Results

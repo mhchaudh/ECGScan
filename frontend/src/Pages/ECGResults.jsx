@@ -5,21 +5,21 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 
 const ECGResults = () => {
   const location = useLocation();
-  const { identifier } = location.state || {}; // Retrieve the identifier from navigation state
+  const { uniqueId } = location.state || {}; // Retrieve the uniqueId from navigation state
   const [classificationResult, setClassificationResult] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
 
   useEffect(() => {
-    if (identifier) {
-      // Fetch the classification result from localStorage
-      const result = JSON.parse(localStorage.getItem(`classificationResult_${identifier}`));
+    if (uniqueId) {
+      // Fetch the classification result from localStorage using the uniqueId
+      const result = JSON.parse(localStorage.getItem(`classificationResult_${uniqueId}`));
       setClassificationResult(result);
 
-      // Fetch the image from localStorage
-      const image = localStorage.getItem(`imgData_${identifier}`);
+      // Fetch the image from localStorage using the uniqueId
+      const image = localStorage.getItem(`imgData_${uniqueId}`);
       setImageUrl(image);
     }
-  }, [identifier]);
+  }, [uniqueId]);
 
   if (!classificationResult || !imageUrl) {
     return (
