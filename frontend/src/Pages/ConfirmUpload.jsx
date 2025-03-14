@@ -10,7 +10,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   TextField,
-  Dialog, DialogActions, DialogContent, DialogTitle
+  Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress
 } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 
@@ -27,6 +27,7 @@ function ConfirmUpload() {
   const [identifier, setIdentifier] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -79,37 +80,70 @@ function ConfirmUpload() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Handle confirmation of image submission
   const handleConfirm = async () => {
     console.log("Confirmed image: ", croppedImage || imageUrl);
     console.log("Age: ", age);
     console.log("Gender: ", gender);
-
+  
     const uniqueIdentifiersSet = new Set(previousIdentifiers);
     if (identifier && !uniqueIdentifiersSet.has(identifier)) {
       uniqueIdentifiersSet.add(identifier);
     }
     const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
     localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-
+  
     const imageToSend = croppedImage || imageUrl;
-
+  
     try {
-      const response = await fetch(`${API_URL}/api/image`, {
+      // Upload the image first
+      const uploadResponse = await fetch(`${API_URL}/api/image`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image: imageToSend, age: age, gender: gender, identifier: identifier }),
+        body: JSON.stringify({
+          image: imageToSend,
+          age: age,
+          gender: gender,
+          identifier: identifier
+        }),
       });
-      if (!response.ok) {
-        console.error("Upload failed");
+      if (!uploadResponse.ok) {
+        console.error("Upload failed, proceeding with classification anyway.");
       } else {
         console.log("Image uploaded successfully");
       }
     } catch (error) {
       console.error("Error uploading image: ", error);
     }
-    navigate("/home");
+  
+    try {
+      setLoading(true);
+      // Now classify the ECG
+      const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ecg: "dummy_ecg_signal",
+          sex: gender || "male",
+          age: age || 30
+        }),
+      });
+      if (!classifyResponse.ok) {
+        console.error("Classification failed");
+        setLoading(false);
+        return;
+      }
+      const classifyData = await classifyResponse.json();
+      // Fake a 5-second loading delay
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      setLoading(false);
+      navigate("/ecg-results", { state: { results: classifyData } });
+    } catch (error) {
+      console.error("Error classifying ECG: ", error);
+      setLoading(false);
+    }
   };
+  
+  
 
   // Handle image download
   const handleDownload = () => {
@@ -176,6 +210,30 @@ function ConfirmUpload() {
 
 
   return (
+    <>
+    {loading && (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(255,255,255,0.8)",
+          zIndex: 9999
+        }}
+      >
+        <div style={{ width: "50%", textAlign: "center" }}>
+          <Typography variant="h6" gutterBottom>
+            Diagnosing...
+          </Typography>
+          <LinearProgress />
+        </div>
+      </div>
+    )}
     <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
       <Grid item>
         <Typography variant="h4" color="black">Adjust Your Image</Typography>
@@ -324,6 +382,7 @@ function ConfirmUpload() {
         </DialogActions>
       </Dialog>
     </Grid>
+    </>
   );
 }
 
