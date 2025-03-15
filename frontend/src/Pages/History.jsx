@@ -58,46 +58,56 @@ function History() {
   };
 
   return (
-    <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column" sx={{ padding: 3 }}>
+    <Grid container spacing={4} justifyContent="center" alignItems="center" direction="column" sx={{ padding: 4 }}>
       <Grid item>
-        <Typography variant="h4" color="black">
+        <Typography variant="h3" color="black" align="center" sx={{ fontWeight: "bold", mb: 4 }}>
           History
         </Typography>
       </Grid>
 
       {/* Display history list */}
-      <Grid container spacing={3} justifyContent="center">
+      <Grid container spacing={4} justifyContent="center">
         {history.map((item, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
-            <Card sx={{ width: "100%", maxWidth: 300, height: "100%", display: "flex", flexDirection: "column" }}>
+            <Card
+              sx={{
+                width: "100%",
+                maxWidth: 350,
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+                boxShadow: 3, // Add a subtle shadow
+                borderRadius: 2, // Rounded corners
+              }}
+            >
               <CardMedia
                 component="img"
-                height="200"
+                height="220"
                 image={item.imageUrl ? item.imageUrl : "/path/to/default-image.png"} // Fallback image if no image data
                 alt={`Uploaded image ${index + 1}`}
                 onClick={() => handleViewDetails(item)}
-                sx={{ cursor: "pointer" }}
+                sx={{ cursor: "pointer", borderTopLeftRadius: 8, borderTopRightRadius: 8 }} // Rounded corners for the image
               />
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" color="textPrimary" noWrap>
+              <CardContent sx={{ flexGrow: 1, p: 3 }}>
+                <Typography variant="h5" color="textPrimary" noWrap sx={{ fontWeight: "bold", mb: 2 }}>
                   Patient ID: {item.identifier}
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
                   Gender: {item.gender} | Age: {item.age}
                 </Typography>
                 <Button
-                  size="small"
+                  size="medium"
                   color="primary"
                   onClick={() => handleViewDetails(item)}
-                  sx={{ width: "100%", mb: 1 }}
+                  sx={{ width: "100%", mb: 2, fontWeight: "bold" }}
                 >
                   View Details
                 </Button>
                 <Button
-                  size="small"
+                  size="medium"
                   color="secondary"
                   onClick={() => handleViewECGResults(item.uniqueId)}
-                  sx={{ width: "100%" }}
+                  sx={{ width: "100%", fontWeight: "bold" }}
                 >
                   View ECG Results
                 </Button>

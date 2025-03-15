@@ -88,8 +88,8 @@ const ECGResults = () => {
               />
               <YAxis label={{ value: "Time (s)", angle: -90, position: "insideLeft" }} />
               <Tooltip />
-              <Bar dataKey="start" fill="#8884d8" barSize={50} name="Start Time" />
-              <Bar dataKey="stop" fill="#82ca9d" barSize={50} name="Stop Time" />
+              <Bar dataKey="start" fill="#8884d8" barSize={50} name="Start" />
+              <Bar dataKey="stop" fill="#82ca9d" barSize={50} name="Stop" />
             </BarChart>
           </ResponsiveContainer>
         </Box>
