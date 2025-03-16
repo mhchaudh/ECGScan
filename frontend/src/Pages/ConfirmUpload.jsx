@@ -3,19 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./ConfirmUpload.css";
-import {
-  Grid,
-  Typography,
-  Button,
-  ToggleButton,
-  ToggleButtonGroup,
-  TextField,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  LinearProgress,
-} from "@mui/material";
+import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 
 function ConfirmUpload() {
