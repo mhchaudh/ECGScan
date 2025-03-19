@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 function History() {
@@ -7,9 +7,12 @@ function History() {
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [filter, setFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [patientFilter, setPatientFilter] = useState("");
   const [patientIds, setPatientIds] = useState([]);
-
+  const [selectedForComparison, setSelectedForComparison] = useState([]); 
+  const [showComparisonDialog, setShowComparisonDialog] = useState(false); 
+  // asked chatgpt how to add two filters at once
   useEffect(() => {
     const storedHistory = JSON.parse(localStorage.getItem("history")) || [];
     const updatedHistory = storedHistory.map((item) => {
@@ -17,11 +20,14 @@ function History() {
       const savedImage = localStorage.getItem(imageKey);
       const classificationKey = `classificationResult_${item.uniqueId}`;
       const classificationResult = JSON.parse(localStorage.getItem(classificationKey));
+      const boundedBoxImageKey = `boundedboxImgData_${item.uniqueId}`;
+      const boundedBoxImage = localStorage.getItem(boundedBoxImageKey);
 
       return {
         ...item,
         imageUrl: savedImage || null,
         classificationResult: classificationResult || null,
+        boundedboximage: boundedBoxImage || null,
       };
     });
     setHistory(updatedHistory);
@@ -30,9 +36,12 @@ function History() {
 
   useEffect(() => {
     setFilteredHistory(
-      filter === "" ? history : history.filter((item) => item.identifier === filter)
+      history.filter((item) => 
+        (statusFilter === "" || item.status === statusFilter) &&
+        (patientFilter === "" || item.identifier === patientFilter)
+      )
     );
-  }, [filter, history]);
+  }, [statusFilter, patientFilter, history]);
 
   const handleViewDetails = (item) => {
     setSelectedItem(item);
@@ -42,8 +51,37 @@ function History() {
     setSelectedItem(null);
   };
 
-  const handleViewECGResults = (uniqueId) => {
-    navigate("/ecg-results", { state: { uniqueId } });
+ 
+  const handleViewECGResults = (uniqueId, filename, identifier) => {
+    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+  };
+
+  const handleComparisonCheckbox = (item) => {
+    let updatedSelection;
+    if (selectedForComparison.includes(item.uniqueId)) {
+      updatedSelection = selectedForComparison.filter((id) => id !== item.uniqueId);
+    } else {
+      updatedSelection = [...selectedForComparison, item.uniqueId];
+      if (updatedSelection.length > 2) {
+        updatedSelection = updatedSelection.slice(1); 
+      }
+    }
+    setSelectedForComparison(updatedSelection);
+
+    if (updatedSelection.length === 2) {
+      setShowComparisonDialog(true);
+    } else {
+      setShowComparisonDialog(false); 
+    }
+  };
+
+  const handleCloseComparisonDialog = () => {
+    setShowComparisonDialog(false);
+    setSelectedForComparison([]); 
+  };
+
+  const getSelectedItems = () => {
+    return history.filter((item) => selectedForComparison.includes(item.uniqueId));
   };
 
   return (
@@ -53,22 +91,47 @@ function History() {
           History
         </Typography>
       </Grid>
-      <Grid item sx={{ width: "300px", mb: 4 }}>
-        <FormControl fullWidth>
-          <InputLabel shrink>Filter by Patient ID</InputLabel>
-          <Select
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            displayEmpty
-            notched
-          >
-            <MenuItem value="">Show All</MenuItem>
-            {patientIds.map((id) => (
-              <MenuItem key={id} value={id}>{id}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
+
+      {/* Filters Container */}
+      <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
+        {/* Filter by Patient Status */}
+        <Grid item xs={6} sm={4} md={3}>
+          <FormControl fullWidth>
+            <InputLabel shrink>Filter by Patient Status</InputLabel>
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              displayEmpty
+              notched
+            >
+              <MenuItem value=""></MenuItem>
+              <MenuItem value="Pre-treatment">Pre-treatment</MenuItem>
+              <MenuItem value="During treatment">During treatment</MenuItem>
+              <MenuItem value="Post-treatment">Post-treatment</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+
+        {/* Filter by Patient ID */}
+        <Grid item xs={6} sm={4} md={3}>
+          <FormControl fullWidth>
+            <InputLabel shrink>Filter by Patient ID</InputLabel>
+            <Select
+              value={patientFilter}
+              onChange={(e) => setPatientFilter(e.target.value)}
+              displayEmpty
+              notched
+            >
+              <MenuItem value=""></MenuItem>
+              {patientIds.map((id) => (
+                <MenuItem key={id} value={id}>{id}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </Grid>
       </Grid>
+
+      {/* Display History Cards */}
       <Grid container spacing={4} justifyContent="center">
         {filteredHistory.map((item, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
@@ -85,13 +148,25 @@ function History() {
                 <Typography variant="h5" color="textPrimary" noWrap sx={{ fontWeight: "bold", mb: 2 }}>
                   Patient ID: {item.identifier}
                 </Typography>
-                <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
-                  Gender: {item.gender} | Age: {item.age}
-                </Typography>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={selectedForComparison.includes(item.uniqueId)}
+                      onChange={() => handleComparisonCheckbox(item)}
+                      color="primary"
+                    />
+                  }
+                  label="Compare Leads"
+                />
                 <Button size="medium" color="primary" onClick={() => handleViewDetails(item)} sx={{ width: "100%", mb: 2, fontWeight: "bold" }}>
                   View Details
                 </Button>
-                <Button size="medium" color="secondary" onClick={() => handleViewECGResults(item.uniqueId)} sx={{ width: "100%", fontWeight: "bold" }}>
+                <Button
+                  size="medium"
+                  color="secondary"
+                  onClick={() => handleViewECGResults(item.uniqueId, item.filename, item.identifier)}
+                  sx={{ width: "100%", fontWeight: "bold" }}
+                >
                   View ECG Results
                 </Button>
               </CardContent>
@@ -99,19 +174,21 @@ function History() {
           </Grid>
         ))}
       </Grid>
+
+      {/* Dialog for Image Details */}
       {selectedItem && (
         <Dialog open={true} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-          <DialogTitle>Image Details</DialogTitle>
           <DialogContent>
             <Grid container spacing={2} direction="column">
               <Grid item>
                 <Typography variant="h6">Patient Information:</Typography>
-                <Typography variant="body1">Identifier: {selectedItem.identifier}</Typography>
+                <Typography variant="body1">ID: {selectedItem.identifier}</Typography>
+                <Typography variant="body1">Status: {selectedItem.status}</Typography>
                 <Typography variant="body1">Age: {selectedItem.age}</Typography>
                 <Typography variant="body1">Gender: {selectedItem.gender}</Typography>
               </Grid>
               <Grid item>
-                <Typography variant="h6">Image Preview:</Typography>
+                <Typography variant="h6">Image:</Typography>
                 <img
                   src={selectedItem.imageUrl ? selectedItem.imageUrl : "/path/to/default-image.png"}
                   alt="Uploaded"
@@ -122,6 +199,32 @@ function History() {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog} color="secondary">
+              Close
+            </Button>
+          </DialogActions>
+        </Dialog>
+      )}
+
+      {/* Dialog for Comparison */}
+      {showComparisonDialog && (
+        <Dialog open={true} onClose={handleCloseComparisonDialog} maxWidth="lg" fullWidth>
+          <DialogTitle>Compare The Leads of two ECG Images</DialogTitle>
+          <DialogContent>
+            <Grid container spacing={4}>
+              {getSelectedItems().map((item) => (
+                <Grid item key={item.uniqueId} xs={6}>
+                  {/* Display the bounded box image if available, otherwise fallback to the regular image */}
+                  <img
+                    src={item.boundedboximage ? item.boundedboximage : (item.imageUrl ? item.imageUrl : "/path/to/default-image.png")}
+                    alt={`ECG Image for ${item.identifier}`}
+                    style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseComparisonDialog} color="secondary">
               Close
             </Button>
           </DialogActions>

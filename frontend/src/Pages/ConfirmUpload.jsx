@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./ConfirmUpload.css";
-import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress } from "@mui/material";
+import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 
 function ConfirmUpload() {
@@ -17,6 +17,7 @@ function ConfirmUpload() {
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
+  const [patientstatus, setPatientstatus] = useState("");
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -72,159 +73,142 @@ function ConfirmUpload() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
+  // Handle confirmation and send the results to the ecg-results and history pages
   const handleConfirm = async () => {
     try {
-      console.log("Confirmed image: ", croppedImage || imageUrl);
-      console.log("Age: ", age);
-      console.log("Gender: ", gender);
+        console.log("Confirmed image: ", croppedImage || imageUrl);
+        console.log("Age: ", age);
+        console.log("Gender: ", gender);
 
-      // Get or initialize the counter from localStorage
-      let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
-      counter += 1; // Increment the counter
-      localStorage.setItem("entryCounter", counter.toString()); // Save the updated counter
+        let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
+        counter += 1;
+        localStorage.setItem("entryCounter", counter.toString());
 
-      // Use the counter as the unique ID for this entry
-      const uniqueId = `entry_${counter}`;
+        const uniqueId = `entry_${counter}`;
 
-      const uniqueIdentifiersSet = new Set(previousIdentifiers);
-      if (identifier && !uniqueIdentifiersSet.has(identifier)) {
-        uniqueIdentifiersSet.add(identifier);
-      }
-      const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
-      localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
+        const uniqueIdentifiersSet = new Set(previousIdentifiers);
+        if (identifier && !uniqueIdentifiersSet.has(identifier)) {
+            uniqueIdentifiersSet.add(identifier);
+        }
+        const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
+        localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
 
-      // Remove image data from localStorage, only store metadata
-      const historyData = JSON.parse(localStorage.getItem("history")) || [];
+        const historyData = JSON.parse(localStorage.getItem("history")) || [];
+        const newHistoryItem = {
+            uniqueId,
+            identifier,
+            status: patientstatus,
+            age,
+            gender,
+            timestamp: new Date().toISOString(),
+            filename: null,
+        };
 
-      // Create a new history item without storing the image
-      const newHistoryItem = {
-        uniqueId, // Use the counter-based unique ID
-        identifier: identifier,
-        age: age,
-        gender: gender,
-        timestamp: new Date().toISOString(),
-      };
+        historyData.unshift(newHistoryItem);
+        localStorage.setItem("history", JSON.stringify(historyData));
 
-      // Add new history item to the beginning of the array
-      historyData.unshift(newHistoryItem);
+        const imageToSave = croppedImage || imageUrl;
+        const image = new Image();
+        image.src = imageToSave;
 
-      // Limit the history array to the latest few items, e.g., last 10 items.
-      if (historyData.length > 10) {
-        historyData.pop(); // Keep the last 10 entries
-      }
+        image.onload = async function () {
+            resizedImage2(image, 500, 500, async function (resizedBase64) {
+                localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
+                console.log("Image saved to localStorage");
 
-      localStorage.setItem("history", JSON.stringify(historyData)); // Save the updated history
+                try {
+                    setLoading(true);
+                    const uploadResponse = await fetch(`${API_URL}/api/image`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            image: imageToSave,
+                            age,
+                            gender,
+                            identifier,
+                        }),
+                    });
 
-      // Store the image as Base64 in localStorage with the unique ID
-      const imageToSave = croppedImage || imageUrl; // Use cropped image or original
-      const image = new Image();
-      image.src = imageToSave;
+                    let filename = null;
+                    let boundedboxImageBase64 = null;
 
-      image.onload = async function () {
-        // Resize the image before saving it to localStorage to avoid quota issues
-        resizedImage2(image, 500, 500, async function (resizedBase64) {
-          // Save the resized Base64 image data in localStorage with the unique ID
-          localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
-          console.log("Image saved to localStorage");
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        filename = uploadData.filename;
+                        boundedboxImageBase64 = uploadData.boundedboximage;
+                        const updatedHistoryItem = { ...newHistoryItem, filename };
+                        const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)]; 
+                        localStorage.setItem("history", JSON.stringify(updatedHistoryData));
+                    } else {
+                        console.error("Upload failed");
+                    }
 
-          // Proceed with the rest of the code after storing the image
-          try {
-            // Upload the image if needed (optional)
-            const uploadResponse = await fetch(`${API_URL}/api/image`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                image: imageToSave,
-                age: age,
-                gender: gender,
-                identifier: identifier,
-              }),
+                    if (boundedboxImageBase64) {
+                        const boundedboxImage = new Image();
+                        boundedboxImage.src = `data:image/jpeg;base64,${boundedboxImageBase64}`;
+
+                        boundedboxImage.onload = function () {
+                            resizedImage2(boundedboxImage, 500, 500, function (resizedBoundedBase64) {
+                                localStorage.setItem(`boundedboxImgData_${uniqueId}`, resizedBoundedBase64);
+                                console.log("Bounded box image saved to localStorage");
+                            });
+                        };
+                    }
+
+                    const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            ecg: "dummy_ecg_signal",
+                            sex: gender || "male",
+                            age: age || 30,
+                        }),
+                    });
+
+                    if (!classifyResponse.ok) {
+                        console.error("Classification failed");
+                        setLoading(false);
+                        return;
+                    }
+
+                    const classifyData = await classifyResponse.json();
+                    localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
+
+                    await new Promise((resolve) => setTimeout(resolve, 5000));
+                    setLoading(false);
+
+                    // Navigate with URL parameters instead of state
+                    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+                  } catch (error) {
+                    console.error("Error processing ECG: ", error);
+                    setLoading(false);
+                  }
             });
-
-            if (!uploadResponse.ok) {
-              console.error("Upload failed, proceeding with classification anyway.");
-            } else {
-              console.log("Image uploaded successfully");
-            }
-
-            setLoading(true);
-            // Classify the ECG
-            const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ecg: "dummy_ecg_signal",
-                sex: gender || "male",
-                age: age || 30,
-              }),
-            });
-
-            if (!classifyResponse.ok) {
-              console.error("Classification failed");
-              setLoading(false);
-              return;
-            }
-
-            const classifyData = await classifyResponse.json();
-
-            // Store the classification result in localStorage with the unique ID
-            localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
-
-            // Fetch the processed image from the backend
-            const imageResponse = await fetch(`${API_URL}/api/image`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                image: croppedImage || imageUrl, // Send the image data (cropped or original)
-                age: age,
-                gender: gender,
-                identifier: identifier,
-              }),
-            });
-
-            const imageData = await imageResponse.json();
-            const base64Image = imageData.image; // Base64 encoded image
-
-            // Fake a 5-second loading delay
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-            setLoading(false);
-
-            // Navigate to results page with the unique ID
-            navigate("/ecg-results", {
-              state: {
-                uniqueId, // Pass the unique ID to fetch the correct result
-              },
-            });
-          } catch (error) {
-            console.error("Error classifying ECG: ", error);
-            setLoading(false);
-          }
-        });
-      };
+        };
     } catch (error) {
-      console.error("Error saving image to localStorage: ", error);
+        console.error("Error in handleConfirm: ", error);
     }
-  };
-
-  // Function to resize the image before saving it to localStorage
+};
   function resizedImage2(img, maxWidth, maxHeight, callback) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
+  
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high"; 
 
     let width = img.width;
     let height = img.height;
 
-    // Maintain aspect ratio
     if (width > height) {
-      if (width > maxWidth) {
-        height = Math.round((height * maxWidth) / width);
-        width = maxWidth;
-      }
+        if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+        }
     } else {
-      if (height > maxHeight) {
-        width = Math.round((width * maxHeight) / height);
-        height = maxHeight;
-      }
+        if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+        }
     }
 
     canvas.width = width;
@@ -232,10 +216,10 @@ function ConfirmUpload() {
 
     ctx.drawImage(img, 0, 0, width, height);
 
-    callback(canvas.toDataURL("image/png")); // Call the callback with the resized image
+    callback(canvas.toDataURL("image/png"));
   }
 
-  // Handle image download
+  // Handle download
   const handleDownload = () => {
     const imagetodownload = croppedImage || imageUrl;
     const link = document.createElement("a");
@@ -246,7 +230,7 @@ function ConfirmUpload() {
     document.body.removeChild(link);
   };
 
-  // Handle image cropping
+  // Handle cropping
   const onCropComplete = (crop) => {
     if (originalImageRef.current && canvasRef.current) {
       const image = originalImageRef.current;
@@ -269,7 +253,7 @@ function ConfirmUpload() {
         canvas.height
       );
 
-      setCroppedImage(canvas.toDataURL("image/png")); // Store cropped image
+      setCroppedImage(canvas.toDataURL("image/png")); 
     }
   };
 
@@ -285,7 +269,7 @@ function ConfirmUpload() {
   const handleGenderChange = (e) => setGender(e.target.value);
   const handleIdentifierChange = (e) => setIdentifier(e.target.value);
   const handleConfirmClick = () => {
-    if (!identifier || !age || !gender) {
+    if (!identifier || !age || !gender || !patientstatus) {
       alert("Please fill in all the required fields");
       return;
     }
@@ -329,6 +313,21 @@ function ConfirmUpload() {
             Adjust Your Image
           </Typography>
         </Grid>
+        {/* Patient Status Input */}
+        <Grid item sx={{ width: "300px" }}>
+          <FormControl fullWidth>
+            <InputLabel shrink={Boolean(patientstatus)}>Patient Status</InputLabel>
+            <Select
+              value={patientstatus}
+              onChange={(e) => setPatientstatus(e.target.value)}
+              displayEmpty
+              notched>
+              <MenuItem value="Pre-treatment">Pre-treatment</MenuItem>
+              <MenuItem value="During treatment">During treatment</MenuItem>
+              <MenuItem value="Post-treatment">Post-treatment</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
         {/* Unique Patient Identifier Input */}
         <Grid item>
           <TextField
@@ -338,7 +337,7 @@ function ConfirmUpload() {
             value={identifier}
             onChange={handleIdentifierChange}
             sx={{ width: 300 }}
-            inputProps={{ list: "identifiers" }} // Link to datalist for suggestions
+            inputProps={{ list: "identifiers" }} 
           />
           <datalist id="identifiers">
             {previousIdentifiers.map((id, index) => (
@@ -374,7 +373,7 @@ function ConfirmUpload() {
               selected={gender === "male"}
               sx={{
                 backgroundColor: gender === "male" ? "#1976d2 !important" : "lightgray",
-                color: "white !important", // Ensures white text at all times
+                color: "white !important", 
                 "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },
               }}
             >
@@ -386,7 +385,7 @@ function ConfirmUpload() {
               selected={gender === "female"}
               sx={{
                 backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
-                color: "white !important", // Ensures white text at all times
+                color: "white !important", 
                 "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
               }}
             >

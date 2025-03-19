@@ -1,15 +1,15 @@
 from flask import Blueprint, request, jsonify
 import os, base64, uuid
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageEnhance
 import io
 from ..utils.image_converter.image_to_sequence import image_to_sequence, convert_image_to_sequence
 from ..utils.image_converter.ecg_processing import process_ecg_image
-import shutil 
+import shutil
 
 image_bp = Blueprint('image_bp', __name__)
 
-@image_bp.route('', methods=['POST'])  
+@image_bp.route('', methods=['POST'])
 def create_image_and_digitize():
     data = request.get_json()
     image_data = data.get('image')
@@ -18,7 +18,7 @@ def create_image_and_digitize():
     identifier_data = data.get('identifier')
     print(identifier_data)
 
-    # validate the required fields
+    # Validate the required fields
     if not image_data:
         return jsonify({'error': 'No image provided'}), 400
     if not identifier_data:
@@ -28,39 +28,46 @@ def create_image_and_digitize():
     if not gender_data:
         return jsonify({'error': 'No gender provided'}), 400
 
-    # we remove the header if the image is sent as a data url
+    # Remove the header if the image is sent as a data URL
     if "base64," in image_data:
         image_data = image_data.split("base64,")[1]
 
     try:
-        image_bytes = base64.b64decode(image_data)  # decode the base64 image data
+        image_bytes = base64.b64decode(image_data)  # Decode the base64 image data
     except Exception as e:
         return jsonify({'error': 'Failed to decode image', 'message': str(e)}), 400
 
-    # convert the image bytes to a PIL Image
+    # Convert the image bytes to a PIL Image
     image_file = io.BytesIO(image_bytes)
     image = Image.open(image_file)
 
-    # defining the path to store the original image
+    # Define the path to store the original image
     backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     print(backend_dir)
-    identifier_folder = os.path.join(backend_dir, f'{identifier_data}_OriginalImage')  
-    os.makedirs(identifier_folder, exist_ok=True)  # check if the folder exists
+    identifier_folder = os.path.join(backend_dir, f'{identifier_data}_OriginalImage')
+    os.makedirs(identifier_folder, exist_ok=True)  # Ensure the folder exists
 
-    # we generate a unique filename using the UUID, age, and gender
-    filename = f"{uuid.uuid4().hex}_{age_data}_{gender_data}"
+    # Generate a unique filename using UUID, age, and gender
+    fileuuid = uuid.uuid4().hex
+    filename = f"{fileuuid}_{age_data}_{gender_data}"
     filenamejpg = f"{filename}.jpg"
     filepath = os.path.join(identifier_folder, filenamejpg)
 
-    # convert the image to RGBA and crop the non-white areas
+    # Convert the image to RGBA and crop the non-white areas
     image = image.convert('RGBA')
     bbox = image.getbbox()
     cropped_image = image.crop(bbox)
-    cropped_image_rgb = cropped_image.convert('RGB')  # convert to RGB for JPEG format
-    cropped_image_rgb.save(filepath)  # save the image
-    enhanced_image = cropped_image_rgb  # Assuming you enhance the image here
+    cropped_image_rgb = cropped_image.convert('RGB')  # Convert to RGB for JPEG format
+    
+    # Enhance contrast and brightness
+    contrast_enhancer = ImageEnhance.Contrast(cropped_image_rgb)
+    enhanced_image = contrast_enhancer.enhance(1.2)  # Increase contrast
+    brightness_enhancer = ImageEnhance.Brightness(enhanced_image)
+    enhanced_image = brightness_enhancer.enhance(1.1)  # Increase brightness
 
-    # Convert the enhanced image to base64 to send to frontend
+    enhanced_image.save(filepath)  # Save the enhanced image
+    
+    # Convert the enhanced image to base64 to send to the frontend
     buffered = io.BytesIO()
     enhanced_image.save(buffered, format="JPEG")
     enhanced_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
@@ -68,25 +75,51 @@ def create_image_and_digitize():
     image_path = f"{filepath}"
     print(image_path)
 
-    # process the ECG image
+    # Process the ECG image
     process_ecg_image(image_path, identifier_data, filename)
 
-    # Delete the "runs" folder and "traced_model.pt" file after processing so we can rerun again and again for different ecg images
-    runs_path = os.path.join(backend_dir, "runs")
+    # Define the path to the bounded box image in runs/detect/exp
+    detect_folder = os.path.join(backend_dir, "runs/detect/exp")
+    bounded_box_image_path = None
+
+    # Find the bounded box image in the detect folder
+    if os.path.exists(detect_folder) and os.path.isdir(detect_folder):
+        for file_name in os.listdir(detect_folder):
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                bounded_box_image_path = os.path.join(detect_folder, file_name)
+                break
+
+    # Check if the bounded box image exists
+    if not bounded_box_image_path or not os.path.exists(bounded_box_image_path):
+        return jsonify({'error': 'Failed to generate bounded box image'}), 500
+
+    # Enhance the bounded box image
+    with open(bounded_box_image_path, "rb") as image_file:
+        bounded_box_image = Image.open(image_file)
+        contrast_enhancer = ImageEnhance.Contrast(bounded_box_image)
+        enhanced_bounded_box_image = contrast_enhancer.enhance(1.2)  # Increase contrast
+        brightness_enhancer = ImageEnhance.Brightness(enhanced_bounded_box_image)
+        enhanced_bounded_box_image = brightness_enhancer.enhance(1.1)  # Increase brightness
+    
+        buffered = io.BytesIO()
+        enhanced_bounded_box_image.save(buffered, format="JPEG")
+        bounded_box_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+    # Backup and clean up detection folder
+    backup_folder = os.path.join(backend_dir, "backup_detected_images")
+    os.makedirs(backup_folder, exist_ok=True)
+    shutil.move(bounded_box_image_path, os.path.join(backup_folder, os.path.basename(bounded_box_image_path)))
+    shutil.rmtree(detect_folder)
+
+    # Delete the traced model file if it exists
     traced_model_path = os.path.join(backend_dir, "traced_model.pt")
+    if os.path.exists(traced_model_path):
+        os.remove(traced_model_path)
+
+    # Append gender and age data to the .hea file
     output_path = os.path.join(backend_dir, f"output_{identifier_data}")
     folder_path = os.path.join(output_path, filename)
     file_path = os.path.join(folder_path, 'Q0001.hea')
-
-    if os.path.exists(runs_path) and os.path.isdir(runs_path):
-        shutil.rmtree(runs_path)  
-        print(f"Deleted folder: {runs_path}")
-
-    if os.path.exists(traced_model_path) and os.path.isfile(traced_model_path):
-        os.remove(traced_model_path)  
-        print(f"Deleted file: {traced_model_path}")
-
-    # Append the gender and age data to the .hea file
     with open(file_path, 'a') as file:
         file.write(f"#Age: {age_data}\n")
         file.write(f"#Sex: {gender_data}\n")
@@ -97,7 +130,8 @@ def create_image_and_digitize():
 
     return jsonify({
         'message': 'Image uploaded and processed successfully',
-        'filename': filenamejpg,
+        'filename': fileuuid,
         'image': enhanced_image_base64,
+        'boundedboximage': bounded_box_image_base64,
         'status': 'Success'
     }), 200
