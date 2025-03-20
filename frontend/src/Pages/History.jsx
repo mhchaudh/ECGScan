@@ -12,7 +12,7 @@ function History() {
   const [patientIds, setPatientIds] = useState([]);
   const [selectedForComparison, setSelectedForComparison] = useState([]); 
   const [showComparisonDialog, setShowComparisonDialog] = useState(false); 
-  // asked chatgpt how to add two filters at once
+  // asked chatgpt how to keep two filters at once
   useEffect(() => {
     const storedHistory = JSON.parse(localStorage.getItem("history")) || [];
     const updatedHistory = storedHistory.map((item) => {
@@ -92,7 +92,7 @@ function History() {
         </Typography>
       </Grid>
 
-      {/* Filters Container */}
+      {/* Filters */}
       <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
         {/* Filter by Patient Status */}
         <Grid item xs={6} sm={4} md={3}>
@@ -131,7 +131,7 @@ function History() {
         </Grid>
       </Grid>
 
-      {/* Display History Cards */}
+      {/* History Cards */}
       <Grid container spacing={4} justifyContent="center">
         {filteredHistory.map((item, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
@@ -139,7 +139,7 @@ function History() {
               <CardMedia
                 component="img"
                 height="220"
-                image={item.imageUrl ? item.imageUrl : "/path/to/default-image.png"}
+                image={item.imageUrl || ""}
                 alt={`Uploaded image ${index + 1}`}
                 onClick={() => handleViewDetails(item)}
                 sx={{ cursor: "pointer", borderTopLeftRadius: 8, borderTopRightRadius: 8 }}
@@ -175,7 +175,7 @@ function History() {
         ))}
       </Grid>
 
-      {/* Dialog for Image Details */}
+      {/* Image Details */}
       {selectedItem && (
         <Dialog open={true} onClose={handleCloseDialog} maxWidth="md" fullWidth>
           <DialogContent>
@@ -190,7 +190,7 @@ function History() {
               <Grid item>
                 <Typography variant="h6">Image:</Typography>
                 <img
-                  src={selectedItem.imageUrl ? selectedItem.imageUrl : "/path/to/default-image.png"}
+                  src={selectedItem.imageUrl || ""}
                   alt="Uploaded"
                   style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
                 />
@@ -205,7 +205,7 @@ function History() {
         </Dialog>
       )}
 
-      {/* Dialog for Comparison */}
+      {/* Compare two ecg images */}
       {showComparisonDialog && (
         <Dialog open={true} onClose={handleCloseComparisonDialog} maxWidth="lg" fullWidth>
           <DialogTitle>Compare The Leads of two ECG Images</DialogTitle>
@@ -213,9 +213,8 @@ function History() {
             <Grid container spacing={4}>
               {getSelectedItems().map((item) => (
                 <Grid item key={item.uniqueId} xs={6}>
-                  {/* Display the bounded box image if available, otherwise fallback to the regular image */}
                   <img
-                    src={item.boundedboximage ? item.boundedboximage : (item.imageUrl ? item.imageUrl : "/path/to/default-image.png")}
+                    src={item.boundedboximage || item.imageUrl || ""}
                     alt={`ECG Image for ${item.identifier}`}
                     style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
                   />

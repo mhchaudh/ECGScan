@@ -177,7 +177,7 @@ function ConfirmUpload() {
                     await new Promise((resolve) => setTimeout(resolve, 5000));
                     setLoading(false);
 
-                    // Navigate with URL parameters instead of state
+                    
                     navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
                   } catch (error) {
                     console.error("Error processing ECG: ", error);

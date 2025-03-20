@@ -21,12 +21,10 @@ const ECGResults = () => {
     if (uniqueId) {
       const result = JSON.parse(localStorage.getItem(`classificationResult_${uniqueId}`));
       setClassificationResult(result);
-
     
       const image = localStorage.getItem(`imgData_${uniqueId}`);
       setImageUrl(image);
 
-      
       const savedFeedback = localStorage.getItem(`feedback_${uniqueId}`);
       if (savedFeedback) {
         setFeedback(savedFeedback);
@@ -59,9 +57,7 @@ const ECGResults = () => {
 
       console.log("Feedback submitted successfully");
 
-     
       localStorage.setItem(`feedback_${uniqueId}`, finalFeedback);
-
 
       setFeedback(finalFeedback);
       setSubmittedFeedback(true);
@@ -90,12 +86,6 @@ const ECGResults = () => {
     confidence: (conf * 100).toFixed(0),
   }));
 
-  const leadsData = classificationResult.lead_highlights.map(([lead, start, stop]) => ({
-    name: lead, // Lead name (e.g., "I", "II", "V1")
-    start: start, // Start time
-    stop: stop, // Stop time
-  }));
-
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 4 }}>
@@ -103,7 +93,7 @@ const ECGResults = () => {
           ECG Classification Results
         </Typography>
 
-        {/* Diagnoses Section */}
+        {/* Diagnoses */}
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6" color="text.primary">
             Diagnoses:
@@ -117,31 +107,7 @@ const ECGResults = () => {
             </BarChart>
           </ResponsiveContainer>
         </Box>
-
-        {/* Leads Section */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" color="text.primary">
-            Leads:
-          </Typography>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={leadsData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
-              <XAxis
-                dataKey="name"
-                stroke="#82ca9d"
-                angle={-30}
-                textAnchor="end"
-                height={80}
-                interval={0}
-              />
-              <YAxis label={{ value: "Time (s)", angle: -90, position: "insideLeft" }} />
-              <Tooltip />
-              <Bar dataKey="start" fill="#8884d8" barSize={50} name="Start" />
-              <Bar dataKey="stop" fill="#82ca9d" barSize={50} name="Stop" />
-            </BarChart>
-          </ResponsiveContainer>
-        </Box>
-
-        {/* Feedback Section */}
+        {/* Feedback */}
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6" color="text.primary">
             Do you agree with the results?

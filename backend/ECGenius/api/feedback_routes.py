@@ -12,16 +12,13 @@ feedback_bp = Blueprint('feedback_bp', __name__)
 @feedback_bp.route('', methods=['POST'])
 def add_feedback():
     data = request.get_json()
-    
-    # Validate required fields
     if not data or 'feedback' not in data:
         return jsonify({'error': 'No feedback provided'}), 400
     
     feedback_text = data['feedback']
     filename = data.get('filename')  
     identifier = data.get('identifier')  
-
-    # Create a new Feedback object
+    
     new_feedback = Feedback(identifier = identifier, filename=filename, feedback=feedback_text)
     
     try:

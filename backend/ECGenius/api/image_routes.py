@@ -59,15 +59,15 @@ def create_image_and_digitize():
     cropped_image = image.crop(bbox)
     cropped_image_rgb = cropped_image.convert('RGB')  # Convert to RGB for JPEG format
     
-    # Enhance contrast and brightness
+   
     contrast_enhancer = ImageEnhance.Contrast(cropped_image_rgb)
     enhanced_image = contrast_enhancer.enhance(1.2)  # Increase contrast
     brightness_enhancer = ImageEnhance.Brightness(enhanced_image)
     enhanced_image = brightness_enhancer.enhance(1.1)  # Increase brightness
 
-    enhanced_image.save(filepath)  # Save the enhanced image
+    enhanced_image.save(filepath) 
     
-    # Convert the enhanced image to base64 to send to the frontend
+    # Convert enhanced image to base64 to send to the frontend
     buffered = io.BytesIO()
     enhanced_image.save(buffered, format="JPEG")
     enhanced_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
@@ -75,10 +75,10 @@ def create_image_and_digitize():
     image_path = f"{filepath}"
     print(image_path)
 
-    # Process the ECG image
+    # Process ECG image
     process_ecg_image(image_path, identifier_data, filename)
 
-    # Define the path to the bounded box image in runs/detect/exp
+    # bounded box image in runs/detect/exp
     detect_folder = os.path.join(backend_dir, "runs/detect/exp")
     bounded_box_image_path = None
 
