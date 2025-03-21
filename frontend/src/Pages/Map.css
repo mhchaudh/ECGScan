@@ -68,3 +68,20 @@ body {
   .dark-mode .leaflet-popup-tip {
     background-color: #333; 
   }
+  .dark-mode .leaflet-layer,
+  .dark-mode .leaflet-control-zoom-in,
+  .dark-mode .leaflet-control-zoom-out,
+  .dark-mode .leaflet-control-attribution {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+  }
+
+
+  .dark-mode .leaflet-container {
+    background-color: #121212; 
+  }
+  .leaflet-marker-icon {
+    transition: filter 0.3s ease; 
+  }
+  .dark-mode .leaflet-marker-icon {
+    filter: hue-rotate(90deg) saturate(200%) brightness(90%) invert(100%);
+  }
