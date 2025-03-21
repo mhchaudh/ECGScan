@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+
 
 const History = () => {
   const navigate = useNavigate();
@@ -9,6 +10,7 @@ const History = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [statusFilter, setStatusFilter] = useState("");
   const [patientFilter, setPatientFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
   const [patientIds, setPatientIds] = useState([]);
   const [selectedForComparison, setSelectedForComparison] = useState([]); 
   const [showComparisonDialog, setShowComparisonDialog] = useState(false); 
@@ -38,10 +40,31 @@ const History = () => {
     setFilteredHistory(
       history.filter((item) => 
         (statusFilter === "" || item.status === statusFilter) &&
-        (patientFilter === "" || item.identifier === patientFilter)
+        (patientFilter === "" || item.identifier === patientFilter) &&
+        (dateFilter === "" || item.date === dateFilter)
       )
     );
-  }, [statusFilter, patientFilter, history]);
+  }, [statusFilter, patientFilter,dateFilter, history]);
+  const clearHistory = () => {
+    localStorage.removeItem("history");
+    history.forEach((item) => {
+      localStorage.removeItem(`imgData_${item.uniqueId}`);
+      localStorage.removeItem(`classificationResult_${item.uniqueId}`);
+      localStorage.removeItem(`boundedboxImgData_${item.uniqueId}`);
+    });
+    localStorage.removeItem("entryCounter");
+    setHistory([]);
+  };
+  const deleteItem = (uniqueId) => {
+    const updatedHistory = history.filter((item) => item.uniqueId !== uniqueId);
+    localStorage.setItem("history", JSON.stringify(updatedHistory));
+    localStorage.removeItem(`imgData_${uniqueId}`);
+    localStorage.removeItem(`classificationResult_${uniqueId}`);
+    localStorage.removeItem(`boundedboxImgData_${uniqueId}`);
+    const entryCounter = JSON.parse(localStorage.getItem("entryCounter")) || 0;
+    localStorage.setItem("entryCounter", entryCounter - 1);
+    setHistory(updatedHistory);
+  };
 
   const handleViewDetails = (item) => {
     setSelectedItem(item);
@@ -129,6 +152,22 @@ const History = () => {
             </Select>
           </FormControl>
         </Grid>
+         {/* Filter by Date */}
+        <Grid item xs={6} sm={4} md={3}>
+          <TextField
+            label="Filter by Date"
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+        </Grid>
+      </Grid>
+      <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
+        <Button variant="contained" color="error" onClick={clearHistory} sx={{ mb: 2 }}>
+          Clear History
+        </Button>
       </Grid>
 
       {/* History Cards */}
@@ -158,7 +197,7 @@ const History = () => {
                   }
                   label="Compare Leads"
                 />
-                <Button size="medium" color="primary" onClick={() => handleViewDetails(item)} sx={{ width: "100%", mb: 2, fontWeight: "bold" }}>
+                <Button size="medium" color="primary" onClick={() => handleViewDetails(item)} sx={{ width: "100%", fontWeight: "bold" }}>
                   View Details
                 </Button>
                 <Button
@@ -168,6 +207,9 @@ const History = () => {
                   sx={{ width: "100%", fontWeight: "bold" }}
                 >
                   View ECG Results
+                </Button>
+                <Button size="medium" color="error" onClick={() => deleteItem(item.uniqueId)} sx={{ width: "100%", fontWeight: "bold" }}>
+                  Delete
                 </Button>
               </CardContent>
             </Card>
@@ -186,6 +228,8 @@ const History = () => {
                 <Typography variant="body1">Status: {selectedItem.status}</Typography>
                 <Typography variant="body1">Age: {selectedItem.age}</Typography>
                 <Typography variant="body1">Gender: {selectedItem.gender}</Typography>
+                <Typography variant="body1">Date: {selectedItem.date}</Typography>
+                <Typography variant="body1">Time: {selectedItem.dateTime}</Typography>
               </Grid>
               <Grid item>
                 <Typography variant="h6">Image:</Typography>
