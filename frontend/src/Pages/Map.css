@@ -5,6 +5,14 @@ body {
     max-width: 300px;
   }
   
+
+.map-container {
+    position: absolute;
+    top: 64px; 
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
   .location-name {
     font-size: 1.2em;
     font-weight: bold;

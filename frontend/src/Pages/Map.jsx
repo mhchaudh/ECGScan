@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { Box, Typography, Paper, CircularProgress, Alert } from "@mui/material";
-import './Map.css';
+import "./Map.css";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -26,11 +26,13 @@ const Map = () => {
       try {
         const [mapResponse, diagnosesResponse] = await Promise.all([
           fetch(`${import.meta.env.VITE_API_URL}/api/getmap`),
-          fetch(`${import.meta.env.VITE_API_URL}/api/getdiagnoses`)
+          fetch(`${import.meta.env.VITE_API_URL}/api/getdiagnoses`),
         ]);
 
         if (!mapResponse.ok || !diagnosesResponse.ok) {
-          throw new Error(`HTTP error! Status: ${mapResponse.status}, ${diagnosesResponse.status}`);
+          throw new Error(
+            `HTTP error! Status: ${mapResponse.status}, ${diagnosesResponse.status}`
+          );
         }
 
         const locationsData = await mapResponse.json();
@@ -48,12 +50,22 @@ const Map = () => {
     fetchData();
   }, []);
 
-  if (loading) return <CircularProgress sx={{ display: "block", margin: "auto", mt: 2 }} />;
-  if (error) return <Alert severity="error" sx={{ m: 2 }}>{error}</Alert>;
+  if (loading)
+    return <CircularProgress sx={{ display: "block", margin: "auto", mt: 2 }} />;
+  if (error)
+    return (
+      <Alert severity="error" sx={{ m: 2 }}>
+        {error}
+      </Alert>
+    );
 
   return (
-    <Box sx={{ height: "100vh", width: "100%" }}>
-      <MapContainer center={[51.505, -0.09]} zoom={3} style={{ height: "100%", width: "100%" }}>
+    <Box sx={{ position: "relative", height: "100vh", width: "100%" }}>
+      <MapContainer
+        center={[51.505, -0.09]}
+        zoom={3}
+        className="map-container"
+      >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -75,7 +87,9 @@ const Map = () => {
                   <Typography variant="h6" sx={{ mb: 1 }}>
                     {location.display_name}
                   </Typography>
-                  {sortedDiagnoses.length > 0 ? sortedDiagnoses : (
+                  {sortedDiagnoses.length > 0 ? (
+                    sortedDiagnoses
+                  ) : (
                     <Typography variant="body2" sx={{ fontStyle: "italic" }}>
                       No diagnoses recorded
                     </Typography>
