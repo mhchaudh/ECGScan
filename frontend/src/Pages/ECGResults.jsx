@@ -7,23 +7,23 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 
 const ECGResults = () => {
   const location = useLocation();
-  const searchParams = new URLSearchParams(location.search); 
-  const uniqueId = searchParams.get("uniqueId"); 
+  const searchParams = new URLSearchParams(location.search);
+  const uniqueId = searchParams.get("uniqueId");
   const filename = searchParams.get("filename");
-  const identifier = searchParams.get("identifier"); 
+  const identifier = searchParams.get("identifier");
 
   const [classificationResult, setClassificationResult] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [otherFeedback, setOtherFeedback] = useState("");
   const [submittedFeedback, setSubmittedFeedback] = useState(false);
-
+  const [isDarkMode, setIsDarkMode] = useState(false); 
   const API_URL = import.meta.env.VITE_API_URL; // Get API URL
   useEffect(() => {
     if (uniqueId) {
       const result = JSON.parse(localStorage.getItem(`classificationResult_${uniqueId}`));
       setClassificationResult(result);
-    
+
       const image = localStorage.getItem(`imgData_${uniqueId}`);
       setImageUrl(image);
 
@@ -33,10 +33,14 @@ const ECGResults = () => {
         setSubmittedFeedback(true);
       }
     }
+
+    // dark mode
+    const darkModeEnabled = document.body.classList.contains("dark-mode");
+    setIsDarkMode(darkModeEnabled);
   }, [uniqueId]);
 
   const handleSubmitFeedback = async () => {
-    const finalFeedback = feedback === "Other" ? otherFeedback : feedback; 
+    const finalFeedback = feedback === "Other" ? otherFeedback : feedback;
 
     try {
       const feedbackData = {
@@ -104,11 +108,18 @@ const ECGResults = () => {
             <BarChart data={diagnosesData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
               <XAxis dataKey="name" stroke="#8884d8" tick={false} axisLine={{ stroke: "#8884d8" }} />
               <YAxis label={{ value: "Confidence (%)", angle: -90, position: "insideLeft" }} />
-              <Tooltip />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: isDarkMode ? "#333" : "#fff",
+                  border: "none",
+                  color: isDarkMode ? "#fff" : "#000", 
+                }}
+              />
               <Bar dataKey="confidence" fill="#8884d8" barSize={50} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
+
         {/* Feedback */}
         <Box sx={{ mt: 4 }}>
           <Typography variant="h6" color="text.primary">
@@ -125,7 +136,7 @@ const ECGResults = () => {
                 onChange={(e) => {
                   setFeedback(e.target.value);
                   if (e.target.value !== "Other") {
-                    setOtherFeedback(""); 
+                    setOtherFeedback("");
                   }
                 }}
                 sx={{ mt: 2 }}

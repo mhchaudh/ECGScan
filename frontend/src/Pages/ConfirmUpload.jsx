@@ -3,29 +3,28 @@ import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./ConfirmUpload.css";
-import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, Paper } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 import "leaflet/dist/leaflet.css";
 import Fuse from 'fuse.js';
-import { ListSubheader } from "@mui/material";
-import { hospitalOptions } from "../../hospitalOptions";
-
+import debounce from 'lodash.debounce';
 
 const ConfirmUpload = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl } = location.state || {}; 
+  const { imageUrl } = location.state || {};
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [resizedImage, setResizedImage] = useState(null); 
+  const [resizedImage, setResizedImage] = useState(null);
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [patientstatus, setPatientstatus] = useState("");
-  const [selectedHospital, setSelectedHospital] = useState("");
+  const [locationInput, setLocationInput] = useState("");
   const [locationDetails, setLocationDetails] = useState(null);
-  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
+  const [locationSuggestions, setLocationSuggestions] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -33,28 +32,89 @@ const ConfirmUpload = () => {
   const canvasRef = useRef(null);
   const originalImageRef = useRef(null);
 
+  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || []; // previous identifiers so the user can use again if needed
+  const fuse = new Fuse([], { keys: ["display_name"], threshold: 0.3 }); // using fuzzy search for suggestions
+
+  const API_URL = import.meta.env.VITE_API_URL; // api URL
+
   useEffect(() => {
-    if (!imageUrl) {
-      navigate("/home");
-      return;
-    }
-    const img = new Image();
-    img.src = imageUrl;
-    img.onload = () => {
-      originalImageRef.current = img; 
-    };
-    resizeImage(imageUrl, 500, 500, setResizedImage); 
+    if (!imageUrl) navigate("/home");  // if no image navigate to home
+    else loadImage(imageUrl);
   }, [imageUrl, navigate]);
 
-  // Resize image only for display purposes
-  const resizeImage = (src, maxWidth, maxHeight, callback) => {
+  const loadImage = (url) => { // loading the image
+    const img = new Image();
+    img.src = url;
+    img.onload = () => {
+      originalImageRef.current = img;
+      resizeImage(url, 500, 500, setResizedImage);
+    };
+  };
+
+  const fetchLocationSuggestions = async (query) => { // getting the suggestions using the nominatim api
+    if (!query.trim()) return;
+    try {
+      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10`);
+      if (!response.ok) throw new Error("Failed to fetch location suggestions.");
+      const data = await response.json();
+      setLocationSuggestions(data);
+      setIsDropdownOpen(true);
+    } catch (error) {
+      console.error("Error fetching location suggestions:", error);
+      setLocationSuggestions([]);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current; // use debounce to limit how frequently fetchLocationSuggestions is called for optimality
+
+  useEffect(() => {
+    if (locationInput.trim()) debouncedFetchLocationSuggestions(locationInput);
+    else {
+      setLocationSuggestions([]);
+      setIsDropdownOpen(false);
+    }
+    return () => debouncedFetchLocationSuggestions.cancel();
+  }, [locationInput, debouncedFetchLocationSuggestions]);
+
+  const handleLocationSelect = (selectedLocation) => { // selecting the location
+    setLocationInput(selectedLocation.display_name);
+    setLocationDetails({
+      lat: selectedLocation.lat,
+      lon: selectedLocation.lon,
+      display_name: selectedLocation.display_name,
+    });
+    setIsDropdownOpen(false);
+  };
+
+  const handleInputChange = (event) => { //changing input for the location
+    setLocationInput(event.target.value);
+    if (event.target.value.trim()) {
+      const results = fuse.search(event.target.value);
+      setLocationSuggestions(results.map((result) => result.item));
+      setIsDropdownOpen(true);
+    } else {
+      setLocationSuggestions([]);
+      setIsDropdownOpen(false);
+    }
+  };
+
+  const handleClickOutside = (event) => { //closes dropdown when we click outside it
+    if (event.target.closest(".location-dropdown") === null) setIsDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const resizeImage = (src, maxWidth, maxHeight, callback) => { // resizing the image for cropping
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
       let width = img.width;
       let height = img.height;
 
-      // Maintain aspect ratio
       if (width > height) {
         if (width > maxWidth) {
           height *= maxWidth / width;
@@ -76,215 +136,189 @@ const ConfirmUpload = () => {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } }); // Navigate to home and automatically press the upload button
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } }); // go to home and  upload   automatically
 
-  const API_URL = import.meta.env.VITE_API_URL;
-
-  // Handle confirmation and send the results to the ecg-results, history, and map pages
   const handleConfirm = async () => {
     try {
-      console.log("Confirmed image: ", croppedImage || imageUrl);
-      console.log("Age: ", age);
-      console.log("Gender: ", gender);
-      console.log("Location: ", locationDetails);
-  
-      let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
-      counter += 1;
-      localStorage.setItem("entryCounter", counter.toString());
-  
-      const uniqueId = `entry_${counter}`;
-  
-      const uniqueIdentifiersSet = new Set(previousIdentifiers);
-      if (identifier && !uniqueIdentifiersSet.has(identifier)) {
-        uniqueIdentifiersSet.add(identifier);
+      if (!identifier || !age || !gender || !patientstatus || !locationDetails) { // checking if all inputs are provided
+        alert("Please fill in all the required fields");
+        return;
       }
-      const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
-      localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-      const now = new Date();
-      const date = now.toISOString().split("T")[0]; // Extract only the date for filtering in history page
-      const dateTime = now.toLocaleTimeString(); 
-    
-      const historyData = JSON.parse(localStorage.getItem("history")) || [];
-      const newHistoryItem = {
-        uniqueId,
-        identifier,
-        status: patientstatus,
-        age,
-        gender,
-        location: locationDetails,
-        filename: null,
-        date, 
-        dateTime, 
-      };
-  
-      historyData.unshift(newHistoryItem);
-      localStorage.setItem("history", JSON.stringify(historyData));
-  
-      const imageToSave = croppedImage || imageUrl;
-      const image = new Image();
-      image.src = imageToSave;
-  
-      image.onload = async function () {
-        resizedImage2(image, 500, 500, async function (resizedBase64) {
-          localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
-          console.log("Image saved to localStorage");
-  
-          try {
-            setLoading(true);
-  
-            // Send image and details to backend
-            const uploadResponse = await fetch(`${API_URL}/api/image`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                image: imageToSave,
-                age,
-                gender,
-                identifier,
-                location: locationDetails,
-              }),
-            });
-  
-            let filename = null;
-            let boundedboxImageBase64 = null;
-  
-            if (uploadResponse.ok) {
-              const uploadData = await uploadResponse.json();
-              filename = uploadData.filename;
-              boundedboxImageBase64 = uploadData.boundedboximage;
-              const updatedHistoryItem = { ...newHistoryItem, filename };
-              const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)];
-              localStorage.setItem("history", JSON.stringify(updatedHistoryData));
-            } else {
-              console.error("Upload failed");
-            }
-  
-            if (boundedboxImageBase64) {
-              const boundedboxImage = new Image();
-              boundedboxImage.src = `data:image/jpeg;base64,${boundedboxImageBase64}`;
-  
-              boundedboxImage.onload = function () {
-                resizedImage2(boundedboxImage, 500, 500, function (resizedBoundedBase64) {
-                  localStorage.setItem(`boundedboxImgData_${uniqueId}`, resizedBoundedBase64);
-                  console.log("Bounded box image saved to localStorage");
-                });
-              };
-            }
-  
-            // sending the location to the map db
-            const mapResponse = await fetch(`${API_URL}/api/map`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                identifier,
-                filename,
-                location: locationDetails,
-              }),
-            });
-  
-            if (!mapResponse.ok) {
-              console.error("Failed to save location details");
-            }
-  
-            // classifying the ecg data
-            const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ecg: "dummy_ecg_signal",
-                sex: gender || "male",
-                age: age || 30,
-              }),
-            });
-  
-            if (!classifyResponse.ok) {
-              console.error("Classification failed");
-              setLoading(false);
-              return;
-            }
-  
-            const classifyData = await classifyResponse.json();
-            localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
-  
-            // Get the diagnosis with the highest confidence
-            const diagnoses = classifyData.diagnoses;
-            let highestDiagnosis = null;
-            let highestConfidence = 0;
-  
-            for (const [diagnosis, confidence] of Object.entries(diagnoses)) {
-              if (confidence > highestConfidence) {
-                highestDiagnosis = diagnosis;
-                highestConfidence = confidence;
-              }
-            }
-  
-            console.log("Highest confidence diagnosis:", highestDiagnosis, highestConfidence);
-  
-            // sending the highest confidence diagnosis to the backend
-            if (highestDiagnosis) {
-              const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  location: locationDetails,
-                  diagnoses: highestDiagnosis,
-                }),
-              });
-  
-              if (!diagnosesResponse.ok) {
-                console.error("Failed to send diagnosis");
-              }
-            }
-  
-            await new Promise((resolve) => setTimeout(resolve, 5000));
-            setLoading(false);
-  
-            // Navigate to results page
-            navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
-          } catch (error) {
-            console.error("Error processing ECG: ", error);
-            setLoading(false);
-          }
-        });
-      };
+
+      setLoading(true); // set loading to true
+      const uniqueId = generateUniqueId(); // get the unique id
+      const historyData = saveHistory(uniqueId); // save the data to the history item
+      const imageToSave = croppedImage || imageUrl; // get the image we want to send
+      await saveImageAndDetails(imageToSave, uniqueId, historyData); // function to save the image and send it
+      await sendLocationToMap(uniqueId, historyData); // function to send the details to the map db
+      await classifyECG(uniqueId); // function to get the ecg classification
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // timeout for the loading bar
+      setLoading(false); // set loading to false
+
+      navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${historyData[0].filename}&identifier=${identifier}`); //automatically navigate to the results page
     } catch (error) {
       console.error("Error in handleConfirm: ", error);
+      setLoading(false);
     }
   };
-  
 
-  function resizedImage2(img, maxWidth, maxHeight, callback) {
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-  
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high"; 
+  const generateUniqueId = () => { // setting a unique id(counter) to avoid repetition in localstorage
+    let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
+    counter += 1;
+    localStorage.setItem("entryCounter", counter.toString());
+    return `entry_${counter}`;
+  };
 
-    let width = img.width;
-    let height = img.height;
+  const saveHistory = (uniqueId) => { // setting a new history item with relevant details and setting it to localstorage so we can access in history
+    const now = new Date();
+    const date = now.toISOString().split("T")[0];
+    const dateTime = now.toLocaleTimeString();
 
-    if (width > height) {
-        if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-        }
-    } else {
-        if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-        }
+    const historyData = JSON.parse(localStorage.getItem("history")) || [];
+    const newHistoryItem = {
+      uniqueId,
+      identifier,
+      status: patientstatus,
+      age,
+      gender,
+      location: locationDetails,
+      filename: null,
+      date,
+      dateTime,
+    };
+
+    historyData.unshift(newHistoryItem);
+    localStorage.setItem("history", JSON.stringify(historyData));
+    return historyData;
+  };
+
+  const saveImageAndDetails = async (imageToSave, uniqueId, historyData) => { // sending the image to the backend and also getting the bounded box image from there to send to the history page
+    const image = new Image(); 
+    image.src = imageToSave;
+
+    image.onload = async () => {
+      const resizedBase64 = await resizeImage2(image, 500, 500);
+      localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
+
+      const uploadResponse = await fetch(`${API_URL}/api/image`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: imageToSave,
+          age,
+          gender,
+          identifier,
+          location: locationDetails,
+        }),
+      });
+
+      if (uploadResponse.ok) {
+        const uploadData = await uploadResponse.json();
+        const updatedHistoryItem = { ...historyData[0], filename: uploadData.filename };
+        const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)];
+        localStorage.setItem("history", JSON.stringify(updatedHistoryData));
+      } else {
+        console.error("Upload failed");
+      }
+    };
+  };
+
+  const sendLocationToMap = async (uniqueId, historyData) => { // sending the details to the map db
+    const mapResponse = await fetch(`${API_URL}/api/map`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        identifier,
+        filename: historyData[0].filename,
+        location: locationDetails,
+      }),
+    });
+
+    if (!mapResponse.ok) console.error("Failed to save location details");
+  };
+ 
+  const classifyECG = async (uniqueId) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
+    const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ecg: "dummy_ecg_signal",
+        sex: gender || "male",
+        age: age || 30,
+      }),
+    });
+
+    if (!classifyResponse.ok) {
+      console.error("Classification failed");
+      return;
     }
 
-    canvas.width = width;
-    canvas.height = height;
+    const classifyData = await classifyResponse.json();
+    localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
 
-    ctx.drawImage(img, 0, 0, width, height);
+    const highestDiagnosis = getHighestConfidenceDiagnosis(classifyData.diagnoses);
+    if (highestDiagnosis) await sendDiagnosis(highestDiagnosis);
+  };
 
-    callback(canvas.toDataURL("image/png"));
-  }
+  const getHighestConfidenceDiagnosis = (diagnoses) => { // this is to get the diagnosis with the highest confidence(we send this to the db for display)
+    let highestDiagnosis = null;
+    let highestConfidence = 0;
 
-  // Handle download
-  const handleDownload = () => {
+    for (const [diagnosis, confidence] of Object.entries(diagnoses)) {
+      if (confidence > highestConfidence) {
+        highestDiagnosis = diagnosis;
+        highestConfidence = confidence;
+      }
+    }
+
+    return highestDiagnosis;
+  };
+
+  const sendDiagnosis = async (diagnosis) => { // sending the most confident diagnosis for display in the map
+    const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: locationDetails,
+        diagnoses: diagnosis,
+      }),
+    });
+
+    if (!diagnosesResponse.ok) console.error("Failed to send diagnosis");
+  };
+
+  const resizeImage2 = (img, maxWidth, maxHeight) => { // resizing for storing in localstorage
+    return new Promise((resolve) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > maxWidth) {
+          height = Math.round((height * maxWidth) / width);
+          width = maxWidth;
+        }
+      } else {
+        if (height > maxHeight) {
+          width = Math.round((width * maxHeight) / height);
+          height = maxHeight;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/png"));
+    });
+  };
+
+  const handleDownload = () => { // download the image(if we want)
     const imagetodownload = croppedImage || imageUrl;
     const link = document.createElement("a");
     link.href = imagetodownload;
@@ -294,8 +328,7 @@ const ConfirmUpload = () => {
     document.body.removeChild(link);
   };
 
-  // Handle cropping
-  const onCropComplete = (crop) => {
+  const onCropComplete = (crop) => { // cropping
     if (originalImageRef.current && canvasRef.current) {
       const image = originalImageRef.current;
       const canvas = canvasRef.current;
@@ -317,109 +350,29 @@ const ConfirmUpload = () => {
         canvas.height
       );
 
-      setCroppedImage(canvas.toDataURL("image/png")); 
+      setCroppedImage(canvas.toDataURL("image/png"));
     }
   };
 
-  const handleAgeChange = (e) => {
+  const handleAgeChange = (e) => { // age change
     const value = e.target.value;
-    if (value < 0 || value > 999) {
-      setAge("");
-      return;
-    }
-    setAge(value);
+    if (value < 0 || value > 999) setAge("");
+    else setAge(value);
   };
 
-  const handleGenderChange = (e) => setGender(e.target.value);
-  const handleIdentifierChange = (e) => setIdentifier(e.target.value);
-  // const handleLocationInputChange = (e) => setLocationInput(e.target.value);
+  const handleGenderChange = (e) => setGender(e.target.value); // gender change
+  const handleIdentifierChange = (e) => setIdentifier(e.target.value); // identifier change
 
-  const fetchLocationDetails = async () => {
-    if (!locationInput.trim()) {
-      setLocationDetails(null);
-      return;
-    }
-    try {
-      const normalizedInput = locationInput.trim().toLowerCase();
-
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(normalizedInput)}`
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch location data.");
-      }
-
-      const data = await response.json();
-
-      if (data.length > 0) {
-        const { lat, lon, display_name } = data[0];
-        setLocationDetails({ lat, lon, display_name });
-      } else {
-        // suggesting alternatives using fuzzy search(Fuse Library)
-        const suggestions = await fetchSuggestions(normalizedInput);
-        if (suggestions && suggestions.length > 0) {
-          const fuse = new Fuse(suggestions, {
-            keys: ['display_name'],
-            threshold: 0.3, // this is for fuzziness
-          });
-
-          const bestMatch = fuse.search(normalizedInput);
-
-          if (bestMatch.length > 0) {
-            const { lat, lon, display_name } = bestMatch[0].item;
-            setLocationDetails({ lat, lon, display_name });
-          } else {
-            setLocationDetails(null)
-          }
-        } else {
-          setLocationDetails(null)
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching location details:", error);
-      setLocationDetails(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch a list of locations(for generating suggestions) from the API
-  const fetchSuggestions = async (input) => {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&limit=10`
-    );
-    const data = await response.json();
-    return data;
-  };
-
-  
-  
-  const handleConfirmClick = async () => {
+  const handleConfirmClick = () => { // once we click confirm
     if (loading) return;
-    // Fetch location details before validation
-    await fetchLocationDetails();
-    // check if location is there
-    if (!locationDetails || !locationDetails.lat || !locationDetails.lon) {
-      alert("No results found. Try a different location."); 
-      return;
-    }
-
-    // Check if all required fields are filled
-    if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
-      alert("Please fill in all the required fields");
-      return;
-    }
-    // Show the confirmation popup
     setShowConfirmPopup(true);
   };
-  const handlePopupResponse = (confirm) => {
-    setShowConfirmPopup(false);
-    if (confirm) {
-      handleConfirm();
-    }
-  };
 
+  const handlePopupResponse = (confirm) => { // once we say ok to confirm
+    setShowConfirmPopup(false);
+    if (confirm) handleConfirm();
+  };
+  
   return (
     <>
       {loading && (
@@ -491,49 +444,41 @@ const ConfirmUpload = () => {
           </Grid>
           {/*Location*/}
           <Grid item>
-              <FormControl sx={{ width: 300 }}>
-                {/* <InputLabel id="hospital-label">Hospital</InputLabel> */}
-                <Select
-                  labelId="hospital-label"
-                  value={selectedHospital}
-                  onChange={(e) => {
-                    const [province, index] = e.target.value.split("|");
-                    const hospital = hospitalOptions?.[province]?.[index];
-                    setSelectedHospital(e.target.value);
-                    setLocationDetails(hospital?.value || null);
-                  }}
-                  displayEmpty
-                  renderValue={(selected) => {
-                    if (!selected || selected === "") {
-                      return <span style={{ color: "#aaa" }}>Select Hospital</span>; // Ensures placeholder behavior
-                    }
-                    const [province, index] = selected.split("|");
-                    return hospitalOptions?.[province]?.[index]?.label || "";
-                  }}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300,
-                        width: 320,
-                      },
-                    },
-                  }}
-                >
-                  {Object.entries(hospitalOptions).flatMap(([province, hospitals]) => {
-                    const limitedHospitals = hospitals.slice(0, 10);
-                    return [
-                      <ListSubheader key={province}>{province}</ListSubheader>,
-                      ...limitedHospitals.map((hospital, index) => (
-                        <MenuItem key={`${province}-${index}`} value={`${province}|${index}`}>
-                          {hospital.label}
-                        </MenuItem>
-                      ))
-                    ];
-                  })}
-                </Select>
-              </FormControl>
-
-          </Grid>
+              <div className="location-dropdown" style={{ position: "relative" }}>
+                <TextField
+                  label="Location"
+                  variant="outlined"
+                  value={locationInput}
+                  onChange={handleInputChange}
+                  sx={{ width: 300 }}
+                  onFocus={() => setIsDropdownOpen(true)}
+                />
+                {isDropdownOpen && locationSuggestions.length > 0 && (
+                  <Paper
+                    style={{
+                      position: "absolute",
+                      width: "100%",
+                      maxHeight: "200px",
+                      overflowY: "auto",
+                      zIndex: 1,
+                      marginTop: "4px",
+                    }}
+                  >
+                    <List>
+                      {locationSuggestions.map((location, index) => (
+                        <ListItem
+                          key={index}
+                          button
+                          onClick={() => handleLocationSelect(location)}
+                        >
+                          <ListItemText primary={location.display_name} />
+                        </ListItem>
+                      ))}
+                    </List>
+                  </Paper>
+                )}
+              </div>
+            </Grid>
         </Grid>
   
         <Grid item container spacing={2} justifyContent="center">
