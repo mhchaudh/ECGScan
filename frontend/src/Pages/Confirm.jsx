@@ -8,7 +8,6 @@ import { Male, Female } from "@mui/icons-material";
 import "leaflet/dist/leaflet.css";
 import Fuse from 'fuse.js';
 
-
 const Confirm = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -33,7 +32,7 @@ const Confirm = () => {
 
   useEffect(() => {
     if (!imageUrl) {
-      navigate("/home"); 
+      navigate("/home");
       return;
     }
     const img = new Image();
@@ -69,7 +68,7 @@ const Confirm = () => {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL("image/png")); 
+      callback(canvas.toDataURL("image/png"));
     };
     img.src = src;
   };
@@ -98,7 +97,10 @@ const Confirm = () => {
       }
       const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
       localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-  
+      const now = new Date();
+      const date = now.toLocaleDateString(); // Extract only the date for filtering in history page
+      const dateTime = now.toLocaleTimeString(); 
+    
       const historyData = JSON.parse(localStorage.getItem("history")) || [];
       const newHistoryItem = {
         uniqueId,
@@ -107,8 +109,9 @@ const Confirm = () => {
         age,
         gender,
         location: locationDetails,
-        timestamp: new Date().toISOString(),
         filename: null,
+        date, 
+        dateTime, 
       };
   
       historyData.unshift(newHistoryItem);
@@ -214,7 +217,7 @@ const Confirm = () => {
   
             console.log("Highest confidence diagnosis:", highestDiagnosis, highestConfidence);
   
-             // sending the highest confidence diagnosis to the backend
+            // sending the highest confidence diagnosis to the backend
             if (highestDiagnosis) {
               const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
                 method: "POST",
@@ -350,12 +353,12 @@ const Confirm = () => {
         const { lat, lon, display_name } = data[0];
         setLocationDetails({ lat, lon, display_name });
       } else {
-         // suggesting alternatives using fuzzy search(Fuse Library)
+        // suggesting alternatives using fuzzy search(Fuse Library)
         const suggestions = await fetchSuggestions(normalizedInput);
         if (suggestions && suggestions.length > 0) {
           const fuse = new Fuse(suggestions, {
             keys: ['display_name'],
-            threshold: 0.3, // set fuzziness
+            threshold: 0.3, // this is for fuzziness
           });
 
           const bestMatch = fuse.search(normalizedInput);
@@ -378,7 +381,7 @@ const Confirm = () => {
     }
   };
 
-  // fetch a list of locations for the suggestions from the API
+  // Fetch a list of locations(for generating suggestions) from the API
   const fetchSuggestions = async (input) => {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&limit=10`
@@ -391,7 +394,7 @@ const Confirm = () => {
   
   const handleConfirmClick = async () => {
     if (loading) return;
-    // Fetch location details before we validate
+    // Fetch location details before validation
     await fetchLocationDetails();
     // check if location is there
     if (!locationDetails || !locationDetails.lat || !locationDetails.lon) {
@@ -399,7 +402,7 @@ const Confirm = () => {
       return;
     }
 
-    // check if all required fields are filled
+    // Check if all required fields are filled
     if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
       alert("Please fill in all the required fields");
       return;

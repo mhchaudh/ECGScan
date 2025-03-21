@@ -8,7 +8,6 @@ import { Male, Female } from "@mui/icons-material";
 import "leaflet/dist/leaflet.css";
 import Fuse from 'fuse.js';
 
-
 const ConfirmUpload = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -98,7 +97,10 @@ const ConfirmUpload = () => {
       }
       const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
       localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-  
+      const now = new Date();
+      const date = now.toLocaleDateString(); // Extract only the date for filtering in history page
+      const dateTime = now.toLocaleTimeString(); 
+    
       const historyData = JSON.parse(localStorage.getItem("history")) || [];
       const newHistoryItem = {
         uniqueId,
@@ -107,8 +109,9 @@ const ConfirmUpload = () => {
         age,
         gender,
         location: locationDetails,
-        timestamp: new Date().toISOString(),
         filename: null,
+        date, 
+        dateTime, 
       };
   
       historyData.unshift(newHistoryItem);

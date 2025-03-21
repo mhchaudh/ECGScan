@@ -3,6 +3,8 @@ import { useLocation } from "react-router-dom";
 import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
+//todo: add abdullah's part(get the image from backend whenever we open the page so its clear)
+
 const ECGResults = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search); 
