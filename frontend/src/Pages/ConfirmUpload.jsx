@@ -32,17 +32,17 @@ const ConfirmUpload = () => {
   const canvasRef = useRef(null);
   const originalImageRef = useRef(null);
 
-  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
-  const fuse = new Fuse([], { keys: ["display_name"], threshold: 0.3 });
+  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || []; // previous identifiers so the user can use again if needed
+  const fuse = new Fuse([], { keys: ["display_name"], threshold: 0.3 }); // using fuzzy search for suggestions
 
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL; // api URL
 
   useEffect(() => {
-    if (!imageUrl) navigate("/home");
+    if (!imageUrl) navigate("/home");  // if no image navigate to home
     else loadImage(imageUrl);
   }, [imageUrl, navigate]);
 
-  const loadImage = (url) => {
+  const loadImage = (url) => { // loading the image
     const img = new Image();
     img.src = url;
     img.onload = () => {
@@ -51,7 +51,7 @@ const ConfirmUpload = () => {
     };
   };
 
-  const fetchLocationSuggestions = async (query) => {
+  const fetchLocationSuggestions = async (query) => { // getting the suggestions using the nominatim api
     if (!query.trim()) return;
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10`);
@@ -66,7 +66,7 @@ const ConfirmUpload = () => {
     }
   };
 
-  const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current;
+  const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current; // use debounce to limit how frequently fetchLocationSuggestions is called for optimality
 
   useEffect(() => {
     if (locationInput.trim()) debouncedFetchLocationSuggestions(locationInput);
@@ -77,7 +77,7 @@ const ConfirmUpload = () => {
     return () => debouncedFetchLocationSuggestions.cancel();
   }, [locationInput, debouncedFetchLocationSuggestions]);
 
-  const handleLocationSelect = (selectedLocation) => {
+  const handleLocationSelect = (selectedLocation) => { // selecting the location
     setLocationInput(selectedLocation.display_name);
     setLocationDetails({
       lat: selectedLocation.lat,
@@ -87,7 +87,7 @@ const ConfirmUpload = () => {
     setIsDropdownOpen(false);
   };
 
-  const handleInputChange = (event) => {
+  const handleInputChange = (event) => { //changing input for the location
     setLocationInput(event.target.value);
     if (event.target.value.trim()) {
       const results = fuse.search(event.target.value);
@@ -99,7 +99,7 @@ const ConfirmUpload = () => {
     }
   };
 
-  const handleClickOutside = (event) => {
+  const handleClickOutside = (event) => { //closes dropdown when we click outside it
     if (event.target.closest(".location-dropdown") === null) setIsDropdownOpen(false);
   };
 
@@ -108,7 +108,7 @@ const ConfirmUpload = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const resizeImage = (src, maxWidth, maxHeight, callback) => {
+  const resizeImage = (src, maxWidth, maxHeight, callback) => { // resizing the image for cropping
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement("canvas");
@@ -136,41 +136,40 @@ const ConfirmUpload = () => {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } });
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } }); // go to home and  upload   automatically
 
   const handleConfirm = async () => {
     try {
-      if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
+      if (!identifier || !age || !gender || !patientstatus || !locationDetails) { // checking if all inputs are provided
         alert("Please fill in all the required fields");
         return;
       }
 
-      setLoading(true);
-      const uniqueId = generateUniqueId();
-      const historyData = saveHistory(uniqueId);
-      const imageToSave = croppedImage || imageUrl;
+      setLoading(true); // set loading to true
+      const uniqueId = generateUniqueId(); // get the unique id
+      const historyData = saveHistory(uniqueId); // save the data to the history item
+      const imageToSave = croppedImage || imageUrl; // get the image we want to send
+      await saveImageAndDetails(imageToSave, uniqueId, historyData); // function to save the image and send it
+      await sendLocationToMap(uniqueId, historyData); // function to send the details to the map db
+      await classifyECG(uniqueId); // function to get the ecg classification
+      await new Promise((resolve) => setTimeout(resolve, 5000)); // timeout for the loading bar
+      setLoading(false); // set loading to false
 
-      await saveImageAndDetails(imageToSave, uniqueId, historyData);
-      await sendLocationToMap(uniqueId, historyData);
-      await classifyECG(uniqueId);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
-      setLoading(false);
-
-      navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${historyData[0].filename}&identifier=${identifier}`);
+      navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${historyData[0].filename}&identifier=${identifier}`); //automatically navigate to the results page
     } catch (error) {
       console.error("Error in handleConfirm: ", error);
       setLoading(false);
     }
   };
 
-  const generateUniqueId = () => {
+  const generateUniqueId = () => { // setting a unique id(counter) to avoid repetition in localstorage
     let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
     counter += 1;
     localStorage.setItem("entryCounter", counter.toString());
     return `entry_${counter}`;
   };
 
-  const saveHistory = (uniqueId) => {
+  const saveHistory = (uniqueId) => { // setting a new history item with relevant details and setting it to localstorage so we can access in history
     const now = new Date();
     const date = now.toISOString().split("T")[0];
     const dateTime = now.toLocaleTimeString();
@@ -193,8 +192,8 @@ const ConfirmUpload = () => {
     return historyData;
   };
 
-  const saveImageAndDetails = async (imageToSave, uniqueId, historyData) => {
-    const image = new Image();
+  const saveImageAndDetails = async (imageToSave, uniqueId, historyData) => { // sending the image to the backend and also getting the bounded box image from there to send to the history page
+    const image = new Image(); 
     image.src = imageToSave;
 
     image.onload = async () => {
@@ -224,7 +223,7 @@ const ConfirmUpload = () => {
     };
   };
 
-  const sendLocationToMap = async (uniqueId, historyData) => {
+  const sendLocationToMap = async (uniqueId, historyData) => { // sending the details to the map db
     const mapResponse = await fetch(`${API_URL}/api/map`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -237,8 +236,8 @@ const ConfirmUpload = () => {
 
     if (!mapResponse.ok) console.error("Failed to save location details");
   };
-
-  const classifyECG = async (uniqueId) => {
+ 
+  const classifyECG = async (uniqueId) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
     const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -261,7 +260,7 @@ const ConfirmUpload = () => {
     if (highestDiagnosis) await sendDiagnosis(highestDiagnosis);
   };
 
-  const getHighestConfidenceDiagnosis = (diagnoses) => {
+  const getHighestConfidenceDiagnosis = (diagnoses) => { // this is to get the diagnosis with the highest confidence(we send this to the db for display)
     let highestDiagnosis = null;
     let highestConfidence = 0;
 
@@ -275,7 +274,7 @@ const ConfirmUpload = () => {
     return highestDiagnosis;
   };
 
-  const sendDiagnosis = async (diagnosis) => {
+  const sendDiagnosis = async (diagnosis) => { // sending the most confident diagnosis for display in the map
     const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -288,7 +287,7 @@ const ConfirmUpload = () => {
     if (!diagnosesResponse.ok) console.error("Failed to send diagnosis");
   };
 
-  const resizeImage2 = (img, maxWidth, maxHeight) => {
+  const resizeImage2 = (img, maxWidth, maxHeight) => { // resizing for storing in localstorage
     return new Promise((resolve) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
@@ -319,7 +318,7 @@ const ConfirmUpload = () => {
     });
   };
 
-  const handleDownload = () => {
+  const handleDownload = () => { // download the image(if we want)
     const imagetodownload = croppedImage || imageUrl;
     const link = document.createElement("a");
     link.href = imagetodownload;
@@ -329,7 +328,7 @@ const ConfirmUpload = () => {
     document.body.removeChild(link);
   };
 
-  const onCropComplete = (crop) => {
+  const onCropComplete = (crop) => { // cropping
     if (originalImageRef.current && canvasRef.current) {
       const image = originalImageRef.current;
       const canvas = canvasRef.current;
@@ -355,21 +354,21 @@ const ConfirmUpload = () => {
     }
   };
 
-  const handleAgeChange = (e) => {
+  const handleAgeChange = (e) => { // age change
     const value = e.target.value;
     if (value < 0 || value > 999) setAge("");
     else setAge(value);
   };
 
-  const handleGenderChange = (e) => setGender(e.target.value);
-  const handleIdentifierChange = (e) => setIdentifier(e.target.value);
+  const handleGenderChange = (e) => setGender(e.target.value); // gender change
+  const handleIdentifierChange = (e) => setIdentifier(e.target.value); // identifier change
 
-  const handleConfirmClick = () => {
+  const handleConfirmClick = () => { // once we click confirm
     if (loading) return;
     setShowConfirmPopup(true);
   };
 
-  const handlePopupResponse = (confirm) => {
+  const handlePopupResponse = (confirm) => { // once we say ok to confirm
     setShowConfirmPopup(false);
     if (confirm) handleConfirm();
   };
