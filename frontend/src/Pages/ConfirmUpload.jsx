@@ -6,16 +6,17 @@ import "./ConfirmUpload.css";
 import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 import "leaflet/dist/leaflet.css";
+import Fuse from 'fuse.js';
 
 
-function ConfirmUpload() {
+const ConfirmUpload = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { imageUrl } = location.state || {}; // Retrieve the file
+  const { imageUrl } = location.state || {}; 
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [resizedImage, setResizedImage] = useState(null); // Store resized image for display purposes
+  const [resizedImage, setResizedImage] = useState(null); 
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
@@ -32,15 +33,15 @@ function ConfirmUpload() {
 
   useEffect(() => {
     if (!imageUrl) {
-      navigate("/home"); // Redirect to home if no image is provided
+      navigate("/home");
       return;
     }
     const img = new Image();
     img.src = imageUrl;
     img.onload = () => {
-      originalImageRef.current = img; // Store the original image
+      originalImageRef.current = img; 
     };
-    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image for display
+    resizeImage(imageUrl, 500, 500, setResizedImage); 
   }, [imageUrl, navigate]);
 
   // Resize image only for display purposes
@@ -68,7 +69,7 @@ function ConfirmUpload() {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL("image/png")); // Convert to base64
+      callback(canvas.toDataURL("image/png"));
     };
     img.src = src;
   };
@@ -77,7 +78,7 @@ function ConfirmUpload() {
 
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // Handle confirmation and send the results to the ecg-results and history pages
+  // Handle confirmation and send the results to the ecg-results, history, and map pages
   const handleConfirm = async () => {
     try {
       console.log("Confirmed image: ", croppedImage || imageUrl);
@@ -125,7 +126,7 @@ function ConfirmUpload() {
           try {
             setLoading(true);
   
-            // Step 1: Upload image and details to /api/image
+            // Send image and details to backend
             const uploadResponse = await fetch(`${API_URL}/api/image`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -164,7 +165,7 @@ function ConfirmUpload() {
               };
             }
   
-            // Step 2: Send location details to /api/map
+            // sending the location to the map db
             const mapResponse = await fetch(`${API_URL}/api/map`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -179,7 +180,7 @@ function ConfirmUpload() {
               console.error("Failed to save location details");
             }
   
-            // Step 3: Classify ECG data
+            // classifying the ecg data
             const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -199,7 +200,7 @@ function ConfirmUpload() {
             const classifyData = await classifyResponse.json();
             localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
   
-            // Extract the diagnosis with the highest confidence
+            // Get the diagnosis with the highest confidence
             const diagnoses = classifyData.diagnoses;
             let highestDiagnosis = null;
             let highestConfidence = 0;
@@ -213,7 +214,7 @@ function ConfirmUpload() {
   
             console.log("Highest confidence diagnosis:", highestDiagnosis, highestConfidence);
   
-            // Step 4: Send the highest confidence diagnosis to /api/diagnoses
+            // sending the highest confidence diagnosis to the backend
             if (highestDiagnosis) {
               const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
                 method: "POST",
@@ -316,7 +317,7 @@ function ConfirmUpload() {
 
   const handleAgeChange = (e) => {
     const value = e.target.value;
-    if (value < 0 || value > 110) {
+    if (value < 0 || value > 999) {
       setAge("");
       return;
     }
@@ -328,37 +329,81 @@ function ConfirmUpload() {
   const handleLocationInputChange = (e) => setLocationInput(e.target.value);
 
   const fetchLocationDetails = async () => {
-    if (!locationInput) {
-      setLocationDetails(null); // Clear location details if input is empty
+    if (!locationInput.trim()) {
+      setLocationDetails(null);
       return;
     }
     try {
+      const normalizedInput = locationInput.trim().toLowerCase();
+
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(normalizedInput)}`
       );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch location data.");
+      }
+
       const data = await response.json();
+
       if (data.length > 0) {
         const { lat, lon, display_name } = data[0];
         setLocationDetails({ lat, lon, display_name });
       } else {
-        setLocationDetails(null); // Clear location details if no results are found
+        // suggesting alternatives using fuzzy search(Fuse Library)
+        const suggestions = await fetchSuggestions(normalizedInput);
+        if (suggestions && suggestions.length > 0) {
+          const fuse = new Fuse(suggestions, {
+            keys: ['display_name'],
+            threshold: 0.3, // this is for fuzziness
+          });
+
+          const bestMatch = fuse.search(normalizedInput);
+
+          if (bestMatch.length > 0) {
+            const { lat, lon, display_name } = bestMatch[0].item;
+            setLocationDetails({ lat, lon, display_name });
+          } else {
+            setLocationDetails(null)
+          }
+        } else {
+          setLocationDetails(null)
+        }
       }
     } catch (error) {
-      console.error("Error fetching location details: ", error);
-      setLocationDetails(null); // Clear location details on error
+      console.error("Error fetching location details:", error);
+      setLocationDetails(null);
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Fetch a list of locations(for generating suggestions) from the API
+  const fetchSuggestions = async (input) => {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(input)}&limit=10`
+    );
+    const data = await response.json();
+    return data;
+  };
+
+  
   
   const handleConfirmClick = async () => {
+    if (loading) return;
     // Fetch location details before validation
     await fetchLocationDetails();
-  
+    // check if location is there
+    if (!locationDetails || !locationDetails.lat || !locationDetails.lon) {
+      alert("No results found. Try a different location."); 
+      return;
+    }
+
     // Check if all required fields are filled
     if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
       alert("Please fill in all the required fields");
       return;
     }
-  
     // Show the confirmation popup
     setShowConfirmPopup(true);
   };
@@ -394,105 +439,110 @@ function ConfirmUpload() {
           </div>
         </div>
       )}
+  
       <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
         <Grid item>
           <Typography variant="h4" color="black">
             Adjust Your Image
           </Typography>
         </Grid>
-        {/* Patient Status Input */}
-        <Grid item sx={{ width: "300px" }}>
-          <FormControl fullWidth>
-            <InputLabel shrink={Boolean(patientstatus)}>Patient Status</InputLabel>
-            <Select
-              value={patientstatus}
-              onChange={(e) => setPatientstatus(e.target.value)}
-              displayEmpty
-              notched>
-              <MenuItem value="Pre-treatment">Pre-treatment</MenuItem>
-              <MenuItem value="During treatment">During treatment</MenuItem>
-              <MenuItem value="Post-treatment">Post-treatment</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        {/* Unique Patient Identifier Input */}
-        <Grid item>
-          <TextField
-            autoComplete="off"
-            label="Unique Patient Identifier"
-            variant="outlined"
-            value={identifier}
-            onChange={handleIdentifierChange}
-            sx={{ width: 300 }}
-            inputProps={{ list: "identifiers" }} 
-          />
-          <datalist id="identifiers">
-            {previousIdentifiers.map((id, index) => (
-              <option key={index} value={id}>
-                {id}
-              </option>
-            ))}
-          </datalist>
-        </Grid>
 
-        {/* Age Input */}
-        <Grid item>
-          <TextField
-            label="Age"
-            variant="outlined"
-            type="number"
-            value={age}
-            onChange={handleAgeChange}
-            inputProps={{ min: 0, max: 110 }}
-          />
+        <Grid item container spacing={2} justifyContent="center">
+           {/* Identifier */}
+          <Grid item>
+            <TextField
+              autoComplete="off"
+              label="Unique Patient Identifier"
+              variant="outlined"
+              value={identifier}
+              onChange={handleIdentifierChange}
+              sx={{ width: 300 }}
+              inputProps={{ list: "identifiers" }}
+            />
+            <datalist id="identifiers">
+              {previousIdentifiers.map((id, index) => (
+                <option key={index} value={id}>
+                  {id}
+                </option>
+              ))}
+            </datalist>
+          </Grid>
+          {/*Patient Status*/}
+          <Grid item>
+            <FormControl sx={{ width: 300 }}>
+              <InputLabel shrink={Boolean(patientstatus)}>Patient Status</InputLabel>
+              <Select
+                value={patientstatus}
+                onChange={(e) => setPatientstatus(e.target.value)}
+                displayEmpty
+                notched
+              >
+                <MenuItem value="Pre-treatment">Pre-treatment</MenuItem>
+                <MenuItem value="During treatment">During treatment</MenuItem>
+                <MenuItem value="Post-treatment">Post-treatment</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          {/*Location*/}
+          <Grid item>
+            <TextField
+              label="Location"
+              variant="outlined"
+              value={locationInput}
+              onChange={handleLocationInputChange}
+              onBlur={fetchLocationDetails}
+              sx={{ width: 300 }}
+            />
+          </Grid>
         </Grid>
-
-        {/* Gender Input */}
-        <Grid item>
-          <ToggleButtonGroup
-            value={gender}
-            exclusive
-            onChange={handleGenderChange}
-            sx={{ display: "flex", justifyContent: "center", marginTop: 2 }}
-          >
-            <ToggleButton
-              value="male"
-              selected={gender === "male"}
-              sx={{
-                backgroundColor: gender === "male" ? "#1976d2 !important" : "lightgray",
-                color: "white !important", 
-                "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },
-              }}
+  
+        <Grid item container spacing={2} justifyContent="center">
+          {/*Age */}
+          <Grid item>
+            <TextField
+              label="Age"
+              variant="outlined"
+              type="number"
+              value={age}
+              onChange={handleAgeChange}
+              inputProps={{ min: 0, max: 999 }}
+            />
+          </Grid> 
+          {/*Gender */}
+          <Grid item>
+            <ToggleButtonGroup
+              value={gender}
+              exclusive
+              onChange={handleGenderChange}
+              sx={{ display: "flex", justifyContent: "center" }}
             >
-              <Male sx={{ marginRight: 1, color: "white" }} /> Male
-            </ToggleButton>
-
-            <ToggleButton
-              value="female"
-              selected={gender === "female"}
-              sx={{
-                backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
-                color: "white !important", 
-                "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
-              }}
-            >
-              <Female sx={{ marginRight: 1, color: "white" }} /> Female
-            </ToggleButton>
-          </ToggleButtonGroup>
+              <ToggleButton
+                value="male"
+                selected={gender === "male"}
+                sx={{
+                  backgroundColor: gender === "male" ? "#1976d2 !important" : "lightgray",
+                  color: "white !important",
+                  "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },
+                }}
+              >
+                <Male sx={{ marginRight: 1, color: "white" }} /> Male
+              </ToggleButton>
+  
+              <ToggleButton
+                value="female"
+                selected={gender === "female"}
+                sx={{
+                  backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
+                  color: "white !important",
+                  "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
+                }}
+              >
+                <Female sx={{ marginRight: 1, color: "white" }} /> Female
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Grid>
         </Grid>
-
-        {/* Location Input */}
-        <Grid item>
-          <TextField
-            label="Location"
-            variant="outlined"
-            value={locationInput}
-            onChange={handleLocationInputChange}
-            onBlur={fetchLocationDetails}
-            sx={{ width: 300 }}
-          />
-        </Grid>
-
+  
         {/* Image Cropping Section */}
         <Grid item>
           <div className="image-container">
@@ -517,9 +567,9 @@ function ConfirmUpload() {
             </div>
           </div>
         </Grid>
-
+  
         <canvas ref={canvasRef} style={{ display: "none" }} />
-
+  
         {/* Buttons */}
         <Grid item>
           <Grid container spacing={2}>
@@ -540,6 +590,7 @@ function ConfirmUpload() {
             </Grid>
           </Grid>
         </Grid>
+  
         {/* Confirmation Popup */}
         <Dialog open={showConfirmPopup} onClose={() => setShowConfirmPopup(false)}>
           <DialogTitle>Confirm Submission</DialogTitle>
@@ -557,7 +608,7 @@ function ConfirmUpload() {
         </Dialog>
       </Grid>
     </>
-  );
+  );  
 }
 
 export default ConfirmUpload;

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-function History() {
+const History = () => {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
   const [filteredHistory, setFilteredHistory] = useState([]);
