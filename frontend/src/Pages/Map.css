@@ -4,8 +4,6 @@ body {
   .popup-content {
     max-width: 300px;
   }
-  
-
 .map-container {
     position: absolute;
     top: 64px; 
@@ -18,12 +16,10 @@ body {
     font-weight: bold;
     margin-bottom: 10px;
   }
-  
   .diagnosis-list {
     font-size: 1em;
     color: #333;
   }
-  
   .diagnosis-item {
     margin-bottom: 8px;
   }
@@ -31,7 +27,6 @@ body {
   .diagnosis-item strong {
     color: #007bff;
   }
-  
   .loading-message,
   .error-message {
     font-size: 1.2em;
@@ -40,12 +35,36 @@ body {
     padding: 10px;
     text-align: center;
   }
-  
   .error-message {
     background-color: #dc3545; 
   }
-  
   .loading-message {
     background-color: #007bff; 
   }
-  
+  .dark-mode .map-container {
+    background-color: #121212; 
+  }
+  .dark-mode .leaflet-control-zoom {
+    background-color: #333; 
+  }
+  .dark-mode .leaflet-control-zoom-in,
+  .dark-mode .leaflet-control-zoom-out {
+    background-color: #333; 
+    color: white; 
+    border-color: #555; 
+  }
+  .dark-mode .leaflet-control-zoom-in:hover,
+  .dark-mode .leaflet-control-zoom-out:hover {
+    background-color: #555; 
+  }
+  .dark-mode .leaflet-control-attribution {
+    background-color: rgba(51, 51, 51, 0.8); 
+    color: white; 
+  }
+  .dark-mode .leaflet-popup-content-wrapper {
+    background-color: #333; 
+    color: white; 
+  }
+  .dark-mode .leaflet-popup-tip {
+    background-color: #333; 
+  }
