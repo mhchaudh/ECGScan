@@ -7,6 +7,9 @@ import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, D
 import { Male, Female } from "@mui/icons-material";
 import "leaflet/dist/leaflet.css";
 import Fuse from 'fuse.js';
+import { ListSubheader } from "@mui/material";
+import { hospitalOptions } from "../../hospitalOptions";
+
 
 const ConfirmUpload = () => {
   const location = useLocation();
@@ -20,7 +23,7 @@ const ConfirmUpload = () => {
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [patientstatus, setPatientstatus] = useState("");
-  const [locationInput, setLocationInput] = useState("");
+  const [selectedHospital, setSelectedHospital] = useState("");
   const [locationDetails, setLocationDetails] = useState(null);
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
@@ -329,7 +332,7 @@ const ConfirmUpload = () => {
 
   const handleGenderChange = (e) => setGender(e.target.value);
   const handleIdentifierChange = (e) => setIdentifier(e.target.value);
-  const handleLocationInputChange = (e) => setLocationInput(e.target.value);
+  // const handleLocationInputChange = (e) => setLocationInput(e.target.value);
 
   const fetchLocationDetails = async () => {
     if (!locationInput.trim()) {
@@ -488,14 +491,48 @@ const ConfirmUpload = () => {
           </Grid>
           {/*Location*/}
           <Grid item>
-            <TextField
-              label="Location"
-              variant="outlined"
-              value={locationInput}
-              onChange={handleLocationInputChange}
-              onBlur={fetchLocationDetails}
-              sx={{ width: 300 }}
-            />
+              <FormControl sx={{ width: 300 }}>
+                {/* <InputLabel id="hospital-label">Hospital</InputLabel> */}
+                <Select
+                  labelId="hospital-label"
+                  value={selectedHospital}
+                  onChange={(e) => {
+                    const [province, index] = e.target.value.split("|");
+                    const hospital = hospitalOptions?.[province]?.[index];
+                    setSelectedHospital(e.target.value);
+                    setLocationDetails(hospital?.value || null);
+                  }}
+                  displayEmpty
+                  renderValue={(selected) => {
+                    if (!selected || selected === "") {
+                      return <span style={{ color: "#aaa" }}>Select Hospital</span>; // Ensures placeholder behavior
+                    }
+                    const [province, index] = selected.split("|");
+                    return hospitalOptions?.[province]?.[index]?.label || "";
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      style: {
+                        maxHeight: 300,
+                        width: 320,
+                      },
+                    },
+                  }}
+                >
+                  {Object.entries(hospitalOptions).flatMap(([province, hospitals]) => {
+                    const limitedHospitals = hospitals.slice(0, 10);
+                    return [
+                      <ListSubheader key={province}>{province}</ListSubheader>,
+                      ...limitedHospitals.map((hospital, index) => (
+                        <MenuItem key={`${province}-${index}`} value={`${province}|${index}`}>
+                          {hospital.label}
+                        </MenuItem>
+                      ))
+                    ];
+                  })}
+                </Select>
+              </FormControl>
+
           </Grid>
         </Grid>
   
