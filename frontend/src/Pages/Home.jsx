@@ -6,7 +6,7 @@ import { PhotoCamera, CloudUpload, FlashOn, FlashOff, FlipCameraAndroid } from "
 import logo from '../assets/1-3b2842e1-removebg-preview.png'; 
 import './Home.css'; 
 
-function Home() {
+const Home = () => {
   const fileInputRef = useRef(null); 
   const videoRef = useRef(null); 
   const navigate = useNavigate(); 

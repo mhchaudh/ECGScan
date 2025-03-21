@@ -5,7 +5,7 @@ ecg_bp = Blueprint('ecg_bp', __name__)
 
 
 # expects an ECG signal + patient details and calls process_ecg_for_diagnosis
-@ecg_bp.route('/classify', methods=['POST'])
+@ecg_bp.route('ecg/classify', methods=['POST'])
 def classify_ecg():
     data = request.get_json()
     ecg = data.get('ecg')
@@ -16,5 +16,6 @@ def classify_ecg():
         return jsonify({'error': 'Missing required parameters'}), 400
 
     result = process_ecg_for_diagnosis(ecg, sex, age)
+    print(result)
 
     return jsonify(result), 200
