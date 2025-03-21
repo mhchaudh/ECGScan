@@ -9,16 +9,14 @@ import shutil
 
 image_bp = Blueprint('image_bp', __name__)
 
-@image_bp.route('', methods=['POST'])
+@image_bp.route('image', methods=['POST'])
 def create_image_and_digitize():
     data = request.get_json()
     image_data = data.get('image')
     age_data = data.get('age')
     gender_data = data.get('gender')
     identifier_data = data.get('identifier')
-    print(identifier_data)
-
-    # Validate the required fields
+    
     if not image_data:
         return jsonify({'error': 'No image provided'}), 400
     if not identifier_data:
@@ -28,7 +26,6 @@ def create_image_and_digitize():
     if not gender_data:
         return jsonify({'error': 'No gender provided'}), 400
 
-    # Remove the header if the image is sent as a data URL
     if "base64," in image_data:
         image_data = image_data.split("base64,")[1]
 
@@ -37,7 +34,7 @@ def create_image_and_digitize():
     except Exception as e:
         return jsonify({'error': 'Failed to decode image', 'message': str(e)}), 400
 
-    # Convert the image bytes to a PIL Image
+    # Convert to a PIL Image
     image_file = io.BytesIO(image_bytes)
     image = Image.open(image_file)
 
@@ -45,7 +42,7 @@ def create_image_and_digitize():
     backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
     print(backend_dir)
     identifier_folder = os.path.join(backend_dir, f'{identifier_data}_OriginalImage')
-    os.makedirs(identifier_folder, exist_ok=True)  # Ensure the folder exists
+    os.makedirs(identifier_folder, exist_ok=True)  
 
     # Generate a unique filename using UUID, age, and gender
     fileuuid = uuid.uuid4().hex
@@ -53,11 +50,11 @@ def create_image_and_digitize():
     filenamejpg = f"{filename}.jpg"
     filepath = os.path.join(identifier_folder, filenamejpg)
 
-    # Convert the image to RGBA and crop the non-white areas
+    # Convert the image to RGBA and crop non-white areas
     image = image.convert('RGBA')
     bbox = image.getbbox()
     cropped_image = image.crop(bbox)
-    cropped_image_rgb = cropped_image.convert('RGB')  # Convert to RGB for JPEG format
+    cropped_image_rgb = cropped_image.convert('RGB')  
     
    
     contrast_enhancer = ImageEnhance.Contrast(cropped_image_rgb)
@@ -73,7 +70,6 @@ def create_image_and_digitize():
     enhanced_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     image_path = f"{filepath}"
-    print(image_path)
 
     # Process ECG image
     process_ecg_image(image_path, identifier_data, filename)
@@ -106,7 +102,7 @@ def create_image_and_digitize():
         bounded_box_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     # Backup and clean up detection folder
-    backup_folder = os.path.join(backend_dir, "backup_detected_images")
+    backup_folder = os.path.join(backend_dir, "bounded_box_images")
     os.makedirs(backup_folder, exist_ok=True)
     shutil.move(bounded_box_image_path, os.path.join(backup_folder, os.path.basename(bounded_box_image_path)))
     shutil.rmtree(detect_folder)

@@ -5,6 +5,8 @@ import "react-image-crop/dist/ReactCrop.css";
 import "./Confirm.css";
 import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
+import "leaflet/dist/leaflet.css";
+
 
 function Confirm() {
   const location = useLocation();
@@ -18,6 +20,8 @@ function Confirm() {
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [patientstatus, setPatientstatus] = useState("");
+  const [locationInput, setLocationInput] = useState("");
+  const [locationDetails, setLocationDetails] = useState(null);
   const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || [];
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -36,7 +40,7 @@ function Confirm() {
     img.onload = () => {
       originalImageRef.current = img; // Store the original image
     };
-    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize image for display
+    resizeImage(imageUrl, 500, 500, setResizedImage); // Resize uploaded image for display
   }, [imageUrl, navigate]);
 
   // Resize image only for display purposes
@@ -69,126 +73,179 @@ function Confirm() {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // Navigate to home and automatically press the upload button
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // Navigate to home and automatically press the take picture button
 
   const API_URL = import.meta.env.VITE_API_URL;
 
   // Handle confirmation and send the results to the ecg-results and history pages
   const handleConfirm = async () => {
     try {
-        console.log("Confirmed image: ", croppedImage || imageUrl);
-        console.log("Age: ", age);
-        console.log("Gender: ", gender);
-
-        let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
-        counter += 1;
-        localStorage.setItem("entryCounter", counter.toString());
-
-        const uniqueId = `entry_${counter}`;
-
-        const uniqueIdentifiersSet = new Set(previousIdentifiers);
-        if (identifier && !uniqueIdentifiersSet.has(identifier)) {
-            uniqueIdentifiersSet.add(identifier);
-        }
-        const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
-        localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
-
-        const historyData = JSON.parse(localStorage.getItem("history")) || [];
-        const newHistoryItem = {
-            uniqueId,
-            identifier,
-            status: patientstatus,
-            age,
-            gender,
-            timestamp: new Date().toISOString(),
-            filename: null,
-        };
-
-        historyData.unshift(newHistoryItem);
-        localStorage.setItem("history", JSON.stringify(historyData));
-
-        const imageToSave = croppedImage || imageUrl;
-        const image = new Image();
-        image.src = imageToSave;
-
-        image.onload = async function () {
-            resizedImage2(image, 500, 500, async function (resizedBase64) {
-                localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
-                console.log("Image saved to localStorage");
-
-                try {
-                    setLoading(true);
-                    const uploadResponse = await fetch(`${API_URL}/api/image`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            image: imageToSave,
-                            age,
-                            gender,
-                            identifier,
-                        }),
-                    });
-
-                    let filename = null;
-                    let boundedboxImageBase64 = null;
-
-                    if (uploadResponse.ok) {
-                        const uploadData = await uploadResponse.json();
-                        filename = uploadData.filename;
-                        boundedboxImageBase64 = uploadData.boundedboximage;
-                        const updatedHistoryItem = { ...newHistoryItem, filename };
-                        const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)]; 
-                        localStorage.setItem("history", JSON.stringify(updatedHistoryData));
-                    } else {
-                        console.error("Upload failed");
-                    }
-
-                    if (boundedboxImageBase64) {
-                        const boundedboxImage = new Image();
-                        boundedboxImage.src = `data:image/jpeg;base64,${boundedboxImageBase64}`;
-
-                        boundedboxImage.onload = function () {
-                            resizedImage2(boundedboxImage, 500, 500, function (resizedBoundedBase64) {
-                                localStorage.setItem(`boundedboxImgData_${uniqueId}`, resizedBoundedBase64);
-                                console.log("Bounded box image saved to localStorage");
-                            });
-                        };
-                    }
-
-                    const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            ecg: "dummy_ecg_signal",
-                            sex: gender || "male",
-                            age: age || 30,
-                        }),
-                    });
-
-                    if (!classifyResponse.ok) {
-                        console.error("Classification failed");
-                        setLoading(false);
-                        return;
-                    }
-
-                    const classifyData = await classifyResponse.json();
-                    localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
-
-                    await new Promise((resolve) => setTimeout(resolve, 5000));
-                    setLoading(false);
-
-                    
-                    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
-                  } catch (error) {
-                    console.error("Error processing ECG: ", error);
-                    setLoading(false);
-                  }
+      console.log("Confirmed image: ", croppedImage || imageUrl);
+      console.log("Age: ", age);
+      console.log("Gender: ", gender);
+      console.log("Location: ", locationDetails);
+  
+      let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
+      counter += 1;
+      localStorage.setItem("entryCounter", counter.toString());
+  
+      const uniqueId = `entry_${counter}`;
+  
+      const uniqueIdentifiersSet = new Set(previousIdentifiers);
+      if (identifier && !uniqueIdentifiersSet.has(identifier)) {
+        uniqueIdentifiersSet.add(identifier);
+      }
+      const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
+      localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
+  
+      const historyData = JSON.parse(localStorage.getItem("history")) || [];
+      const newHistoryItem = {
+        uniqueId,
+        identifier,
+        status: patientstatus,
+        age,
+        gender,
+        location: locationDetails,
+        timestamp: new Date().toISOString(),
+        filename: null,
+      };
+  
+      historyData.unshift(newHistoryItem);
+      localStorage.setItem("history", JSON.stringify(historyData));
+  
+      const imageToSave = croppedImage || imageUrl;
+      const image = new Image();
+      image.src = imageToSave;
+  
+      image.onload = async function () {
+        resizedImage2(image, 500, 500, async function (resizedBase64) {
+          localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
+          console.log("Image saved to localStorage");
+  
+          try {
+            setLoading(true);
+  
+            // Step 1: Upload image and details to /api/image
+            const uploadResponse = await fetch(`${API_URL}/api/image`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                image: imageToSave,
+                age,
+                gender,
+                identifier,
+                location: locationDetails,
+              }),
             });
-        };
+  
+            let filename = null;
+            let boundedboxImageBase64 = null;
+  
+            if (uploadResponse.ok) {
+              const uploadData = await uploadResponse.json();
+              filename = uploadData.filename;
+              boundedboxImageBase64 = uploadData.boundedboximage;
+              const updatedHistoryItem = { ...newHistoryItem, filename };
+              const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)];
+              localStorage.setItem("history", JSON.stringify(updatedHistoryData));
+            } else {
+              console.error("Upload failed");
+            }
+  
+            if (boundedboxImageBase64) {
+              const boundedboxImage = new Image();
+              boundedboxImage.src = `data:image/jpeg;base64,${boundedboxImageBase64}`;
+  
+              boundedboxImage.onload = function () {
+                resizedImage2(boundedboxImage, 500, 500, function (resizedBoundedBase64) {
+                  localStorage.setItem(`boundedboxImgData_${uniqueId}`, resizedBoundedBase64);
+                  console.log("Bounded box image saved to localStorage");
+                });
+              };
+            }
+  
+            // Step 2: Send location details to /api/map
+            const mapResponse = await fetch(`${API_URL}/api/map`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                identifier,
+                filename,
+                location: locationDetails,
+              }),
+            });
+  
+            if (!mapResponse.ok) {
+              console.error("Failed to save location details");
+            }
+  
+            // Step 3: Classify ECG data
+            const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ecg: "dummy_ecg_signal",
+                sex: gender || "male",
+                age: age || 30,
+              }),
+            });
+  
+            if (!classifyResponse.ok) {
+              console.error("Classification failed");
+              setLoading(false);
+              return;
+            }
+  
+            const classifyData = await classifyResponse.json();
+            localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
+  
+            // Extract the diagnosis with the highest confidence
+            const diagnoses = classifyData.diagnoses;
+            let highestDiagnosis = null;
+            let highestConfidence = 0;
+  
+            for (const [diagnosis, confidence] of Object.entries(diagnoses)) {
+              if (confidence > highestConfidence) {
+                highestDiagnosis = diagnosis;
+                highestConfidence = confidence;
+              }
+            }
+  
+            console.log("Highest confidence diagnosis:", highestDiagnosis, highestConfidence);
+  
+            // Step 4: Send the highest confidence diagnosis to /api/diagnoses
+            if (highestDiagnosis) {
+              const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  location: locationDetails,
+                  diagnoses: highestDiagnosis,
+                }),
+              });
+  
+              if (!diagnosesResponse.ok) {
+                console.error("Failed to send diagnosis");
+              }
+            }
+  
+            await new Promise((resolve) => setTimeout(resolve, 5000));
+            setLoading(false);
+  
+            // Navigate to results page
+            navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+          } catch (error) {
+            console.error("Error processing ECG: ", error);
+            setLoading(false);
+          }
+        });
+      };
     } catch (error) {
-        console.error("Error in handleConfirm: ", error);
+      console.error("Error in handleConfirm: ", error);
     }
-};
+  };
+  
+
   function resizedImage2(img, maxWidth, maxHeight, callback) {
     const canvas = document.createElement("canvas");
     const ctx = canvas.getContext("2d");
@@ -268,11 +325,40 @@ function Confirm() {
 
   const handleGenderChange = (e) => setGender(e.target.value);
   const handleIdentifierChange = (e) => setIdentifier(e.target.value);
-  const handleConfirmClick = () => {
-    if (!identifier || !age || !gender || !patientstatus) {
+  const handleLocationInputChange = (e) => setLocationInput(e.target.value);
+
+  const fetchLocationDetails = async () => {
+    if (!locationInput) {
+      setLocationDetails(null); // Clear location details if input is empty
+      return;
+    }
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}`
+      );
+      const data = await response.json();
+      if (data.length > 0) {
+        const { lat, lon, display_name } = data[0];
+        setLocationDetails({ lat, lon, display_name });
+      } else {
+        setLocationDetails(null); // Clear location details if no results are found
+      }
+    } catch (error) {
+      console.error("Error fetching location details: ", error);
+      setLocationDetails(null); // Clear location details on error
+    }
+  };
+  
+  const handleConfirmClick = async () => {
+    // Fetch location details before validation
+    await fetchLocationDetails();
+  
+    // Check if all required fields are filled
+    if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
       alert("Please fill in all the required fields");
       return;
     }
+    // Show the confirmation popup
     setShowConfirmPopup(true);
   };
   const handlePopupResponse = (confirm) => {
@@ -392,6 +478,18 @@ function Confirm() {
               <Female sx={{ marginRight: 1, color: "white" }} /> Female
             </ToggleButton>
           </ToggleButtonGroup>
+        </Grid>
+
+        {/* Location Input */}
+        <Grid item>
+          <TextField
+            label="Location"
+            variant="outlined"
+            value={locationInput}
+            onChange={handleLocationInputChange}
+            onBlur={fetchLocationDetails}
+            sx={{ width: 300 }}
+          />
         </Grid>
 
         {/* Image Cropping Section */}

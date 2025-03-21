@@ -1,25 +1,19 @@
-
 from flask import Blueprint, request, jsonify
-from ECGenius.api import db 
+from ECGenius.api.models import Feedback
+from ECGenius.api import db
 
-class Feedback(db.Model):
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    identifier = db.Column(db.String(255), nullable=True)
-    filename = db.Column(db.String(255), nullable=True)
-    feedback = db.Column(db.String(500), nullable=False)
 feedback_bp = Blueprint('feedback_bp', __name__)
 
-@feedback_bp.route('', methods=['POST'])
+@feedback_bp.route('feedback', methods=['POST'])
 def add_feedback():
     data = request.get_json()
     if not data or 'feedback' not in data:
         return jsonify({'error': 'No feedback provided'}), 400
     
-    feedback_text = data['feedback']
-    filename = data.get('filename')  
-    identifier = data.get('identifier')  
-    
-    new_feedback = Feedback(identifier = identifier, filename=filename, feedback=feedback_text)
+    feedback_text = data.get('feedback')
+    identifier = data.get('identifier')
+    filename = data.get('filename')
+    new_feedback = Feedback(identifier = identifier, filename = filename, feedback=feedback_text)
     
     try:
         db.session.add(new_feedback)

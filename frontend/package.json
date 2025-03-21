@@ -14,9 +14,11 @@
     "@emotion/react": "^11.14.0",
     "@mui/icons-material": "^6.4.6",
     "chromedriver": "^133.0.3",
+    "leaflet": "^1.9.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-image-crop": "^11.0.7",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.1.5",
     "recharts": "^2.15.1",
     "selenium-webdriver": "^4.29.0"

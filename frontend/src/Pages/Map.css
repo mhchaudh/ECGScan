@@ -1,0 +1,43 @@
+body {
+    font-family: Arial, sans-serif;
+  }
+  .popup-content {
+    max-width: 300px;
+  }
+  
+  .location-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  
+  .diagnosis-list {
+    font-size: 1em;
+    color: #333;
+  }
+  
+  .diagnosis-item {
+    margin-bottom: 8px;
+  }
+  
+  .diagnosis-item strong {
+    color: #007bff;
+  }
+  
+  .loading-message,
+  .error-message {
+    font-size: 1.2em;
+    color: #fff;
+    background-color: #333;
+    padding: 10px;
+    text-align: center;
+  }
+  
+  .error-message {
+    background-color: #dc3545; 
+  }
+  
+  .loading-message {
+    background-color: #007bff; 
+  }
+  
