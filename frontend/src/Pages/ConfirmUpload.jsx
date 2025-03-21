@@ -98,7 +98,7 @@ const ConfirmUpload = () => {
       const uniqueIdentifiers = Array.from(uniqueIdentifiersSet);
       localStorage.setItem("uniqueIdentifiers", JSON.stringify(uniqueIdentifiers));
       const now = new Date();
-      const date = now.toLocaleDateString(); // Extract only the date for filtering in history page
+      const date = now.toISOString().split("T")[0]; // Extract only the date for filtering in history page
       const dateTime = now.toLocaleTimeString(); 
     
       const historyData = JSON.parse(localStorage.getItem("history")) || [];
