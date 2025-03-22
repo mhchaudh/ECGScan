@@ -3,8 +3,6 @@ import { useLocation } from "react-router-dom";
 import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
-//todo: add abdullah's part(get the image from backend whenever we open the page so its clear)
-
 const ECGResults = () => {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -14,11 +12,13 @@ const ECGResults = () => {
 
   const [classificationResult, setClassificationResult] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
+  const [highlightedImageUrl, setHighlightedImageUrl] = useState(null); 
   const [feedback, setFeedback] = useState("");
   const [otherFeedback, setOtherFeedback] = useState("");
   const [submittedFeedback, setSubmittedFeedback] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false); 
-  const API_URL = import.meta.env.VITE_API_URL; // Get API URL
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const API_URL = import.meta.env.VITE_API_URL;
+
   useEffect(() => {
     if (uniqueId) {
       const result = JSON.parse(localStorage.getItem(`classificationResult_${uniqueId}`));
@@ -32,12 +32,36 @@ const ECGResults = () => {
         setFeedback(savedFeedback);
         setSubmittedFeedback(true);
       }
+
+      // fetch the highlighted image from backend
+      fetchHighlightedImage();
     }
 
-    // dark mode
+    // Dark mode
     const darkModeEnabled = document.body.classList.contains("dark-mode");
     setIsDarkMode(darkModeEnabled);
   }, [uniqueId]);
+
+  const fetchHighlightedImage = async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/ecgresults`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ filename }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch highlighted image: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setHighlightedImageUrl(data.image); // Set the highlighted image URL
+    } catch (error) {
+      console.error("Error fetching highlighted image:", error);
+    }
+  };
 
   const handleSubmitFeedback = async () => {
     const finalFeedback = feedback === "Other" ? otherFeedback : feedback;
@@ -112,13 +136,28 @@ const ECGResults = () => {
                 contentStyle={{
                   backgroundColor: isDarkMode ? "#333" : "#fff",
                   border: "none",
-                  color: isDarkMode ? "#fff" : "#000", 
+                  color: isDarkMode ? "#fff" : "#000",
                 }}
               />
               <Bar dataKey="confidence" fill="#8884d8" barSize={50} />
             </BarChart>
           </ResponsiveContainer>
         </Box>
+
+        {/* Highlighted ECG Image */}
+        {highlightedImageUrl && (
+          <Box sx={{ mt: 4 }}>
+            <Typography variant="h6" color="text.primary">
+              ECG Sections Leading to Diagnosis
+            </Typography>
+            <Box
+              component="img"
+              src={`data:image/png;base64,${highlightedImageUrl}`}
+              alt="Highlighted ECG Sections"
+              sx={{ width: "100%", height: "auto", mt: 2 }}
+            />
+          </Box>
+        )}
 
         {/* Feedback */}
         <Box sx={{ mt: 4 }}>

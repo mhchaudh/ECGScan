@@ -21,10 +21,12 @@ def create_app():
     from ECGenius.api.feedback_routes import feedback_bp
     from ECGenius.api.map_routes import map_bp
     from ECGenius.api.diagnoses_routes import diagnoses_bp
+    from ECGenius.api.ecgresults_routes import ecgresults_bp
 
     app.register_blueprint(image_bp, url_prefix='/api')
     app.register_blueprint(ecg_bp, url_prefix='/api')
     app.register_blueprint(feedback_bp, url_prefix='/api')
     app.register_blueprint(map_bp, url_prefix='/api')
     app.register_blueprint(diagnoses_bp, url_prefix='/api')
+    app.register_blueprint(ecgresults_bp, url_prefix='/api')
     return app
