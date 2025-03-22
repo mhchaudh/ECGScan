@@ -12,12 +12,15 @@ const ECGResults = () => {
 
   const [classificationResult, setClassificationResult] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
-  const [highlightedImageUrl, setHighlightedImageUrl] = useState(null); 
+  const [highlightedImageUrl, setHighlightedImageUrl] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [otherFeedback, setOtherFeedback] = useState("");
   const [submittedFeedback, setSubmittedFeedback] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const API_URL = import.meta.env.VITE_API_URL;
+
+  // colors we want to show
+  const colors = ["red", "green", "blue", "yellow", "purple"];
 
   useEffect(() => {
     if (uniqueId) {
@@ -111,9 +114,10 @@ const ECGResults = () => {
     );
   }
 
-  const diagnosesData = Object.entries(classificationResult.diagnoses).map(([diag, conf]) => ({
+  const diagnosesData = Object.entries(classificationResult.diagnoses).map(([diag, conf], index) => ({
     name: diag,
     confidence: (conf * 100).toFixed(0),
+    fill: colors[index % colors.length], 
   }));
 
   return (
@@ -139,7 +143,18 @@ const ECGResults = () => {
                   color: isDarkMode ? "#fff" : "#000",
                 }}
               />
-              <Bar dataKey="confidence" fill="#8884d8" barSize={50} />
+              <Bar dataKey="confidence" fill="#8884d8" barSize={50}>
+                {diagnosesData.map((entry, index) => (
+                  <rect
+                    key={`bar-${index}`}
+                    x={entry.x} 
+                    y={entry.y} 
+                    width={entry.width} 
+                    height={entry.height} 
+                    fill={entry.fill} 
+                  />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </Box>

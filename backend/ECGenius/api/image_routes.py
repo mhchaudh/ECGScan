@@ -145,6 +145,9 @@ def highlight_random_ecg_sections(image_path, yolo_txt_path, output_path):
     """
     Highlights random sections on the ECG image using YOLOv7 bounding boxes.
     """
+    
+    colors = ["red", "green", "blue", "yellow", "purple"]
+    
     image = Image.open(image_path).convert("RGB")
     draw = ImageDraw.Draw(image)
     img_width, img_height = image.size
@@ -171,15 +174,16 @@ def highlight_random_ecg_sections(image_path, yolo_txt_path, output_path):
         return
 
     # Randomly highlight at least one lead
-    selected_indices = random.sample(range(len(boxes_by_lead)), random.randint(1, len(boxes_by_lead)))
+    num_boxes_to_highlight = min(5, len(boxes_by_lead))
+    selected_indices = random.sample(range(len(boxes_by_lead)), num_boxes_to_highlight)
 
-    for idx in selected_indices:
+    for i, idx in enumerate(selected_indices):
         x0, y0, x1, y1 = boxes_by_lead[idx]
         width = x1 - x0
         new_width = random.randint(int(width * 0.1), int(width * 0.4))
         x_start = random.randint(x0, x1 - new_width)
         x_end = x_start + new_width
-        draw.rectangle([x_start, y0, x_end, y1], outline="red", width=3)
+        draw.rectangle([x_start, y0, x_end, y1], outline=colors[i % len(colors)], width=3)
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     image.save(output_path)
