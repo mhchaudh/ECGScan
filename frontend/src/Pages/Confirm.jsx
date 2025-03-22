@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import "./ConfirmUpload.css";
+import "./Confirm.css";
 import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, Paper } from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 import "leaflet/dist/leaflet.css";
@@ -136,7 +136,7 @@ const Confirm = () => {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  upload   automatically
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  take pic   automatically
 
   const handleConfirm = async () => {
     try {
@@ -144,18 +144,18 @@ const Confirm = () => {
         alert("Please fill in all the required fields");
         return;
       }
-
+  
       setLoading(true); // set loading to true
       const uniqueId = generateUniqueId(); // get the unique id
       const historyData = saveHistory(uniqueId); // save the data to the history item
       const imageToSave = croppedImage || imageUrl; // get the image we want to send
-      await saveImageAndDetails(imageToSave, uniqueId, historyData); // function to save the image and send it
-      await sendLocationToMap(uniqueId, historyData); // function to send the details to the map db
-      await classifyECG(uniqueId); // function to get the ecg classification
-      await new Promise((resolve) => setTimeout(resolve, 5000)); // timeout for the loading bar
-      setLoading(false); // set loading to false
-
-      navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${historyData[0].filename}&identifier=${identifier}`); //automatically navigate to the results page
+      // Save the image and get the filename
+      const filename = await saveImageAndDetails(imageToSave, uniqueId, historyData);
+      // Send the filename and location to the map
+      await sendLocationToMap(uniqueId, filename);
+  
+      // Classify the ECG and navigate to the results page
+      await classifyECGAndNavigate(uniqueId, filename);
     } catch (error) {
       console.error("Error in handleConfirm: ", error);
       setLoading(false);
@@ -173,7 +173,7 @@ const Confirm = () => {
     const now = new Date();
     const date = now.toISOString().split("T")[0];
     const dateTime = now.toLocaleTimeString();
-
+  
     const historyData = JSON.parse(localStorage.getItem("history")) || [];
     const newHistoryItem = {
       uniqueId,
@@ -186,56 +186,100 @@ const Confirm = () => {
       date,
       dateTime,
     };
-
+  
     historyData.unshift(newHistoryItem);
     localStorage.setItem("history", JSON.stringify(historyData));
+
+    const previousIdentifiers = new Set(JSON.parse(localStorage.getItem("uniqueIdentifiers")) || []);
+    if (!previousIdentifiers.has(identifier)) {
+      previousIdentifiers.add(identifier);
+      localStorage.setItem("uniqueIdentifiers", JSON.stringify([...previousIdentifiers]));
+    }
+  
     return historyData;
   };
 
-  const saveImageAndDetails = async (imageToSave, uniqueId, historyData) => { // sending the image to the backend and also getting the bounded box image from there to send to the history page
-    const image = new Image(); 
-    image.src = imageToSave;
+  
+const saveImageAndDetails = async (imageToSave, uniqueId, historyData) => {
+  const image = new Image();
+  image.src = imageToSave;
 
+  return new Promise((resolve, reject) => {
     image.onload = async () => {
-      const resizedBase64 = await resizeImage2(image, 500, 500);
-      localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
+      try {
+        const resizedBase64 = await resizeImage2(image, 500, 500);
+        localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
 
-      const uploadResponse = await fetch(`${API_URL}/api/image`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image: imageToSave,
-          age,
-          gender,
-          identifier,
-          location: locationDetails,
-        }),
-      });
+        const uploadResponse = await fetch(`${API_URL}/api/image`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image: imageToSave,
+            age,
+            gender,
+            identifier,
+            location: locationDetails,
+          }),
+        });
 
-      if (uploadResponse.ok) {
-        const uploadData = await uploadResponse.json();
-        const updatedHistoryItem = { ...historyData[0], filename: uploadData.filename };
-        const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)];
-        localStorage.setItem("history", JSON.stringify(updatedHistoryData));
-      } else {
-        console.error("Upload failed");
+        if (uploadResponse.ok) {
+          const uploadData = await uploadResponse.json();
+          const filename = uploadData.filename;
+
+          // Update the history item with the filename after upload
+          const updatedHistoryItem = { ...historyData[0], filename };
+          const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)];
+          localStorage.setItem("history", JSON.stringify(updatedHistoryData));
+
+          resolve(filename); // Resolve with the filename
+        } else {
+          console.error("Upload failed");
+          reject("Upload failed");
+        }
+      } catch (error) {
+        console.error("Error in saveImageAndDetails: ", error);
+        reject(error);
       }
     };
-  };
+  });
+};
 
-  const sendLocationToMap = async (uniqueId, historyData) => { // sending the details to the map db
+const sendLocationToMap = async (uniqueId, filename) => {
+  try {
     const mapResponse = await fetch(`${API_URL}/api/map`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         identifier,
-        filename: historyData[0].filename,
+        filename,
         location: locationDetails,
       }),
     });
 
-    if (!mapResponse.ok) console.error("Failed to save location details");
-  };
+    if (!mapResponse.ok) {
+      console.error("Failed to save location details");
+      throw new Error("Failed to save location details");
+    }
+  } catch (error) {
+    console.error("Error in sendLocationToMap: ", error);
+    throw error;
+  }
+};
+
+const classifyECGAndNavigate = async (uniqueId, filename) => {
+  try {
+    // classify the ECG
+    await classifyECG(uniqueId);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+
+    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+  } catch (error) {
+    console.error("Error in classifying the ECG: ", error);
+    throw error;
+  } finally {
+    setLoading(false); 
+  }
+};
  
   const classifyECG = async (uniqueId) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
     const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
