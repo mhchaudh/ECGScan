@@ -17,6 +17,7 @@ const Confirm = () => {
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
   const [resizedImage, setResizedImage] = useState(null);
+  const [isLocationSelected, setIsLocationSelected] = useState(false);
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
@@ -57,7 +58,17 @@ const Confirm = () => {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10`);
       if (!response.ok) throw new Error("Failed to fetch location suggestions.");
       const data = await response.json();
-      setLocationSuggestions(data);
+  
+      // Filter out duplicates based on display_name
+      const uniqueLocations = data.reduce((acc, current) => {
+        const isDuplicate = acc.some(location => location.display_name === current.display_name);
+        if (!isDuplicate) {
+          acc.push(current);
+        }
+        return acc;
+      }, []);
+  
+      setLocationSuggestions(uniqueLocations);
       setIsDropdownOpen(true);
     } catch (error) {
       console.error("Error fetching location suggestions:", error);
@@ -69,13 +80,15 @@ const Confirm = () => {
   const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current; // use debounce to limit how frequently fetchLocationSuggestions is called for optimality
 
   useEffect(() => {
-    if (locationInput.trim()) debouncedFetchLocationSuggestions(locationInput);
-    else {
+    if (locationInput.trim() && !isLocationSelected) {
+      debouncedFetchLocationSuggestions(locationInput);
+    } else if (!locationInput.trim()) {
       setLocationSuggestions([]);
       setIsDropdownOpen(false);
+      setIsLocationSelected(false); // Reset the flag
     }
     return () => debouncedFetchLocationSuggestions.cancel();
-  }, [locationInput, debouncedFetchLocationSuggestions]);
+  }, [locationInput, debouncedFetchLocationSuggestions, isLocationSelected]);
 
   const handleLocationSelect = (selectedLocation) => { // selecting the location
     setLocationInput(selectedLocation.display_name);
@@ -85,11 +98,13 @@ const Confirm = () => {
       display_name: selectedLocation.display_name,
     });
     setIsDropdownOpen(false);
+    setLocationSuggestions([]); // Clear the suggestions
+    setIsLocationSelected(true);
   };
-
   const handleInputChange = (event) => { //changing input for the location
-    setLocationInput(event.target.value);
-    if (event.target.value.trim()) {
+    const value = event.target.value;
+    setLocationInput(value); 
+    if (value.trim()) {
       const results = fuse.search(event.target.value);
       setLocationSuggestions(results.map((result) => result.item));
       setIsDropdownOpen(true);
@@ -136,7 +151,7 @@ const Confirm = () => {
     img.src = src;
   };
 
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  take pic   automatically
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  take picture  automatically
 
   const handleConfirm = async () => {
     try {
@@ -495,7 +510,12 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
                   value={locationInput}
                   onChange={handleInputChange}
                   sx={{ width: 300 }}
-                  onFocus={() => setIsDropdownOpen(true)}
+                  onFocus={() => {if (locationSuggestions.length > 0 && !locationInput) {
+                    setIsDropdownOpen(true);
+                  }
+                }}
+
+
                 />
                 {isDropdownOpen && locationSuggestions.length > 0 && (
                   <Paper
@@ -512,7 +532,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
                       {locationSuggestions.map((location, index) => (
                         <ListItem
                           key={index}
-                          button
+                          button = {"true"}
                           onClick={() => handleLocationSelect(location)}
                         >
                           <ListItemText primary={location.display_name} />
