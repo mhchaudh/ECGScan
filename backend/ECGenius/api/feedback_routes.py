@@ -13,7 +13,9 @@ def add_feedback():
     feedback_text = data.get('feedback')
     identifier = data.get('identifier')
     filename = data.get('filename')
-    new_feedback = Feedback(identifier = identifier, filename = filename, feedback=feedback_text)
+    age = data.get('age')
+    gender = data.get('gender')
+    new_feedback = Feedback(identifier = identifier, filename = filename, feedback=feedback_text, age = age, gender = gender)
     
     try:
         db.session.add(new_feedback)

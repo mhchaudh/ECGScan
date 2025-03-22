@@ -15,11 +15,18 @@ def add_diagnoses_details():
     location = data.get('location')
     diagnoses = data.get('diagnoses')
     display_name = location.get('display_name')
+    identifier = data.get('identifier')
+    age = data.get('age')
+    filename = data.get('filename')
+    gender = data.get('gender')
     
     new_diagnoses = Diagnoses(
-      
         location=display_name,
         diagnoses = diagnoses,
+        identifier = identifier,
+        filename = filename,
+        age = age,
+        gender = gender,
     )
        
     
