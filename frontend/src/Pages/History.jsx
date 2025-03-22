@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-
 const History = () => {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
@@ -12,24 +11,21 @@ const History = () => {
   const [patientFilter, setPatientFilter] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [patientIds, setPatientIds] = useState([]);
-  const [selectedForComparison, setSelectedForComparison] = useState([]); 
-  const [showComparisonDialog, setShowComparisonDialog] = useState(false); 
+  const [selectedForComparison, setSelectedForComparison] = useState([]);
+  const [showComparisonDialog, setShowComparisonDialog] = useState(false);
   // asked chatgpt how to keep two filters at once
   useEffect(() => {
     const storedHistory = JSON.parse(localStorage.getItem("history")) || [];
     const updatedHistory = storedHistory.map((item) => {
       const imageKey = `imgData_${item.uniqueId}`;
       const savedImage = localStorage.getItem(imageKey);
-      const classificationKey = `classificationResult_${item.uniqueId}`;
-      const classificationResult = JSON.parse(localStorage.getItem(classificationKey));
-      const boundedBoxImageKey = `boundedboxImgData_${item.uniqueId}`;
-      const boundedBoxImage = localStorage.getItem(boundedBoxImageKey);
+      const classificationKey = `classificationResult_${item.uniqueId}`; 
+      const classificationResult = JSON.parse(localStorage.getItem(classificationKey)); 
 
       return {
         ...item,
         imageUrl: savedImage || null,
         classificationResult: classificationResult || null,
-        boundedboximage: boundedBoxImage || null,
       };
     });
     setHistory(updatedHistory);
@@ -38,29 +34,29 @@ const History = () => {
 
   useEffect(() => {
     setFilteredHistory(
-      history.filter((item) => 
+      history.filter((item) =>
         (statusFilter === "" || item.status === statusFilter) &&
         (patientFilter === "" || item.identifier === patientFilter) &&
         (dateFilter === "" || item.date === dateFilter)
       )
     );
   }, [statusFilter, patientFilter,dateFilter, history]);
+
   const clearHistory = () => {
     localStorage.removeItem("history");
     history.forEach((item) => {
       localStorage.removeItem(`imgData_${item.uniqueId}`);
       localStorage.removeItem(`classificationResult_${item.uniqueId}`);
-      localStorage.removeItem(`boundedboxImgData_${item.uniqueId}`);
     });
     localStorage.removeItem("entryCounter");
     setHistory([]);
   };
+
   const deleteItem = (uniqueId) => {
     const updatedHistory = history.filter((item) => item.uniqueId !== uniqueId);
     localStorage.setItem("history", JSON.stringify(updatedHistory));
     localStorage.removeItem(`imgData_${uniqueId}`);
     localStorage.removeItem(`classificationResult_${uniqueId}`);
-    localStorage.removeItem(`boundedboxImgData_${uniqueId}`);
     const entryCounter = JSON.parse(localStorage.getItem("entryCounter")) || 0;
     localStorage.setItem("entryCounter", entryCounter - 1);
     setHistory(updatedHistory);
@@ -74,7 +70,6 @@ const History = () => {
     setSelectedItem(null);
   };
 
- 
   const handleViewECGResults = (uniqueId, filename, identifier) => {
     navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
   };
@@ -86,7 +81,7 @@ const History = () => {
     } else {
       updatedSelection = [...selectedForComparison, item.uniqueId];
       if (updatedSelection.length > 2) {
-        updatedSelection = updatedSelection.slice(1); 
+        updatedSelection = updatedSelection.slice(1);
       }
     }
     setSelectedForComparison(updatedSelection);
@@ -94,13 +89,13 @@ const History = () => {
     if (updatedSelection.length === 2) {
       setShowComparisonDialog(true);
     } else {
-      setShowComparisonDialog(false); 
+      setShowComparisonDialog(false);
     }
   };
 
   const handleCloseComparisonDialog = () => {
     setShowComparisonDialog(false);
-    setSelectedForComparison([]); 
+    setSelectedForComparison([]);
   };
 
   const getSelectedItems = () => {
@@ -152,7 +147,8 @@ const History = () => {
             </Select>
           </FormControl>
         </Grid>
-         {/* Filter by Date */}
+
+        {/* Filter by Date */}
         <Grid item xs={6} sm={4} md={3}>
           <TextField
             label="Filter by Date"
@@ -164,6 +160,7 @@ const History = () => {
           />
         </Grid>
       </Grid>
+
       <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
         <Button variant="contained" color="error" onClick={clearHistory} sx={{ mb: 2 }}>
           Clear History
@@ -252,13 +249,13 @@ const History = () => {
       {/* Compare two ecg images */}
       {showComparisonDialog && (
         <Dialog open={true} onClose={handleCloseComparisonDialog} maxWidth="lg" fullWidth>
-          <DialogTitle>Compare The Leads of two ECG Images</DialogTitle>
+          <DialogTitle>Compare The Leads of Two ECG Images</DialogTitle>
           <DialogContent>
             <Grid container spacing={4}>
               {getSelectedItems().map((item) => (
                 <Grid item key={item.uniqueId} xs={6}>
                   <img
-                    src={item.boundedboximage || item.imageUrl || ""}
+                    src={item.imageUrl || ""}
                     alt={`ECG Image for ${item.identifier}`}
                     style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
                   />
@@ -275,6 +272,6 @@ const History = () => {
       )}
     </Grid>
   );
-}
+};
 
 export default History;
