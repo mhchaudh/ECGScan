@@ -9,6 +9,9 @@ const ECGResults = () => {
   const uniqueId = searchParams.get("uniqueId");
   const filename = searchParams.get("filename");
   const identifier = searchParams.get("identifier");
+  const age = searchParams.get("age");
+  const gender = searchParams.get("gender");
+
 
   const [classificationResult, setClassificationResult] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
@@ -74,6 +77,8 @@ const ECGResults = () => {
         feedback: finalFeedback,
         filename: filename,
         identifier: identifier,
+        age: age,
+        gender: gender,
       };
 
       const response = await fetch(`${API_URL}/api/feedback`, {

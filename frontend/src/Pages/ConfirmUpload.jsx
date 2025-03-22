@@ -284,10 +284,10 @@ const sendLocationToMap = async (uniqueId, filename) => {
 const classifyECGAndNavigate = async (uniqueId, filename) => {
   try {
     // classify the ECG
-    await classifyECG(uniqueId);
+    await classifyECG(uniqueId, filename);
     await new Promise((resolve) => setTimeout(resolve, 5000));
 
-    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
   } catch (error) {
     console.error("Error in classifying the ECG: ", error);
     throw error;
@@ -296,7 +296,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
   }
 };
  
-  const classifyECG = async (uniqueId) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
+  const classifyECG = async (uniqueId, filename) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
     const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -316,7 +316,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
 
     const highestDiagnosis = getHighestConfidenceDiagnosis(classifyData.diagnoses);
-    if (highestDiagnosis) await sendDiagnosis(highestDiagnosis);
+    if (highestDiagnosis) await sendDiagnosis(highestDiagnosis, filename);
   };
 
   const getHighestConfidenceDiagnosis = (diagnoses) => { // this is to get the diagnosis with the highest confidence(we send this to the db for display)
@@ -333,13 +333,17 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     return highestDiagnosis;
   };
 
-  const sendDiagnosis = async (diagnosis) => { // sending the most confident diagnosis for display in the map
+  const sendDiagnosis = async (diagnosis, filename) => { // sending the most confident diagnosis for display in the map
     const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         location: locationDetails,
         diagnoses: diagnosis,
+        identifier: identifier,
+        age: age,
+        gender: gender,
+        filename: filename
       }),
     });
 
