@@ -285,7 +285,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
   try {
     // classify the ECG
     await classifyECG(uniqueId, filename);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
   } catch (error) {

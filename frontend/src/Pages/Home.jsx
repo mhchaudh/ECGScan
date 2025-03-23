@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 // Refrenced: https://mui.com/material-ui/all-components/?srsltid=AfmBOoo3ZuM3R9qLhp_JDLn0Gp7fmQW_nsLmIcqM5lASyIL9qzzICiwf
 import { Button, Grid, Typography, IconButton, Dialog, DialogTitle, DialogActions, Checkbox, DialogContent, FormControlLabel} from "@mui/material";
 import { PhotoCamera, CloudUpload, FlashOn, FlashOff, FlipCameraAndroid } from "@mui/icons-material";
+import { useDropzone } from "react-dropzone"; 
 import logo from '../assets/1-3b2842e1-removebg-preview.png'; 
 import './Home.css'; 
 
@@ -39,13 +40,26 @@ const Home = () => {
   const handleFileInputChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const imageUrl = reader.result;
-        navigate('/confirmupload', { state: { imageUrl } });
-      };
-      reader.readAsDataURL(file);
+      processFile(file);
     }
+  };
+
+  // this is to handle file drop or selection
+  const onDrop = (acceptedFiles) => {
+    const file = acceptedFiles[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  // process the file and navigate to the confirmation page
+  const processFile = (file) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const imageUrl = reader.result;
+      navigate('/confirmupload', { state: { imageUrl } });
+    };
+    reader.readAsDataURL(file);
   };
 
   // this is to to open the camera
@@ -97,6 +111,13 @@ const Home = () => {
     sessionStorage.setItem("disclaimerAccepted", "true");
     setDisclaimerOpen(false);
   };
+
+  // react-dropzone
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: "image/*",
+  });
+
   return (
     <>
       <Dialog open={disclaimerOpen} disableEscapeKeyDown>
@@ -148,12 +169,19 @@ const Home = () => {
                 style={{ display: "none" }}
                 onChange={handleFileInputChange}
               />
-              <Button 
-                sx={{ backgroundColor: "#2196F3", color: "white", "&:hover": { backgroundColor: "#1976D2" }, padding: "20px 40px",  
-                fontSize: "1.5rem", height: "80px", minWidth: "250px", fontFamily: 'Monaco' }}
-                variant="contained" color="secondary" startIcon={<CloudUpload />} onClick={handleUploadButtonClick}>
-                Upload Image
-              </Button>
+              <div {...getRootProps()} style={{ textAlign: 'center', border: isDragActive ? '2px dashed #2196F3' : '2px dashed #ccc', padding: '20px', borderRadius: '4px', cursor: 'pointer' }}>
+                <input {...getInputProps()} />
+                {isDragActive ? (
+                  <Typography variant="h6" color="primary">Drop the image here...</Typography>
+                ) : (
+                  <Button 
+                    sx={{ backgroundColor: "#2196F3", color: "white", "&:hover": { backgroundColor: "#1976D2" }, padding: "20px 40px",  
+                    fontSize: "1.5rem", height: "80px", minWidth: "250px", fontFamily: 'Monaco' }}
+                    variant="contained" color="secondary" startIcon={<CloudUpload />}>
+                    Upload Image
+                  </Button>
+                )}
+              </div>
             </Grid>
           </>
         ) : (
