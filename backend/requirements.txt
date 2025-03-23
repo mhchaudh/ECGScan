@@ -7,6 +7,8 @@ Jinja2==3.1.5
 MarkupSafe==3.0.2
 python-dotenv==1.0.1
 Werkzeug==3.1.3
+seaborn==0.13.2
+tqdm==4.67.1
 
 # Libraries for image_to_sequence.py, using library versions listed in the multiple 
 # requirements.txt files in https://github.com/alphanumericslab/ecg-image-kit, for compatibility. 
