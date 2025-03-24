@@ -1,6 +1,6 @@
 import { Builder, By, until } from "selenium-webdriver";
 
-(async function testAboutUsDropdown() {
+(async function testDarkModeToggle() {
   let driver = await new Builder().forBrowser("chrome").build();
 
   try {
@@ -27,17 +27,23 @@ import { Builder, By, until } from "selenium-webdriver";
     );
     await dropdownButton.click();
 
-    // Wait for the About Us link to appear and click it
-    let aboutUsLink = await driver.wait(
-      until.elementLocated(By.xpath("//li[contains(text(), 'About')]")),
+    // Wait for the Dark Mode toggle switch to appear and click it
+    let darkModeToggle = await driver.wait(
+      until.elementLocated(By.css('input[type="checkbox"]')),
       10000 
     );
-    await aboutUsLink.click();
+    await darkModeToggle.click();
 
-    // Wait for a couple of seconds
-    await driver.sleep(5000); 
+    // Wait for 5 seconds
+    await driver.sleep(5000);
 
-    console.log("About us test passed successfully!");
+    // Toggle Dark Mode off
+    await darkModeToggle.click();
+
+    // Wait for another 5 seconds
+    await driver.sleep(5000);
+
+    console.log("Dark mode toggle test passed successfully!");
 
   } catch (error) {
     console.error("Test failed:", error);
