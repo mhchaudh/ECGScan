@@ -1,6 +1,6 @@
 import { Builder, By, until } from "selenium-webdriver";
 
-(async function testAboutUsDropdown() {
+(async function testMapButton() {
   let driver = await new Builder().forBrowser("chrome").build();
 
   try {
@@ -27,17 +27,17 @@ import { Builder, By, until } from "selenium-webdriver";
     );
     await dropdownButton.click();
 
-    // Wait for the About Us link to appear and click it
-    let aboutUsLink = await driver.wait(
-      until.elementLocated(By.xpath("//li[contains(text(), 'About')]")),
+    // Wait for the Map button to appear and click it
+    let mapButton = await driver.wait(
+      until.elementLocated(By.xpath("//li[contains(text(), 'Map')]")),
       10000 
     );
-    await aboutUsLink.click();
+    await mapButton.click();
 
-    // Wait for a couple of seconds
-    await driver.sleep(5000); 
+    // Wait for 5 seconds
+    await driver.sleep(5000);
 
-    console.log("About us test passed successfully!");
+    console.log("Map button test passed successfully!");
 
   } catch (error) {
     console.error("Test failed:", error);

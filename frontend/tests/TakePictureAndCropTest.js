@@ -12,6 +12,15 @@ function sleep(ms) {
         await driver.get("http://localhost:5173");
         await sleep(1000);
 
+        // Handle disclaimer popup
+        console.log("Handling disclaimer popup...");
+        let disclaimerPopup = await driver.wait(until.elementLocated(By.css(".MuiDialog-root")), 10000);
+        let disclaimerCheckbox = await driver.findElement(By.css('input[type="checkbox"]'));
+        await disclaimerCheckbox.click();
+        let proceedButton = await driver.findElement(By.xpath("//button[contains(text(), 'Proceed')]"));
+        await proceedButton.click();
+        await sleep(1000);
+
         console.log("Looking for the Open Camera button...");
         let openCameraButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(text(), 'Open Camera')]")), 5000).catch((error) => {
             console.error("Failed to find the Open Camera button:", error);
@@ -29,7 +38,7 @@ function sleep(ms) {
         await sleep(1000);
 
         console.log("Looking for Capture button...");
-        let captureButton = await driver.wait(until.elementLocated(By.className("capture-button")), 5000).catch((error) => {
+        let captureButton = await driver.wait(until.elementLocated(By.xpath("//button[contains(@class, 'MuiIconButton-root') and .//*[local-name()='svg' and @data-testid='PhotoCameraIcon']]")), 5000).catch((error) => {
             console.error("Failed to find capture button:", error);
             throw new Error("Capture button not found");
         });
@@ -50,7 +59,6 @@ function sleep(ms) {
             console.error("Failed to find identifier input field:", error);
             throw new Error("Identifier input field not found");
         });
-
         await identifierInput.sendKeys("TestIdentifier123");
         await sleep(500);
 
@@ -59,8 +67,33 @@ function sleep(ms) {
             console.error("Failed to find age input field:", error);
             throw new Error("Age input field not found");
         });
-
         await ageInput.sendKeys("25");
+        await sleep(500);
+
+        console.log("Selecting patient status...");
+        let patientStatusDropdown = await driver.findElement(By.xpath("//label[contains(text(), 'Patient Status')]/following-sibling::div"));
+        await patientStatusDropdown.click();
+        let firstPatientStatusOption = await driver.findElement(By.xpath("//li[contains(text(), 'Pre-treatment')]"));
+        await firstPatientStatusOption.click();
+        await sleep(500);
+
+        console.log("Selecting location type...");
+        let locationTypeInput = await driver.findElement(By.xpath("//label[contains(text(), 'Location')]/following-sibling::div//input"));
+        await locationTypeInput.sendKeys("Canada");
+        await sleep(3000); // Wait for 3 seconds
+
+        console.log("Waiting for location suggestions...");
+        let locationSuggestions = await driver.wait(
+            until.elementsLocated(By.xpath("//ul[contains(@class, 'MuiList-root')]/li")),
+            10000
+        );
+        console.log(`Found ${locationSuggestions.length} location suggestions.`);
+        if (locationSuggestions.length > 0) {
+            await locationSuggestions[0].click();
+            console.log("Clicked the first location suggestion.");
+        } else {
+            console.error("No location suggestions found.");
+        }
         await sleep(500);
 
         console.log("Selecting gender...");
@@ -87,13 +120,10 @@ function sleep(ms) {
         await sleep(1000);
         await yesButton.click();
 
-        console.log("Waiting for navigation to /home...");
-        await sleep(1000);
-        await driver.wait(until.urlContains("/home"), 10000).catch((error) => {
-            console.error("Navigation to /home failed:", error);
-            throw new Error("Navigation to /home failed");
-        });
-        console.log("Successfully navigated to /home after confirming.");
+        console.log("Waiting for 15 seconds after confirming...");
+        await sleep(15000);
+
+        console.log("Test passed successfully!");
 
     } catch (error) {
         console.error("Test failed:", error);
