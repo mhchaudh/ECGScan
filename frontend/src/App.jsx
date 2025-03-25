@@ -19,7 +19,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 function App() {
   const [dropdownOpen, setDropdownOpen] = useState(false); 
   const [isLoading, setIsLoading] = useState(true); 
-  const [darkMode, setDarkMode] = useState(false); 
+  const [darkMode, setDarkMode] = useState(true); 
   const navigate = useNavigate(); 
 
   // dropdown(home and aboutus)
