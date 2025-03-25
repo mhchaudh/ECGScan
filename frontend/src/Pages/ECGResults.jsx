@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -24,6 +24,26 @@ const ECGResults = () => {
 
   // colors we want to show
   const colors = ["red", "green", "blue", "yellow", "purple"];
+  const fetchHighlightedImage = useCallback(async () => {
+    try {
+      const response = await fetch(`${API_URL}/api/ecgresults`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ filename }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch highlighted image: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setHighlightedImageUrl(data.image); // Set the highlighted image URL
+    } catch (error) {
+      console.error("Error fetching highlighted image:", error);
+    }
+  }, [API_URL, filename]);
 
   useEffect(() => {
     if (uniqueId) {
@@ -46,28 +66,7 @@ const ECGResults = () => {
     // Dark mode
     const darkModeEnabled = document.body.classList.contains("dark-mode");
     setIsDarkMode(darkModeEnabled);
-  }, [uniqueId]);
-
-  const fetchHighlightedImage = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/ecgresults`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ filename }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch highlighted image: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setHighlightedImageUrl(data.image); // Set the highlighted image URL
-    } catch (error) {
-      console.error("Error fetching highlighted image:", error);
-    }
-  };
+  }, [uniqueId, fetchHighlightedImage]);
 
   const handleSubmitFeedback = async () => {
     const finalFeedback = feedback === "Other" ? otherFeedback : feedback;

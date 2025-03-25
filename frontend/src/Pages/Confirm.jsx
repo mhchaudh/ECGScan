@@ -16,7 +16,6 @@ const Confirm = () => {
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [resizedImage, setResizedImage] = useState(null);
   const [isLocationSelected, setIsLocationSelected] = useState(false);
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
@@ -48,7 +47,6 @@ const Confirm = () => {
     img.src = url;
     img.onload = () => {
       originalImageRef.current = img;
-      resizeImage(url, 500, 500, setResizedImage);
     };
   };
 
@@ -123,35 +121,8 @@ const Confirm = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const resizeImage = (src, maxWidth, maxHeight, callback) => { // resizing the image for cropping
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      let width = img.width;
-      let height = img.height;
 
-      if (width > height) {
-        if (width > maxWidth) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL("image/png"));
-    };
-    img.src = src;
-  };
-
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  take picture  automatically
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  upload   automatically
 
   const handleConfirm = async () => {
     try {
@@ -284,10 +255,10 @@ const sendLocationToMap = async (uniqueId, filename) => {
 const classifyECGAndNavigate = async (uniqueId, filename) => {
   try {
     // classify the ECG
-    await classifyECG(uniqueId);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await classifyECG(uniqueId, filename);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
   } catch (error) {
     console.error("Error in classifying the ECG: ", error);
     throw error;
@@ -296,7 +267,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
   }
 };
  
-  const classifyECG = async (uniqueId) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
+  const classifyECG = async (uniqueId, filename) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
     const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -316,7 +287,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
 
     const highestDiagnosis = getHighestConfidenceDiagnosis(classifyData.diagnoses);
-    if (highestDiagnosis) await sendDiagnosis(highestDiagnosis);
+    if (highestDiagnosis) await sendDiagnosis(highestDiagnosis, filename);
   };
 
   const getHighestConfidenceDiagnosis = (diagnoses) => { // this is to get the diagnosis with the highest confidence(we send this to the db for display)
@@ -333,13 +304,17 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     return highestDiagnosis;
   };
 
-  const sendDiagnosis = async (diagnosis) => { // sending the most confident diagnosis for display in the map
+  const sendDiagnosis = async (diagnosis, filename) => { // sending the most confident diagnosis for display in the map
     const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         location: locationDetails,
         diagnoses: diagnosis,
+        identifier: identifier,
+        age: age,
+        gender: gender,
+        filename: filename
       }),
     });
 

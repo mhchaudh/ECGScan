@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -43,7 +43,7 @@ const History = () => {
       )
     );
   }, [statusFilter, patientFilter,dateFilter, history]);
-  const fetchImagesforComparison = async () => {
+  const fetchImagesforComparison = useCallback(async () => {
     const imagesData = {};
   
     await Promise.all(
@@ -52,6 +52,7 @@ const History = () => {
         if (!item) return;
   
         try {
+          console.log(item.filename)
           const response = await fetch(`${API_URL}/api/ecgresults`, {
             method: "POST",
             headers: {
@@ -73,7 +74,7 @@ const History = () => {
     );
   
     setComparisonImages(imagesData); 
-  };
+  }, [selectedForComparison, history, API_URL]);
   
   
 
@@ -105,8 +106,8 @@ const History = () => {
     setSelectedItem(null);
   };
 
-  const handleViewECGResults = (uniqueId, filename, identifier) => {
-    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}`);
+  const handleViewECGResults = (uniqueId, filename, identifier, age, gender) => {
+    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
   };
 
   const handleComparisonCheckbox = (item) => {
@@ -130,7 +131,7 @@ const History = () => {
     } else {
       setShowComparisonDialog(false);
     }
-  }, [selectedForComparison]); 
+  }, [fetchImagesforComparison, selectedForComparison]); 
   
   
   
@@ -242,7 +243,7 @@ const History = () => {
                 <Button
                   size="medium"
                   color="secondary"
-                  onClick={() => handleViewECGResults(item.uniqueId, item.filename, item.identifier)}
+                  onClick={() => handleViewECGResults(item.uniqueId, item.filename, item.identifier, item.age, item.gender)}
                   sx={{ width: "100%", fontWeight: "bold" }}
                 >
                   View ECG Results

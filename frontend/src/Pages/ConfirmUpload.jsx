@@ -16,7 +16,6 @@ const ConfirmUpload = () => {
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [resizedImage, setResizedImage] = useState(null);
   const [isLocationSelected, setIsLocationSelected] = useState(false);
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
@@ -48,7 +47,6 @@ const ConfirmUpload = () => {
     img.src = url;
     img.onload = () => {
       originalImageRef.current = img;
-      resizeImage(url, 500, 500, setResizedImage);
     };
   };
 
@@ -123,33 +121,6 @@ const ConfirmUpload = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const resizeImage = (src, maxWidth, maxHeight, callback) => { // resizing the image for cropping
-    const img = new Image();
-    img.onload = () => {
-      const canvas = document.createElement("canvas");
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > maxWidth) {
-          height *= maxWidth / width;
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width *= maxHeight / height;
-          height = maxHeight;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, width, height);
-      callback(canvas.toDataURL("image/png"));
-    };
-    img.src = src;
-  };
 
   const handleRetake = () => navigate("/home", { state: { cameFromConfirmUpload: true } }); // go to home and  upload   automatically
 
