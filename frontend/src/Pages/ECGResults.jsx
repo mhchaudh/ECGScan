@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import './ECGResults.css';
 
 const ECGResults = () => {
   const location = useLocation();
@@ -126,7 +127,7 @@ const ECGResults = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Paper sx={{ p: 4 }}>
+      <Paper sx={{ p: 4 }} className={isDarkMode ? "dark-mode" : ""}>
         <Typography variant="h4" gutterBottom color="text.primary">
           ECG Classification Results
         </Typography>
@@ -137,16 +138,26 @@ const ECGResults = () => {
             Diagnoses:
           </Typography>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={diagnosesData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
-              <XAxis dataKey="name" stroke="#8884d8" tick={false} axisLine={{ stroke: "#8884d8" }} />
-              <YAxis label={{ value: "Confidence (%)", angle: -90, position: "insideLeft" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: isDarkMode ? "#333" : "#fff",
-                  border: "none",
-                  color: isDarkMode ? "#fff" : "#000",
+            <BarChart 
+              data={diagnosesData} 
+              margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+              className="ecg-bar-chart" 
+            >
+              <XAxis 
+                dataKey="name" 
+                stroke={isDarkMode ? "#fff" : "#8884d8"} 
+                tick={false} 
+              />
+              <YAxis
+                stroke={isDarkMode ? "#fff" : "#8884d8"}
+                label={{ 
+                  value: "Confidence (%)", 
+                  angle: -90, 
+                  position: "insideLeft",
+                  fill: isDarkMode ? "#fff" : "#000"
                 }}
               />
+              <Tooltip /> 
               <Bar dataKey="confidence" fill="#8884d8" barSize={50}>
                 {diagnosesData.map((entry, index) => (
                   <rect
@@ -155,7 +166,7 @@ const ECGResults = () => {
                     y={entry.y} 
                     width={entry.width} 
                     height={entry.height} 
-                    fill={entry.fill} 
+                    fill={entry.fill}
                   />
                 ))}
               </Bar>
