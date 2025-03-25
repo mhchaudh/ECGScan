@@ -13,6 +13,8 @@ const History = () => {
   const [patientIds, setPatientIds] = useState([]);
   const [selectedForComparison, setSelectedForComparison] = useState([]);
   const [showComparisonDialog, setShowComparisonDialog] = useState(false);
+  const [comparisonImages, setComparisonImages] = useState({});
+  const API_URL = import.meta.env.VITE_API_URL;
   // asked chatgpt how to keep two filters at once
   useEffect(() => {
     const storedHistory = JSON.parse(localStorage.getItem("history")) || [];
@@ -41,6 +43,39 @@ const History = () => {
       )
     );
   }, [statusFilter, patientFilter,dateFilter, history]);
+  const fetchImagesforComparison = async () => {
+    const imagesData = {};
+  
+    await Promise.all(
+      selectedForComparison.map(async (uniqueId) => {
+        const item = history.find((h) => h.uniqueId === uniqueId);
+        if (!item) return;
+  
+        try {
+          const response = await fetch(`${API_URL}/api/ecgresults`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ filename: item.filename }),
+          });
+  
+          if (!response.ok) {
+            throw new Error(`Failed to fetch image: ${response.statusText}`);
+          }
+  
+          const data = await response.json();
+          imagesData[uniqueId] = data.image;
+        } catch (error) {
+          console.error("Error fetching ECG image:", error);
+        }
+      })
+    );
+  
+    setComparisonImages(imagesData); 
+  };
+  
+  
 
   const clearHistory = () => {
     localStorage.removeItem("history");
@@ -76,6 +111,7 @@ const History = () => {
 
   const handleComparisonCheckbox = (item) => {
     let updatedSelection;
+  
     if (selectedForComparison.includes(item.uniqueId)) {
       updatedSelection = selectedForComparison.filter((id) => id !== item.uniqueId);
     } else {
@@ -84,14 +120,20 @@ const History = () => {
         updatedSelection = updatedSelection.slice(1);
       }
     }
+  
     setSelectedForComparison(updatedSelection);
-
-    if (updatedSelection.length === 2) {
+  };
+  useEffect(() => {
+    if (selectedForComparison.length === 2) {
+      fetchImagesforComparison();
       setShowComparisonDialog(true);
     } else {
       setShowComparisonDialog(false);
     }
-  };
+  }, [selectedForComparison]); 
+  
+  
+  
 
   const handleCloseComparisonDialog = () => {
     setShowComparisonDialog(false);
@@ -255,7 +297,7 @@ const History = () => {
               {getSelectedItems().map((item) => (
                 <Grid item key={item.uniqueId} xs={6}>
                   <img
-                    src={item.imageUrl || ""}
+                    src={`data:image/png;base64,${comparisonImages[item.uniqueId] || ""}`}
                     alt={`ECG Image for ${item.identifier}`}
                     style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
                   />
