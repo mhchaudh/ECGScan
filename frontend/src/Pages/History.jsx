@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField } from "@mui/material";
+import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField, Box, Stack} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const History = () => {
@@ -214,17 +214,25 @@ const History = () => {
       <Grid container spacing={4} justifyContent="center">
         {filteredHistory.map((item, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
-            <Card sx={{ width: "100%", maxWidth: 350, height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
+            <Card sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
               <CardMedia
                 component="img"
                 height="220"
                 image={item.imageUrl || ""}
                 alt={`Uploaded image ${index + 1}`}
                 onClick={() => handleViewDetails(item)}
-                sx={{ cursor: "pointer", borderTopLeftRadius: 8, borderTopRightRadius: 8 }}
+                sx={{ cursor: "pointer", borderTopLeftRadius: 8, borderTopRightRadius: 8, objectFit: "cover"}}
               />
-              <CardContent sx={{ flexGrow: 1, p: 3 }}>
-                <Typography variant="h5" color="textPrimary" noWrap sx={{ fontWeight: "bold", mb: 2 }}>
+              <CardContent sx={{ flexGrow: 1, p: 2 }}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 2,
+                }}
+               >
+                <Typography variant="subtitle1" fontWeight="bold">
                   Patient ID: {item.identifier}
                 </Typography>
                 <FormControlLabel
@@ -235,22 +243,27 @@ const History = () => {
                       color="primary"
                     />
                   }
-                  label="Compare Leads"
+                  label="Compare"
+                  sx={{ m: 0 }}
                 />
-                <Button size="medium" color="primary" onClick={() => handleViewDetails(item)} sx={{ width: "100%", fontWeight: "bold" }}>
+              </Box>
+              <Stack spacing={1} sx={{ width: "100%" }}>
+                <Button size="small" variant="contained" color="primary" onClick={() => handleViewDetails(item)} sx={{ fontWeight: "bold" }}>
                   View Details
                 </Button>
                 <Button
-                  size="medium"
+                  size="small"
+                  variant="outlined"
                   color="secondary"
                   onClick={() => handleViewECGResults(item.uniqueId, item.filename, item.identifier, item.age, item.gender)}
-                  sx={{ width: "100%", fontWeight: "bold" }}
+                  sx={{ fontWeight: "bold" }}
                 >
                   View ECG Results
                 </Button>
-                <Button size="medium" color="error" onClick={() => deleteItem(item.uniqueId)} sx={{ width: "100%", fontWeight: "bold" }}>
+                <Button size="small" variant="outlined" color="error" onClick={() => deleteItem(item.uniqueId)} sx={{fontWeight: "bold" }}>
                   Delete
                 </Button>
+              </Stack>
               </CardContent>
             </Card>
           </Grid>
@@ -259,35 +272,87 @@ const History = () => {
 
       {/* Image Details */}
       {selectedItem && (
-        <Dialog open={true} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-          <DialogContent>
-            <Grid container spacing={2} direction="column">
-              <Grid item>
-                <Typography variant="h6">Patient Information:</Typography>
-                <Typography variant="body1">ID: {selectedItem.identifier}</Typography>
-                <Typography variant="body1">Status: {selectedItem.status}</Typography>
-                <Typography variant="body1">Age: {selectedItem.age}</Typography>
-                <Typography variant="body1">Gender: {selectedItem.gender}</Typography>
-                <Typography variant="body1">Date: {selectedItem.date}</Typography>
-                <Typography variant="body1">Time: {selectedItem.dateTime}</Typography>
-              </Grid>
-              <Grid item>
-                <Typography variant="h6">Image:</Typography>
+      <Dialog open={true} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ bgcolor: "primary.main", color: "white", py: 2 }}>
+          Patient Details
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                Patient Information
+              </Typography>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "background.paper",
+                  boxShadow: 1,
+                }}
+              >
+                <Grid container spacing={1}>
+                  <Grid item xs={6}>
+                    <Typography variant="subtitle2" color="textSecondary">ID</Typography>
+                    <Typography variant="body1">{selectedItem.identifier}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="subtitle2" color="textSecondary">Status</Typography>
+                    <Typography variant="body1">{selectedItem.status}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="subtitle2" color="textSecondary">Age</Typography>
+                    <Typography variant="body1">{selectedItem.age}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="subtitle2" color="textSecondary">Gender</Typography>
+                    <Typography variant="body1">{selectedItem.gender}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="subtitle2" color="textSecondary">Date</Typography>
+                    <Typography variant="body1">{selectedItem.date}</Typography>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <Typography variant="subtitle2" color="textSecondary">Time</Typography>
+                    <Typography variant="body1">{selectedItem.dateTime}</Typography>
+                  </Grid>
+                </Grid>
+              </Box>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", color: "text.secondary" }}>
+                Image Preview
+              </Typography>
+              <Box
+                sx={{
+                  p: 2,
+                  borderRadius: 2,
+                  bgcolor: "background.paper",
+                  boxShadow: 1,
+                  textAlign: "center",
+                }}
+              >
                 <img
                   src={selectedItem.imageUrl || ""}
                   alt="Uploaded"
-                  style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "400px",
+                    borderRadius: "8px",
+                    border: "1px solid #e0e0e0",
+                    boxShadow: 3,
+                  }}
                 />
-              </Grid>
+              </Box>
             </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog} color="secondary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, gap: 1 }}>
+          <Button onClick={handleCloseDialog} color="secondary" variant="outlined">
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+    )}
 
       {/* Compare two ecg images */}
       {showComparisonDialog && (
