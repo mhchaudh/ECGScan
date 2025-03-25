@@ -3,8 +3,12 @@ import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./ConfirmUpload.css";
-import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, LinearProgress, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, Paper } from "@mui/material";
+import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, Paper, Box, CircularProgress} from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
+import ReplayIcon from '@mui/icons-material/Replay';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DownloadIcon from '@mui/icons-material/Download';
+import WarningIcon from '@mui/icons-material/Warning';
 import "leaflet/dist/leaflet.css";
 import Fuse from 'fuse.js';
 import debounce from 'lodash.debounce';
@@ -410,27 +414,24 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
   return (
     <>
       {loading && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "rgba(255,255,255,0.8)",
-            zIndex: 9999,
-          }}
-        >
-          <div style={{ width: "50%", textAlign: "center" }}>
-            <Typography variant="h6" gutterBottom>
-              Diagnosing...
-            </Typography>
-            <LinearProgress />
-          </div>
-        </div>
+        <Box sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.7)",
+          zIndex: 9999,
+          color: "white"
+        }}>
+          <CircularProgress size={80} thickness={4} sx={{ mb: 3 }} />
+          <Typography variant="h5" gutterBottom>Analyzing ECG...</Typography>
+          <Typography variant="body1">This may take a few moments</Typography>
+        </Box>
       )}
   
       <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column">
@@ -440,16 +441,20 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
           </Typography>
         </Grid>
 
-        <Grid item container spacing={2} justifyContent="center">
+        <Grid item container spacing={2} justifyContent="center" sx={{ maxWidth: "800px", margin: "0 auto",padding: 3}}>
            {/* Identifier */}
           <Grid item>
             <TextField
+              fullWidth
               autoComplete="off"
               label="Unique Patient Identifier"
               variant="outlined"
               value={identifier}
               onChange={handleIdentifierChange}
-              sx={{ width: 300 }}
+              sx={{ width: 300, backgroundColor: "background.paper",
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: "12px"
+                }}}
               inputProps={{ list: "identifiers" }}
             />
             <datalist id="identifiers">
@@ -461,14 +466,18 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
             </datalist>
           </Grid>
           {/*Patient Status*/}
-          <Grid item>
-            <FormControl sx={{ width: 300 }}>
+          <Grid item  xs={12} md={6}>
+            <FormControl fullWidth>
               <InputLabel shrink={Boolean(patientstatus)}>Patient Status</InputLabel>
               <Select
                 value={patientstatus}
                 onChange={(e) => setPatientstatus(e.target.value)}
                 displayEmpty
                 notched
+                sx={{
+                  borderRadius: "12px",
+                  textAlign: "left"
+                }}
               >
                 <MenuItem value="Pre-treatment">Pre-treatment</MenuItem>
                 <MenuItem value="During treatment">During treatment</MenuItem>
@@ -535,18 +544,18 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
           {/*Gender */}
           <Grid item>
             <ToggleButtonGroup
+              fullWidth
               value={gender}
               exclusive
               onChange={handleGenderChange}
-              sx={{ display: "flex", justifyContent: "center" }}
-            >
+              sx={{ display: "flex", justifyContent: "center", "& .MuiToggleButton-root": {textTransform: "none", fontWeight: 600,"&.Mui-selected": {color: "white !important"}}}} >
               <ToggleButton
                 value="male"
                 selected={gender === "male"}
                 sx={{
                   backgroundColor: gender === "male" ? "#1976d2 !important" : "lightgray",
                   color: "white !important",
-                  "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },
+                  "&:hover": { backgroundColor: gender === "male" ? "#1565c0 !important" : "gray" },"&.Mui-selected": {bgcolor: "primary.main"}
                 }}
               >
                 <Male sx={{ marginRight: 1, color: "white" }} /> Male
@@ -558,8 +567,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
                 sx={{
                   backgroundColor: gender === "female" ? "#e91e63 !important" : "lightgray",
                   color: "white !important",
-                  "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray" },
-                }}
+                  "&:hover": { backgroundColor: gender === "female" ? "#c2185b !important" : "gray"}, "&.Mui-selected": { bgcolor: "secondary.main"}}}
               >
                 <Female sx={{ marginRight: 1, color: "white" }} /> Female
               </ToggleButton>
@@ -595,38 +603,144 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
         <canvas ref={canvasRef} style={{ display: "none" }} />
   
         {/* Buttons */}
-        <Grid item>
-          <Grid container spacing={2}>
+        <Grid item sx={{ width: '100%', mt: 4 }}>
+          <Grid container spacing={2} justifyContent="center">
             <Grid item>
-              <Button variant="contained" color="secondary" onClick={handleRetake}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                onClick={handleRetake}
+                sx={{
+                  minWidth: 120,
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: 'error.light',
+                    color: 'white'
+                  }
+                }}
+                startIcon={<ReplayIcon />}
+              >
                 Retake
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="primary" onClick={handleConfirmClick}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleConfirmClick}
+                sx={{
+                  minWidth: 120,
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  boxShadow: 2,
+                  '&:hover': {
+                    boxShadow: 4,
+                    backgroundColor: 'primary.dark'
+                  }
+                }}
+                startIcon={<CheckCircleIcon />}
+              >
                 Confirm
               </Button>
             </Grid>
             <Grid item>
-              <Button variant="contained" color="success" onClick={handleDownload}>
+              <Button
+                variant="contained"
+                color="success"
+                onClick={handleDownload}
+                sx={{
+                  minWidth: 120,
+                  px: 3,
+                  py: 1.5,
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  '&:hover': {
+                    backgroundColor: 'success.dark'
+                  }
+                }}
+                startIcon={<DownloadIcon />}
+              >
                 Download
               </Button>
             </Grid>
           </Grid>
         </Grid>
-  
+
         {/* Confirmation Popup */}
-        <Dialog open={showConfirmPopup} onClose={() => setShowConfirmPopup(false)}>
-          <DialogTitle>Confirm Submission</DialogTitle>
-          <DialogContent>
-            <p>Are you sure you want to submit?</p>
+        <Dialog 
+          open={showConfirmPopup} 
+          onClose={() => setShowConfirmPopup(false)}
+          PaperProps={{
+            sx: {
+              borderRadius: '12px',
+              minWidth: '400px',
+              maxWidth: '90vw'
+            }
+          }}
+        >
+          <DialogTitle sx={{
+            bgcolor: 'primary.main',
+            color: 'white',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            py: 2.5,
+            px: 3
+          }}>
+            <WarningIcon sx={{ fontSize: 28 }} />
+            <Typography variant="h6" component="span">
+              Confirm ECG submission
+            </Typography>
+          </DialogTitle>
+          
+          <DialogContent sx={{ 
+            py: 4,  
+            px: 3,
+            '&.MuiDialogContent-root': {
+              paddingTop: '32px'  
+            }
+          }}>
+            <Typography variant="body1" sx={{ 
+              mb: 2,
+              textAlign: 'center'  
+            }}>
+              Are you sure you want to submit this ECG report?
+            </Typography>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => handlePopupResponse(true)} color="primary">
-              Yes
+
+          <DialogActions sx={{ px: 3, py: 2 }}>
+            <Button 
+              onClick={() => handlePopupResponse(false)}
+              variant="outlined"
+              color="inherit"
+              sx={{
+                borderRadius: '6px',
+                px: 3,
+                borderWidth: '2px',
+                '&:hover': {
+                  borderWidth: '2px'
+                }
+              }}
+            >
+              Cancel
             </Button>
-            <Button onClick={() => handlePopupResponse(false)} color="secondary">
-              No
+            <Button 
+              onClick={() => handlePopupResponse(true)}
+              variant="contained"
+              color="primary"
+              sx={{
+                borderRadius: '6px',
+                px: 3,
+                fontWeight: 600
+              }}
+              autoFocus
+            >
+              Confirm
             </Button>
           </DialogActions>
         </Dialog>

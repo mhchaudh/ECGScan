@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField, Box, Stack} from "@mui/material";
+import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField, Box, Stack, IconButton} from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from "react-router-dom";
 
 const History = () => {
@@ -146,17 +147,17 @@ const History = () => {
   };
 
   return (
-    <Grid container spacing={4} justifyContent="center" alignItems="center" direction="column" sx={{ padding: 4 }}>
+    <Grid container spacing={4} justifyContent="center" alignItems="center" direction="column" sx={{minHeight: '100vh', py: 4, px: { xs: 2, sm: 4 }, backgroundColor: 'background.default' }}>
       <Grid item>
-        <Typography variant="h3" color="black" align="center" sx={{ fontWeight: "bold", mb: 4 }}>
+        <Typography variant="h3" color="black" align="center" sx={{ fontWeight: "bold", mb: 4, mt: 4,  color: "text.primary"}}>
           History
         </Typography>
       </Grid>
 
       {/* Filters */}
-      <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
+      <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 6, px:2 }}>
         {/* Filter by Patient Status */}
-        <Grid item xs={6} sm={4} md={3}>
+        <Grid item xs={12} sm={6} md={3}>
           <FormControl fullWidth>
             <InputLabel shrink>Filter by Patient Status</InputLabel>
             <Select
@@ -204,17 +205,17 @@ const History = () => {
         </Grid>
       </Grid>
 
-      <Grid container spacing={2} justifyContent="center" alignItems="center" sx={{ mb: 4 }}>
-        <Button variant="contained" color="error" onClick={clearHistory} sx={{ mb: 2 }}>
+      <Grid container justifyContent="center" sx={{ mb: 6}}>
+        <Button variant="contained" color="error" onClick={clearHistory} sx={{ px: 4, py:1.5 }}>
           Clear History
         </Button>
       </Grid>
 
       {/* History Cards */}
-      <Grid container spacing={4} justifyContent="center">
+      <Grid container spacing={4} sx={{ px: 4,  alignContent: "flex-start" }}>
         {filteredHistory.map((item, index) => (
           <Grid item key={index} xs={12} sm={6} md={4} lg={3}>
-            <Card sx={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", boxShadow: 3, borderRadius: 2 }}>
+            <Card sx={{ height: "100%", display: "flex", flexDirection: "column", transition: "transform 0.2s",'&:hover': {transform: "scale(1.02)", boxShadow: 6 }}}>
               <CardMedia
                 component="img"
                 height="220"
@@ -272,9 +273,9 @@ const History = () => {
 
       {/* Image Details */}
       {selectedItem && (
-      <Dialog open={true} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle sx={{ bgcolor: "primary.main", color: "white", py: 2 }}>
-          Patient Details
+      <Dialog open={!!selectedItem} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ bgcolor: "primary.main", color: "white",displau:"flex",justifyContent: "space-between", alignItems: "center" }}>
+        <span>Patient Details</span>
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
           <Grid container spacing={3}>
@@ -358,15 +359,29 @@ const History = () => {
       {showComparisonDialog && (
         <Dialog open={true} onClose={handleCloseComparisonDialog} maxWidth="lg" fullWidth>
           <DialogTitle>Compare The Leads of Two ECG Images</DialogTitle>
-          <DialogContent>
-            <Grid container spacing={4}>
+          <DialogContent sx={{ py: 4 }}>
+            <Grid container spacing={4} alignItems="center">
               {getSelectedItems().map((item) => (
-                <Grid item key={item.uniqueId} xs={6}>
-                  <img
-                    src={`data:image/png;base64,${comparisonImages[item.uniqueId] || ""}`}
-                    alt={`ECG Image for ${item.identifier}`}
-                    style={{ maxWidth: "100%", maxHeight: 300, display: "block", margin: "0 auto" }}
-                  />
+                <Grid item key={item.uniqueId} xs={12} md={6}>
+                  <Box sx={{ 
+                    border: 1, 
+                    borderColor: "divider",
+                    borderRadius: 2,
+                    p: 2,
+                    textAlign: "center"
+                  }}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Patient: {item.identifier}
+                    </Typography>
+                    <img
+                      src={`data:image/png;base64,${comparisonImages[item.uniqueId]}`}
+                      style={{ 
+                        maxWidth: "100%", 
+                        maxHeight: "400px",
+                        objectFit: "contain"
+                      }}
+                    />
+                  </Box>
                 </Grid>
               ))}
             </Grid>
