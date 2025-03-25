@@ -127,8 +127,8 @@ const ECGResults = () => {
 
   return (
     <Container sx={{ mt: 4 }}>
-      <Paper sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom color="text.primary">
+      <Paper sx={{ p: 4, borderRadius:3,boxShadow:3, backgroundColor: isDarkMode ? "#1e1e1e" : "#fff"}}>
+        <Typography variant="h4" gutterBottom color="text.primary" sx={{ fontWeight: 700 }}>
           ECG Classification Results
         </Typography>
 
@@ -138,9 +138,9 @@ const ECGResults = () => {
             Diagnoses:
           </Typography>
           <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={diagnosesData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
-              <XAxis dataKey="name" stroke="#8884d8" tick={false} axisLine={{ stroke: "#8884d8" }} />
-              <YAxis label={{ value: "Confidence (%)", angle: -90, position: "insideLeft" }} />
+            <BarChart data={diagnosesData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
+              <XAxis dataKey="name" stroke={isDarkMode ? "#fff" : "#8884d8"} tick={false} axisLine={{ stroke: "#8884d8" }} />
+              <YAxis label={{ value: "Confidence (%)", angle: -90, position: "insideLeft", fill: isDarkMode ? "#fff" : "#000" }} tick={{ fill: isDarkMode ? "#fff" : "#000" }} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: isDarkMode ? "#121212" : "#fff",  
@@ -148,7 +148,7 @@ const ECGResults = () => {
                   border: isDarkMode ? "1px solid #444" : "none"    
                 }}
               />
-              <Bar dataKey="confidence" fill="#8884d8" barSize={50}>
+              <Bar dataKey="confidence" fill="#8884d8" barSize={50} radius={[4, 4, 0, 0]}>
                 {diagnosesData.map((entry, index) => (
                   <rect
                     key={`bar-${index}`}
@@ -166,22 +166,22 @@ const ECGResults = () => {
 
         {/* Highlighted ECG Image */}
         {highlightedImageUrl && (
-          <Box sx={{ mt: 4 }}>
-            <Typography variant="h6" color="text.primary">
+          <Box sx={{ mt: 4, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0",  borderRadius: 2, p: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9"} }>
+            <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
               ECG Sections Leading to Diagnosis
             </Typography>
             <Box
               component="img"
               src={`data:image/png;base64,${highlightedImageUrl}`}
               alt="Highlighted ECG Sections"
-              sx={{ width: "100%", height: "auto", mt: 2 }}
+              sx={{ width: "100%", height: "auto", display: "block",  borderRadius: 1, border: isDarkMode ? "1px solid #555" : "1px solid #ddd" }}
             />
           </Box>
         )}
 
         {/* Feedback */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" color="text.primary">
+        <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
+          <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
             Do you agree with the results?
           </Typography>
           {submittedFeedback ? (
@@ -198,11 +198,11 @@ const ECGResults = () => {
                     setOtherFeedback("");
                   }
                 }}
-                sx={{ mt: 2 }}
+                sx={{ mt: 2, gap: 1 }}
               >
-                <FormControlLabel value="Yes" control={<Radio />} label="Yes" />
-                <FormControlLabel value="No" control={<Radio />} label="No" />
-                <FormControlLabel value="Other" control={<Radio />} label="Other" />
+                <FormControlLabel value="Yes" control={<Radio sx={{ color: isDarkMode ? "#fff" : "#000" }} />} label="Yes" />
+                <FormControlLabel value="No" control={<Radio  sx={{ color: isDarkMode ? "#fff" : "#000" }} />} label="No" />
+                <FormControlLabel value="Other" control={<Radio sx={{ color: isDarkMode ? "#fff" : "#000" }} />} label="Other" />
               </RadioGroup>
 
               {feedback === "Other" && (
@@ -217,7 +217,7 @@ const ECGResults = () => {
               )}
 
               {!submittedFeedback && (
-                <Button variant="contained" color="primary" onClick={handleSubmitFeedback} sx={{ mt: 2 }}>
+                <Button variant="contained" color="primary" onClick={handleSubmitFeedback} sx={{ mt: 2, fontWeight:600, width: { xs: "100%", sm: "auto" } }}>
                   Submit Feedback
                 </Button>
               )}
