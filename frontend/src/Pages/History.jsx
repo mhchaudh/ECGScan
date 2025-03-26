@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField, Box, Stack, IconButton} from "@mui/material";
-import CloseIcon from '@mui/icons-material/Close';
+import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField, Box, Stack} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 const History = () => {
@@ -147,7 +146,7 @@ const History = () => {
   };
 
   return (
-    <Grid container spacing={4} justifyContent="center" alignItems="center" direction="column" sx={{minHeight: '100vh', py: 4, px: { xs: 2, sm: 4 }, backgroundColor: 'background.default' }}>
+    <Grid container spacing={4} className="main-content"  justifyContent="center" alignItems="center" direction="column" sx={{minHeight: '100vh', py: 4, px: { xs: 2, sm: 4 }, backgroundColor: 'background.default' }}>
       <Grid item>
         <Typography variant="h3" color="black" align="center" sx={{ fontWeight: "bold", mb: 4, mt: 4,  color: "text.primary"}}>
           History

@@ -3,6 +3,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   background-color: white;
   color: black;
@@ -101,6 +102,9 @@ body.dark-mode {
   flex: 1;
   overflow: auto;
   padding-bottom: 2rem;
+}
+.dark-mode .main-content {
+  background-color: #121212 !important;
 }
 
 .menu-item {

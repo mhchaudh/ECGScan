@@ -50,21 +50,34 @@ const Map = () => {
     fetchData();
   }, []);
 
-  if (loading)
-    return <CircularProgress sx={{ display: "block", margin: "auto", mt: 2 }} />;
-  if (error)
-    return (
-      <Alert severity="error" sx={{ m: 2 }}>
-        {error}
-      </Alert>
-    );
-
+  if (loading) return (
+    <Box sx={{ 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      height: '50vh' 
+    }}>
+      <CircularProgress size={60} thickness={4} />
+    </Box>
+  );
+  
+  if (error) return (
+    <Alert severity="error" sx={{ 
+      m: 2, 
+      maxWidth: '80%', 
+      mx: 'auto' 
+    }}>
+      <Typography variant="h6">Map Loading Failed</Typography>
+      <Typography>{error}</Typography>
+    </Alert>
+  );
   return (
-    <Box sx={{ position: "relative", height: "100vh", width: "100%" }}>
+    <Box sx={{ position: "relative", height: "calc(100vh - 64px)", width: "100%",overflow: "hidden", borderRadius: 2, boxShadow: 3, mt: 2 }}>
       <MapContainer
         center={[51.505, -0.09]}
         zoom={3}
         className="map-container"
+        style={{ height: '100%', width: '100%' }}
       >
         <TileLayer
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -82,15 +95,28 @@ const Map = () => {
 
           return (
             <Marker key={index} position={[location.lat, location.long]}>
-              <Popup>
-                <Paper sx={{ p: 2, minWidth: 200 }}>
-                  <Typography variant="h6" sx={{ mb: 1 }}>
+              <Popup maxWidth={300} minWidth={200} closeButton={false}>
+                <Paper sx={{ 
+                  p: 1.5, 
+                  borderRadius: 2,
+                  boxShadow: 3
+                }}>
+                  <Typography variant="subtitle1" sx={{ 
+                    fontWeight: 'bold', 
+                    mb: 1,
+                    color: 'primary.main'
+                  }}>
                     {location.display_name}
                   </Typography>
                   {sortedDiagnoses.length > 0 ? (
-                    sortedDiagnoses
+                    <Box sx={{ maxHeight: 200, overflowY: 'auto', pr: 1 }}>
+                      {sortedDiagnoses}
+                    </Box>
                   ) : (
-                    <Typography variant="body2" sx={{ fontStyle: "italic" }}>
+                    <Typography variant="body2" sx={{ 
+                      fontStyle: 'italic', 
+                      color: 'text.secondary' 
+                    }}>
                       No diagnoses recorded
                     </Typography>
                   )}
