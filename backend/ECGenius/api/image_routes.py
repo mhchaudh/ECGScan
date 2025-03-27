@@ -89,27 +89,20 @@ def create_image_and_digitize():
     if not bounded_box_image_path or not os.path.exists(bounded_box_image_path):
         return jsonify({'error': 'Failed to generate bounded box image'}), 500
 
-    # Define the path for the highlighted images folder
-    highlighted_images_folder = os.path.join(backend_dir, "highlighted_images")
-    os.makedirs(highlighted_images_folder, exist_ok=True)
-
     # Highlight random ECG sections
     base_name = os.path.splitext(os.path.basename(bounded_box_image_path))[0]
     yolo_txt_path = os.path.join(detect_folder, "labels", base_name + ".txt")
-    highlighted_image_path = os.path.join(highlighted_images_folder, f"{fileuuid}_bbox.png")
-    highlight_random_ecg_sections(bounded_box_image_path, yolo_txt_path, highlighted_image_path)
+    highlighted_image = highlight_random_ecg_sections(bounded_box_image_path, yolo_txt_path)
 
     # Enhance the highlighted bounded box image
-    with open(highlighted_image_path, "rb") as image_file:
-        highlighted_image = Image.open(image_file)
-        contrast_enhancer = ImageEnhance.Contrast(highlighted_image)
-        enhanced_highlighted_image = contrast_enhancer.enhance(1.2)  # Increase contrast
-        brightness_enhancer = ImageEnhance.Brightness(enhanced_highlighted_image)
-        enhanced_highlighted_image = brightness_enhancer.enhance(1.1)  # Increase brightness
+    contrast_enhancer = ImageEnhance.Contrast(highlighted_image)
+    enhanced_highlighted_image = contrast_enhancer.enhance(1.2)  # Increase contrast
+    brightness_enhancer = ImageEnhance.Brightness(enhanced_highlighted_image)
+    enhanced_highlighted_image = brightness_enhancer.enhance(1.1)  # Increase brightness
     
-        buffered = io.BytesIO()
-        enhanced_highlighted_image.save(buffered, format="PNG")
-        highlighted_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+    buffered = io.BytesIO()
+    enhanced_highlighted_image.save(buffered, format="PNG")
+    highlighted_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     # Clean up detection folder
     shutil.rmtree(detect_folder)
@@ -140,12 +133,10 @@ def create_image_and_digitize():
     }), 200
 
 
-# Mock function to highlight relevant ECG leads for diagnosis until the client provides a real implementation.
-def highlight_random_ecg_sections(image_path, yolo_txt_path, output_path):
+def highlight_random_ecg_sections(image_path, yolo_txt_path):
     """
     Highlights random sections on the ECG image using YOLOv7 bounding boxes.
     """
-    
     colors = ["red", "green", "blue", "yellow", "purple"]
     
     image = Image.open(image_path).convert("RGB")
@@ -171,7 +162,7 @@ def highlight_random_ecg_sections(image_path, yolo_txt_path, output_path):
 
     if not boxes_by_lead:
         print("⚠️ No bounding boxes found.") # Testing output
-        return
+        return image  # Return the original image if no boxes found
 
     # Randomly highlight at least one lead
     num_boxes_to_highlight = min(5, len(boxes_by_lead))
@@ -185,6 +176,4 @@ def highlight_random_ecg_sections(image_path, yolo_txt_path, output_path):
         x_end = x_start + new_width
         draw.rectangle([x_start, y0, x_end, y1], outline=colors[i % len(colors)], width=3)
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    image.save(output_path)
-    print(f"✅ Highlighted ECG image saved at: {output_path}") # Testing output
+    return image

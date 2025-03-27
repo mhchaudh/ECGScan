@@ -135,14 +135,19 @@ const Home = () => {
         </DialogActions>
       </Dialog>
 
-      <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column" style={{ height: '100vh' }}>
+      <Grid container spacing={3} justifyContent="center" alignItems="center" direction="column" style={{ height: '100vh', padding: '0 24px', maxWidth: '600px',  margin: '0 auto' }}>
         {!isCameraOpen ? (
           <>
             <Grid item>
               <img 
                 src={logo}
                 alt="ECGenius Logo" 
-                style={{ height: '200px', marginBottom: '20px' }} 
+                style={{ height: '200px', marginBottom: '16px',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'scale(1.05)'
+                  }
+                }} 
               />
             </Grid>
             <Grid item>

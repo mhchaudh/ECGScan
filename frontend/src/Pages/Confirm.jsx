@@ -13,6 +13,43 @@ import "leaflet/dist/leaflet.css";
 import Fuse from 'fuse.js';
 import debounce from 'lodash.debounce';
 
+// use IndexedDB instead of localstorage
+const initializeDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ECGAppDB'); 
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      if (!db.objectStoreNames.contains('history')) {
+        const historyStore = db.createObjectStore('history', { keyPath: 'uniqueId' });
+        historyStore.createIndex('byDate', 'dateTime', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains('identifiers')) {
+        db.createObjectStore('identifiers', { keyPath: 'identifier' });
+      }
+      
+      if (!db.objectStoreNames.contains('images')) {
+        const imagesStore = db.createObjectStore('images', { keyPath: 'uniqueId' });
+        imagesStore.createIndex('byType', 'type', { unique: false }); // Add index for image type
+      }
+      
+      if (!db.objectStoreNames.contains('classificationResults')) {
+        db.createObjectStore('classificationResults', { keyPath: 'uniqueId' });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+};
+
 const Confirm = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -31,22 +68,44 @@ const Confirm = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [db, setDb] = useState(null);
+  const [previousIdentifiers, setPreviousIdentifiers] = useState([]);
 
   const imageRef = useRef(null);
   const canvasRef = useRef(null);
   const originalImageRef = useRef(null);
 
-  const previousIdentifiers = JSON.parse(localStorage.getItem("uniqueIdentifiers")) || []; // previous identifiers so the user can use again if needed
-  const fuse = new Fuse([], { keys: ["display_name"], threshold: 0.3 }); // using fuzzy search for suggestions
-
-  const API_URL = import.meta.env.VITE_API_URL; // api URL
+  const fuse = new Fuse([], { keys: ["display_name"], threshold: 0.3 });
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
-    if (!imageUrl) navigate("/home");  // if no image navigate to home
+    // Initialize IndexedDB
+    initializeDB().then(database => {
+      setDb(database);
+      loadPreviousIdentifiers(database);
+    }).catch(error => {
+      console.error("Error initializing DB:", error);
+    });
+
+    if (!imageUrl) navigate("/home");
     else loadImage(imageUrl);
   }, [imageUrl, navigate]);
 
-  const loadImage = (url) => { // loading the image
+  const loadPreviousIdentifiers = (database) => {
+    const transaction = database.transaction(['identifiers'], 'readonly');
+    const store = transaction.objectStore('identifiers');
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      setPreviousIdentifiers(request.result.map(item => item.identifier));
+    };
+
+    request.onerror = (event) => {
+      console.error("Error loading identifiers:", event.target.error);
+    };
+  };
+
+  const loadImage = (url) => {
     const img = new Image();
     img.src = url;
     img.onload = () => {
@@ -54,14 +113,13 @@ const Confirm = () => {
     };
   };
 
-  const fetchLocationSuggestions = async (query) => { // getting the suggestions using the nominatim api
+  const fetchLocationSuggestions = async (query) => {
     if (!query.trim()) return;
     try {
       const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10`);
       if (!response.ok) throw new Error("Failed to fetch location suggestions.");
       const data = await response.json();
   
-      // Filter out duplicates based on display_name
       const uniqueLocations = data.reduce((acc, current) => {
         const isDuplicate = acc.some(location => location.display_name === current.display_name);
         if (!isDuplicate) {
@@ -79,7 +137,7 @@ const Confirm = () => {
     }
   };
 
-  const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current; // use debounce to limit how frequently fetchLocationSuggestions is called for optimality
+  const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current;
 
   useEffect(() => {
     if (locationInput.trim() && !isLocationSelected) {
@@ -87,12 +145,12 @@ const Confirm = () => {
     } else if (!locationInput.trim()) {
       setLocationSuggestions([]);
       setIsDropdownOpen(false);
-      setIsLocationSelected(false); // Reset the flag
+      setIsLocationSelected(false);
     }
     return () => debouncedFetchLocationSuggestions.cancel();
   }, [locationInput, debouncedFetchLocationSuggestions, isLocationSelected]);
 
-  const handleLocationSelect = (selectedLocation) => { // selecting the location
+  const handleLocationSelect = (selectedLocation) => {
     setLocationInput(selectedLocation.display_name);
     setLocationDetails({
       lat: selectedLocation.lat,
@@ -100,10 +158,11 @@ const Confirm = () => {
       display_name: selectedLocation.display_name,
     });
     setIsDropdownOpen(false);
-    setLocationSuggestions([]); // Clear the suggestions
+    setLocationSuggestions([]);
     setIsLocationSelected(true);
   };
-  const handleInputChange = (event) => { //changing input for the location
+
+  const handleInputChange = (event) => {
     const value = event.target.value;
     setLocationInput(value); 
     if (value.trim()) {
@@ -116,7 +175,7 @@ const Confirm = () => {
     }
   };
 
-  const handleClickOutside = (event) => { //closes dropdown when we click outside it
+  const handleClickOutside = (event) => {
     if (event.target.closest(".location-dropdown") === null) setIsDropdownOpen(false);
   };
 
@@ -125,26 +184,21 @@ const Confirm = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
-  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } }); // go to home and  upload   automatically
+  const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } });
 
   const handleConfirm = async () => {
     try {
-      if (!identifier || !age || !gender || !patientstatus || !locationDetails) { // checking if all inputs are provided
+      if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
         alert("Please fill in all the required fields");
         return;
       }
   
-      setLoading(true); // set loading to true
-      const uniqueId = generateUniqueId(); // get the unique id
-      const historyData = saveHistory(uniqueId); // save the data to the history item
-      const imageToSave = croppedImage || imageUrl; // get the image we want to send
-      // Save the image and get the filename
-      const filename = await saveImageAndDetails(imageToSave, uniqueId, historyData);
-      // Send the filename and location to the map
+      setLoading(true);
+      const uniqueId = generateUniqueId();
+      await saveHistory(uniqueId);
+      const imageToSave = croppedImage || imageUrl;
+      const filename = await saveImageAndDetails(imageToSave, uniqueId);
       await sendLocationToMap(uniqueId, filename);
-  
-      // Classify the ECG and navigate to the results page
       await classifyECGAndNavigate(uniqueId, filename);
     } catch (error) {
       console.error("Error in handleConfirm: ", error);
@@ -152,20 +206,18 @@ const Confirm = () => {
     }
   };
 
-  const generateUniqueId = () => { // setting a unique id(counter) to avoid repetition in localstorage
-    let counter = parseInt(localStorage.getItem("entryCounter")) || 0;
-    counter += 1;
-    localStorage.setItem("entryCounter", counter.toString());
-    return `entry_${counter}`;
+  const generateUniqueId = () => {
+    return `entry_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };
 
-  const saveHistory = (uniqueId) => { // setting a new history item with relevant details and setting it to localstorage so we can access in history
+  const saveHistory = async (uniqueId) => {
+    if (!db) throw new Error("Database not initialized");
+    
     const now = new Date();
-    const date = now.toISOString().split("T")[0];
-    const dateTime = now.toLocaleTimeString();
-  
-    const historyData = JSON.parse(localStorage.getItem("history")) || [];
-    const newHistoryItem = {
+    const date = now.toLocaleDateString('en-CA'); 
+    const dateTime = now.toISOString();
+    
+    const historyItem = {
       uniqueId,
       identifier,
       status: patientstatus,
@@ -173,105 +225,221 @@ const Confirm = () => {
       gender,
       location: locationDetails,
       filename: null,
+      originalImageId: uniqueId,
+      boundedBoxImageId: `${uniqueId}_bbox`, // boundedboximage
       date,
       dateTime,
     };
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['history'], 'readwrite');
+      const store = transaction.objectStore('history');
+      
+      const request = store.add(historyItem);
+      
+      request.onsuccess = () => {
+        // save identifier if it is new
+        saveIdentifier(identifier).then(resolve).catch(reject);
+      };
+      
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  };
   
-    historyData.unshift(newHistoryItem);
-    localStorage.setItem("history", JSON.stringify(historyData));
 
-    const previousIdentifiers = new Set(JSON.parse(localStorage.getItem("uniqueIdentifiers")) || []);
-    if (!previousIdentifiers.has(identifier)) {
-      previousIdentifiers.add(identifier);
-      localStorage.setItem("uniqueIdentifiers", JSON.stringify([...previousIdentifiers]));
-    }
+  const saveIdentifier = async (identifier) => {
+    if (!db) throw new Error("Database not initialized");
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['identifiers'], 'readwrite');
+      const store = transaction.objectStore('identifiers');
+      
+      const request = store.put({ identifier });
+      
+      request.onsuccess = resolve;
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  };
+  const saveImageAndDetails = async (imageToSave, uniqueId) => {
+    const image = new Image();
+    image.src = imageToSave;
   
-    return historyData;
+    return new Promise((resolve, reject) => {
+      image.onload = async () => {
+        try {
+          const imageBase64 = await convertImageToBase64(image);
+          
+          // save the original image to indexeddb
+          await saveImageToDB(uniqueId, imageBase64);
+          
+          // upload the image to the server
+          const uploadResponse = await fetch(`${API_URL}/api/image`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: imageToSave,
+              age,
+              gender,
+              identifier,
+              location: locationDetails,
+            }),
+          });
+  
+          if (uploadResponse.ok) {
+            const uploadData = await uploadResponse.json();
+            const filename = uploadData.filename;
+            const boundedBoxImage = uploadData.boundedboximage;
+  
+            // saved the boundedboximage to IndexedDB
+            if (boundedBoxImage) {
+              await saveBoundedBoxImageToDB(uniqueId, boundedBoxImage);
+            }
+  
+            // update history with filename(used to identify ecgs individually)
+            await updateHistoryWithFilename(uniqueId, filename);
+            
+            resolve(filename);
+          } else {
+            console.error("Upload failed");
+            reject("Upload failed");
+          }
+        } catch (error) {
+          console.error("Error in saveImageAndDetails: ", error);
+          reject(error);
+        }
+      };
+    });
+  };
+  
+  const saveBoundedBoxImageToDB = async (uniqueId, imageData) => {
+    if (!db) throw new Error("Database not initialized");
+    
+    // normalize the image data
+    let processedImageData;
+    try {
+      if (!imageData) throw new Error("No image data provided");
+      
+      processedImageData = imageData.startsWith('data:image') 
+        ? imageData 
+        : `data:image/png;base64,${imageData}`;
+        
+      // validation(checking image format)
+      if (!processedImageData.match(/^data:image\/(png|jpeg|jpg);base64,/)) {
+        throw new Error("Invalid image format");
+      }
+    } catch (error) {
+      console.error("Image processing error:", error);
+      throw error;
+    }
+    // adding boundedboximage to indexeddb
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['images'], 'readwrite');
+      const store = transaction.objectStore('images');
+      
+      const request = store.put({ 
+        uniqueId: `${uniqueId}_bbox`,
+        imageData: processedImageData,
+        type: 'bounded_box',
+        createdAt: new Date().toISOString()
+      });
+      
+      request.onsuccess = () => {
+        console.log(`Bounded box image saved: ${uniqueId}_bbox`);
+        resolve();
+      };
+      request.onerror = (event) => {
+        console.error("IndexedDB save error:", event.target.error);
+        reject(event.target.error);
+      };
+    });
+  };
+  // saving the original image to indexeddb
+  const saveImageToDB = async (uniqueId, imageData) => {
+    if (!db) throw new Error("Database not initialized");
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['images'], 'readwrite');
+      const store = transaction.objectStore('images');
+      
+      const request = store.put({ uniqueId, imageData });
+      
+      request.onsuccess = resolve;
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  };
+  // adding the unique ecg uuid to the db
+  const updateHistoryWithFilename = async (uniqueId, filename) => {
+    if (!db) throw new Error("Database not initialized");
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['history'], 'readwrite');
+      const store = transaction.objectStore('history');
+      
+      const getRequest = store.get(uniqueId);
+      
+      getRequest.onsuccess = () => {
+        const historyItem = getRequest.result;
+        if (historyItem) {
+          historyItem.filename = filename;
+          const putRequest = store.put(historyItem);
+          
+          putRequest.onsuccess = resolve;
+          putRequest.onerror = (event) => {
+            reject(event.target.error);
+          };
+        } else {
+          reject(new Error("History item not found"));
+        }
+      };
+      
+      getRequest.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  };
+  // sending the location to the server to display in the map
+  const sendLocationToMap = async (uniqueId, filename) => {
+    try {
+      const mapResponse = await fetch(`${API_URL}/api/map`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier,
+          filename,
+          location: locationDetails,
+        }),
+      });
+
+      if (!mapResponse.ok) {
+        console.error("Failed to save location details");
+        throw new Error("Failed to save location details");
+      }
+    } catch (error) {
+      console.error("Error in sendLocationToMap: ", error);
+      throw error;
+    }
   };
 
-  
-const saveImageAndDetails = async (imageToSave, uniqueId, historyData) => {
-  const image = new Image();
-  image.src = imageToSave;
-
-  return new Promise((resolve, reject) => {
-    image.onload = async () => {
-      try {
-        const resizedBase64 = await resizeImage2(image, 500, 500);
-        localStorage.setItem(`imgData_${uniqueId}`, resizedBase64);
-
-        const uploadResponse = await fetch(`${API_URL}/api/image`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            image: imageToSave,
-            age,
-            gender,
-            identifier,
-            location: locationDetails,
-          }),
-        });
-
-        if (uploadResponse.ok) {
-          const uploadData = await uploadResponse.json();
-          const filename = uploadData.filename;
-
-          // Update the history item with the filename after upload
-          const updatedHistoryItem = { ...historyData[0], filename };
-          const updatedHistoryData = [updatedHistoryItem, ...historyData.slice(1)];
-          localStorage.setItem("history", JSON.stringify(updatedHistoryData));
-
-          resolve(filename); // Resolve with the filename
-        } else {
-          console.error("Upload failed");
-          reject("Upload failed");
-        }
-      } catch (error) {
-        console.error("Error in saveImageAndDetails: ", error);
-        reject(error);
-      }
-    };
-  });
-};
-
-const sendLocationToMap = async (uniqueId, filename) => {
-  try {
-    const mapResponse = await fetch(`${API_URL}/api/map`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        identifier,
-        filename,
-        location: locationDetails,
-      }),
-    });
-
-    if (!mapResponse.ok) {
-      console.error("Failed to save location details");
-      throw new Error("Failed to save location details");
+  // get classification results and send to ecg-results
+  const classifyECGAndNavigate = async (uniqueId, filename) => {
+    try {
+      await classifyECG(uniqueId, filename);
+      navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
+    } catch (error) {
+      console.error("Error in classifying the ECG: ", error);
+      throw error;
+    } finally {
+      setLoading(false); 
     }
-  } catch (error) {
-    console.error("Error in sendLocationToMap: ", error);
-    throw error;
-  }
-};
-
-const classifyECGAndNavigate = async (uniqueId, filename) => {
-  try {
-    // classify the ECG
-    await classifyECG(uniqueId, filename);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
-  } catch (error) {
-    console.error("Error in classifying the ECG: ", error);
-    throw error;
-  } finally {
-    setLoading(false); 
-  }
-};
- 
-  const classifyECG = async (uniqueId, filename) => { // getting the details for classification and setting it to localstorage to access in the ecgresults page
+  };
+  // get classification from server 
+  const classifyECG = async (uniqueId, filename) => {
     const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -288,13 +456,29 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     }
 
     const classifyData = await classifyResponse.json();
-    localStorage.setItem(`classificationResult_${uniqueId}`, JSON.stringify(classifyData));
+    await saveClassificationResult(uniqueId, classifyData);
 
     const highestDiagnosis = getHighestConfidenceDiagnosis(classifyData.diagnoses);
     if (highestDiagnosis) await sendDiagnosis(highestDiagnosis, filename);
   };
-
-  const getHighestConfidenceDiagnosis = (diagnoses) => { // this is to get the diagnosis with the highest confidence(we send this to the db for display)
+  // saving the classificatio result to indexeddb
+  const saveClassificationResult = async (uniqueId, result) => {
+    if (!db) throw new Error("Database not initialized");
+    
+    return new Promise((resolve, reject) => {
+      const transaction = db.transaction(['classificationResults'], 'readwrite');
+      const store = transaction.objectStore('classificationResults');
+      
+      const request = store.put({ uniqueId, result });
+      
+      request.onsuccess = resolve;
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  };
+  // getting the highest confident diagnosis which we will show for the map
+  const getHighestConfidenceDiagnosis = (diagnoses) => {
     let highestDiagnosis = null;
     let highestConfidence = 0;
 
@@ -307,8 +491,8 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
 
     return highestDiagnosis;
   };
-
-  const sendDiagnosis = async (diagnosis, filename) => { // sending the most confident diagnosis for display in the map
+  // we add the diagnosis details to the server
+  const sendDiagnosis = async (diagnosis, filename) => {
     const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -324,39 +508,24 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
 
     if (!diagnosesResponse.ok) console.error("Failed to send diagnosis");
   };
-
-  const resizeImage2 = (img, maxWidth, maxHeight) => { // resizing for storing in localstorage
+ // this is to convert the image to base64(for storage purposes)
+  const convertImageToBase64 = (img) => {
     return new Promise((resolve) => {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
+  
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = "high";
-
-      let width = img.width;
-      let height = img.height;
-
-      if (width > height) {
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-      } else {
-        if (height > maxHeight) {
-          width = Math.round((width * maxHeight) / height);
-          height = maxHeight;
-        }
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      ctx.drawImage(img, 0, 0, width, height);
+  
+      canvas.width = img.width;
+      canvas.height = img.height;
+  
+      ctx.drawImage(img, 0, 0, img.width, img.height);
       resolve(canvas.toDataURL("image/png"));
     });
   };
-
-  const handleDownload = () => { // download the image(if we want)
+  // so we can download the cropped image(or original if not cropped)
+  const handleDownload = () => {
     const imagetodownload = croppedImage || imageUrl;
     const link = document.createElement("a");
     link.href = imagetodownload;
@@ -366,7 +535,7 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     document.body.removeChild(link);
   };
 
-  const onCropComplete = (crop) => { // cropping
+  const onCropComplete = (crop) => {
     if (originalImageRef.current && canvasRef.current) {
       const image = originalImageRef.current;
       const canvas = canvasRef.current;
@@ -392,21 +561,21 @@ const classifyECGAndNavigate = async (uniqueId, filename) => {
     }
   };
 
-  const handleAgeChange = (e) => { // age change
+  const handleAgeChange = (e) => {
     const value = e.target.value;
     if (value < 0 || value > 999) setAge("");
     else setAge(value);
   };
 
-  const handleGenderChange = (e) => setGender(e.target.value); // gender change
-  const handleIdentifierChange = (e) => setIdentifier(e.target.value); // identifier change
+  const handleGenderChange = (e) => setGender(e.target.value);
+  const handleIdentifierChange = (e) => setIdentifier(e.target.value);
 
-  const handleConfirmClick = () => { // once we click confirm
+  const handleConfirmClick = () => {
     if (loading) return;
     setShowConfirmPopup(true);
   };
 
-  const handlePopupResponse = (confirm) => { // once we say ok to confirm
+  const handlePopupResponse = (confirm) => {
     setShowConfirmPopup(false);
     if (confirm) handleConfirm();
   };

@@ -2,6 +2,43 @@ import { useState, useEffect, useCallback } from "react";
 import { Grid, Card, CardContent, Typography, Button, CardMedia, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, TextField, Box, Stack} from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
+// use indexeddb instead of localstorage
+const initializeDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ECGAppDB');
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+
+      // create all the object stores needed 
+      if (!db.objectStoreNames.contains('history')) {
+        const historyStore = db.createObjectStore('history', { keyPath: 'uniqueId' });
+        historyStore.createIndex('byDate', 'dateTime', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains('identifiers')) {
+        db.createObjectStore('identifiers', { keyPath: 'identifier' });
+      }
+      
+      if (!db.objectStoreNames.contains('images')) {
+        db.createObjectStore('images', { keyPath: 'uniqueId' });
+      }
+      
+      if (!db.objectStoreNames.contains('classificationResults')) {
+        db.createObjectStore('classificationResults', { keyPath: 'uniqueId' });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+};
+
 const History = () => {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
@@ -13,27 +50,86 @@ const History = () => {
   const [patientIds, setPatientIds] = useState([]);
   const [selectedForComparison, setSelectedForComparison] = useState([]);
   const [showComparisonDialog, setShowComparisonDialog] = useState(false);
-  const [comparisonImages, setComparisonImages] = useState({});
-  const API_URL = import.meta.env.VITE_API_URL;
-  // asked chatgpt how to keep two filters at once
-  useEffect(() => {
-    const storedHistory = JSON.parse(localStorage.getItem("history")) || [];
-    const updatedHistory = storedHistory.map((item) => {
-      const imageKey = `imgData_${item.uniqueId}`;
-      const savedImage = localStorage.getItem(imageKey);
-      const classificationKey = `classificationResult_${item.uniqueId}`; 
-      const classificationResult = JSON.parse(localStorage.getItem(classificationKey)); 
+  const [, setComparisonImages] = useState({});
+  const [db, setDb] = useState(null);
 
-      return {
-        ...item,
-        imageUrl: savedImage || null,
-        classificationResult: classificationResult || null,
-      };
+  // initialize db
+  useEffect(() => {
+    initializeDB().then(database => {
+      setDb(database);
+      loadHistory(database);
+    }).catch(error => {
+      console.error("Error initializing DB:", error);
     });
-    setHistory(updatedHistory);
-    setPatientIds([...new Set(updatedHistory.map((item) => item.identifier))]);
   }, []);
 
+  // get the history from IndexedDB
+  const loadHistory = (database) => {
+    const transaction = database.transaction(['history'], 'readonly');
+    const store = transaction.objectStore('history');
+    const request = store.getAll();
+  
+    request.onsuccess = async () => {
+      const historyItems = request.result;
+      
+      // get the data for each history item
+      const enrichedHistory = await Promise.all(historyItems.map(async (item) => {
+        const image = await getImageFromDB(database, item.uniqueId);
+        const boundedBoxImage = await getImageFromDB(database, `${item.uniqueId}_bbox`);
+        const classification = await getClassificationFromDB(database, item.uniqueId);
+        
+        return {
+          ...item,
+          imageUrl: image?.imageData || null,
+          boundedBoxImageUrl: boundedBoxImage?.imageData || null,
+          classificationResult: classification?.result || null
+        };
+      }));
+  
+      setHistory(enrichedHistory);
+      setPatientIds([...new Set(enrichedHistory.map(item => item.identifier))]);
+    };
+  
+    request.onerror = (event) => {
+      console.error("Error loading history:", event.target.error);
+    };
+  };
+
+  // get the image from the IndexedDB
+  const getImageFromDB = (database, uniqueId) => {
+    return new Promise((resolve) => {
+      const transaction = database.transaction(['images'], 'readonly');
+      const store = transaction.objectStore('images');
+      const request = store.get(uniqueId);
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        resolve(null);
+      };
+    });
+  };
+
+  // get classification from the IndexedDB
+  const getClassificationFromDB = (database, uniqueId) => {
+    return new Promise((resolve) => {
+      const transaction = database.transaction(['classificationResults'], 'readonly');
+      const store = transaction.objectStore('classificationResults');
+      const request = store.get(uniqueId);
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        resolve(null);
+      };
+    });
+  };
+
+  // filter the history based on the selected filters
   useEffect(() => {
     setFilteredHistory(
       history.filter((item) =>
@@ -42,8 +138,12 @@ const History = () => {
         (dateFilter === "" || item.date === dateFilter)
       )
     );
-  }, [statusFilter, patientFilter,dateFilter, history]);
+  }, [statusFilter, patientFilter, dateFilter, history]);
+
+  // get the images for comparison
   const fetchImagesforComparison = useCallback(async () => {
+    if (!db) return;
+    
     const imagesData = {};
   
     await Promise.all(
@@ -51,51 +151,82 @@ const History = () => {
         const item = history.find((h) => h.uniqueId === uniqueId);
         if (!item) return;
   
-        try {
-          console.log(item.filename)
-          const response = await fetch(`${API_URL}/api/ecgresults`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ filename: item.filename }),
-          });
-  
-          if (!response.ok) {
-            throw new Error(`Failed to fetch image: ${response.statusText}`);
-          }
-  
-          const data = await response.json();
-          imagesData[uniqueId] = data.image;
-        } catch (error) {
-          console.error("Error fetching ECG image:", error);
+        // use the bounded box image url 
+        if (item.boundedBoxImageUrl) {
+          imagesData[uniqueId] = item.boundedBoxImageUrl.split(',')[1]; // get the base64 data
         }
       })
     );
   
     setComparisonImages(imagesData); 
-  }, [selectedForComparison, history, API_URL]);
+  }, [selectedForComparison, history, db]);
   
-  
-
-  const clearHistory = () => {
-    localStorage.removeItem("history");
-    history.forEach((item) => {
-      localStorage.removeItem(`imgData_${item.uniqueId}`);
-      localStorage.removeItem(`classificationResult_${item.uniqueId}`);
-    });
-    localStorage.removeItem("entryCounter");
-    setHistory([]);
+  // clear all history from the indexeddb
+  const clearHistory = async () => {
+    if (!db) return;
+    
+    try {
+      // clear all the objects
+      await Promise.all([
+        clearObjectStore(db, 'history'),
+        clearObjectStore(db, 'images'),
+        clearObjectStore(db, 'classificationResults'),
+        clearObjectStore(db, 'identifiers'),
+      ]);
+      
+      setHistory([]);
+      setPatientIds([]);
+    } catch (error) {
+      console.error("Error clearing history:", error);
+    }
   };
 
-  const deleteItem = (uniqueId) => {
-    const updatedHistory = history.filter((item) => item.uniqueId !== uniqueId);
-    localStorage.setItem("history", JSON.stringify(updatedHistory));
-    localStorage.removeItem(`imgData_${uniqueId}`);
-    localStorage.removeItem(`classificationResult_${uniqueId}`);
-    const entryCounter = JSON.parse(localStorage.getItem("entryCounter")) || 0;
-    localStorage.setItem("entryCounter", entryCounter - 1);
-    setHistory(updatedHistory);
+  // clear an object store
+  const clearObjectStore = (database, storeName) => {
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.clear();
+
+      request.onsuccess = resolve;
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
+  };
+
+  // delete a single item from IndexedDB
+  const deleteItem = async (uniqueId) => {
+    if (!db) return;
+    
+    try {
+      // Delete from all relevant stores
+      await Promise.all([
+        deleteFromStore(db, 'history', uniqueId),
+        deleteFromStore(db, 'images', uniqueId),
+        deleteFromStore(db, 'classificationResults', uniqueId),
+      ]);
+      
+      // update the state
+      setHistory(prev => prev.filter(item => item.uniqueId !== uniqueId));
+      setPatientIds(prev => [...new Set(prev.filter(id => id !== history.find(item => item.uniqueId === uniqueId)?.identifier))]);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+    }
+  };
+
+  //  delete from a specific store
+  const deleteFromStore = (database, storeName, key) => {
+    return new Promise((resolve, reject) => {
+      const transaction = database.transaction([storeName], 'readwrite');
+      const store = transaction.objectStore(storeName);
+      const request = store.delete(key);
+
+      request.onsuccess = resolve;
+      request.onerror = (event) => {
+        reject(event.target.error);
+      };
+    });
   };
 
   const handleViewDetails = (item) => {
@@ -124,6 +255,7 @@ const History = () => {
   
     setSelectedForComparison(updatedSelection);
   };
+
   useEffect(() => {
     if (selectedForComparison.length === 2) {
       fetchImagesforComparison();
@@ -133,9 +265,6 @@ const History = () => {
     }
   }, [fetchImagesforComparison, selectedForComparison]); 
   
-  
-  
-
   const handleCloseComparisonDialog = () => {
     setShowComparisonDialog(false);
     setSelectedForComparison([]);
@@ -356,42 +485,43 @@ const History = () => {
 
       {/* Compare two ecg images */}
       {showComparisonDialog && (
-        <Dialog open={true} onClose={handleCloseComparisonDialog} maxWidth="lg" fullWidth>
-          <DialogTitle>Compare The Leads of Two ECG Images</DialogTitle>
-          <DialogContent sx={{ py: 4 }}>
-            <Grid container spacing={4} alignItems="center">
-              {getSelectedItems().map((item) => (
-                <Grid item key={item.uniqueId} xs={12} md={6}>
-                  <Box sx={{ 
-                    border: 1, 
-                    borderColor: "divider",
-                    borderRadius: 2,
-                    p: 2,
-                    textAlign: "center"
-                  }}>
-                    <Typography variant="subtitle1" gutterBottom>
-                      Patient: {item.identifier}
-                    </Typography>
-                    <img
-                      src={`data:image/png;base64,${comparisonImages[item.uniqueId]}`}
-                      style={{ 
-                        maxWidth: "100%", 
-                        maxHeight: "400px",
-                        objectFit: "contain"
-                      }}
-                    />
-                  </Box>
-                </Grid>
-              ))}
-            </Grid>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseComparisonDialog} color="secondary">
-              Close
-            </Button>
-          </DialogActions>
-        </Dialog>
-      )}
+  <Dialog open={true} onClose={handleCloseComparisonDialog} maxWidth="lg" fullWidth>
+    <DialogTitle>Compare The Leads of Two ECG Images</DialogTitle>
+    <DialogContent sx={{ py: 4 }}>
+      <Grid container spacing={4} alignItems="center">
+        {getSelectedItems().map((item) => (
+          <Grid item key={item.uniqueId} xs={12} md={6}>
+            <Box sx={{ 
+              border: 1, 
+              borderColor: "divider",
+              borderRadius: 2,
+              p: 2,
+              textAlign: "center"
+            }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Patient: {item.identifier}
+              </Typography>
+              <img
+                src={item.boundedBoxImageUrl || ""}
+                style={{ 
+                  maxWidth: "100%", 
+                  maxHeight: "400px",
+                  objectFit: "contain"
+                }}
+                alt={`Bounded box ECG for ${item.identifier}`}
+              />
+            </Box>
+          </Grid>
+        ))}
+      </Grid>
+    </DialogContent>
+    <DialogActions>
+      <Button onClick={handleCloseComparisonDialog} color="secondary">
+        Close
+      </Button>
+    </DialogActions>
+  </Dialog>
+)}
     </Grid>
   );
 };

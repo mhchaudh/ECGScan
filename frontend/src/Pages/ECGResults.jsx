@@ -1,8 +1,49 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button } from "@mui/material";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import './ECGResults.css'; // style MUI elements for dark mode
+import './ECGResults.css';
+
+// use indexeddb instead of localstorage
+const initializeDB = () => {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('ECGAppDB'); 
+
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      
+      // create all the object stores needed
+      if (!db.objectStoreNames.contains('history')) {
+        const historyStore = db.createObjectStore('history', { keyPath: 'uniqueId' });
+        historyStore.createIndex('byDate', 'dateTime', { unique: false });
+      }
+      
+      if (!db.objectStoreNames.contains('identifiers')) {
+        db.createObjectStore('identifiers', { keyPath: 'identifier' });
+      }
+      
+      if (!db.objectStoreNames.contains('images')) {
+        db.createObjectStore('images', { keyPath: 'uniqueId' });
+      }
+      
+      if (!db.objectStoreNames.contains('classificationResults')) {
+        db.createObjectStore('classificationResults', { keyPath: 'uniqueId' });
+      }
+      
+      if (!db.objectStoreNames.contains('feedback')) {
+        db.createObjectStore('feedback', { keyPath: 'uniqueId' });
+      }
+    };
+
+    request.onsuccess = (event) => {
+      resolve(event.target.result);
+    };
+
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+};
 
 const ECGResults = () => {
   const location = useLocation();
@@ -13,7 +54,6 @@ const ECGResults = () => {
   const age = searchParams.get("age");
   const gender = searchParams.get("gender");
 
-
   const [classificationResult, setClassificationResult] = useState(null);
   const [imageUrl, setImageUrl] = useState(null);
   const [highlightedImageUrl, setHighlightedImageUrl] = useState(null);
@@ -21,58 +61,113 @@ const ECGResults = () => {
   const [otherFeedback, setOtherFeedback] = useState("");
   const [submittedFeedback, setSubmittedFeedback] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [db, setDb] = useState(null);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  // colors we want to show
   const colors = ["red", "green", "blue", "yellow", "purple"];
-  const fetchHighlightedImage = useCallback(async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/ecgresults`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ filename }),
-      });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch highlighted image: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setHighlightedImageUrl(data.image); // Set the highlighted image URL
-    } catch (error) {
-      console.error("Error fetching highlighted image:", error);
-    }
-  }, [API_URL, filename]);
-
+  // initialize the db 
   useEffect(() => {
-    if (uniqueId) {
-      const result = JSON.parse(localStorage.getItem(`classificationResult_${uniqueId}`));
-      setClassificationResult(result);
+    const initDB = async () => {
+      try {
+        const database = await initializeDB();
+        setDb(database);
+        
+        // check if all required objects exist
+        if (!database.objectStoreNames.contains('classificationResults') || 
+            !database.objectStoreNames.contains('images') ||
+            !database.objectStoreNames.contains('feedback')) {
+          throw new Error('Required object stores missing');
+        }
+        
+        await loadData(database);
+      } catch (error) {
+        console.error("Database initialization failed:", error);
+        // recover if needed
+        try {
+          indexedDB.deleteDatabase('ECGAppDB');
+          const newDB = await initializeDB();
+          setDb(newDB);
+        } catch (recoveryError) {
+          console.error("Recovery failed:", recoveryError);
+        }
+      }
+    };
 
-      const image = localStorage.getItem(`imgData_${uniqueId}`);
-      setImageUrl(image);
+    initDB();
 
-      const savedFeedback = localStorage.getItem(`feedback_${uniqueId}`);
+    // Dark mode check
+    setIsDarkMode(document.body.classList.contains("dark-mode"));
+  }, []);
+
+
+  const loadData = async (database) => {
+    if (!uniqueId || !database) return;
+  
+    try {
+      // check if the object exists before trying to access them
+      const requiredStores = ['classificationResults', 'images', 'feedback', 'history'];
+      for (const store of requiredStores) {
+        if (!database.objectStoreNames.contains(store)) {
+          throw new Error(`Object store ${store} not found`);
+        }
+      }
+  
+      const [classification, image, savedFeedback, historyItem, boundedBoxImage] = await Promise.all([
+        getFromDB(database, 'classificationResults', uniqueId),
+        getFromDB(database, 'images', uniqueId),
+        getFromDB(database, 'feedback', uniqueId),
+        getFromDB(database, 'history', uniqueId),
+        getFromDB(database, 'images', `${uniqueId}_bbox`) // get the bounded box image
+      ]);
+  
+      setClassificationResult(classification?.result || null);
+      setImageUrl(image?.imageData || null);
+      setHighlightedImageUrl(boundedBoxImage?.imageData || null); // set the bounded box image
+  
       if (savedFeedback) {
-        setFeedback(savedFeedback);
+        setFeedback(savedFeedback.feedback);
         setSubmittedFeedback(true);
       }
-
-      // fetch the highlighted image from backend
-      fetchHighlightedImage();
+  
+      if (!historyItem) {
+        setSubmittedFeedback(false);
+        setFeedback("");
+        setOtherFeedback("");
+      }
+    } catch (error) {
+      console.error("Error loading data:", error);
     }
+  };
 
-    // Dark mode
-    const darkModeEnabled = document.body.classList.contains("dark-mode");
-    setIsDarkMode(darkModeEnabled);
-  }, [uniqueId, fetchHighlightedImage]);
+  // get from indexeddb
+  const getFromDB = (database, storeName, key) => {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!database.objectStoreNames.contains(storeName)) {
+          throw new Error(`Object store ${storeName} not found`);
+        }
+
+        const transaction = database.transaction([storeName], 'readonly');
+        const store = transaction.objectStore(storeName);
+        const request = store.get(key);
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = (event) => reject(event.target.error);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
 
   const handleSubmitFeedback = async () => {
+    if (!db) return;
+    
     const finalFeedback = feedback === "Other" ? otherFeedback : feedback;
 
     try {
+      // send feedback to server
       const feedbackData = {
         feedback: finalFeedback,
         filename: filename,
@@ -93,15 +188,34 @@ const ECGResults = () => {
         throw new Error(`Failed to submit feedback: ${response.statusText}`);
       }
 
-      console.log("Feedback submitted successfully");
-
-      localStorage.setItem(`feedback_${uniqueId}`, finalFeedback);
+      // save the feedback to indexeddb
+      await saveFeedbackToDB(db, uniqueId, finalFeedback);
 
       setFeedback(finalFeedback);
       setSubmittedFeedback(true);
     } catch (error) {
       console.error("Error submitting feedback:", error);
     }
+  };
+
+  // save the feedback to indexeddb
+  const saveFeedbackToDB = (database, uniqueId, feedback) => {
+    return new Promise((resolve, reject) => {
+      try {
+        if (!database.objectStoreNames.contains('feedback')) {
+          throw new Error('Feedback store not found');
+        }
+
+        const transaction = database.transaction(['feedback'], 'readwrite');
+        const store = transaction.objectStore('feedback');
+        const request = store.put({ uniqueId, feedback });
+
+        request.onsuccess = () => resolve();
+        request.onerror = (event) => reject(event.target.error);
+      } catch (error) {
+        reject(error);
+      }
+    });
   };
 
   if (!classificationResult || !imageUrl) {
@@ -166,19 +280,18 @@ const ECGResults = () => {
 
         {/* Highlighted ECG Image */}
         {highlightedImageUrl && (
-          <Box sx={{ mt: 4, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0",  borderRadius: 2, p: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9"} }>
-            <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
-              ECG Sections Leading to Diagnosis
-            </Typography>
-            <Box
-              component="img"
-              src={`data:image/png;base64,${highlightedImageUrl}`}
-              alt="Highlighted ECG Sections"
-              sx={{ width: "100%", height: "auto", display: "block",  borderRadius: 1, border: isDarkMode ? "1px solid #555" : "1px solid #ddd" }}
-            />
-          </Box>
-        )}
-
+  <Box sx={{ mt: 4, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0",  borderRadius: 2, p: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9"} }>
+    <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
+      ECG Sections Leading to Diagnosis
+    </Typography>
+    <Box
+      component="img"
+      src={highlightedImageUrl} // Use the URL directly (it's already base64 encoded)
+      alt="Highlighted ECG Sections"
+      sx={{ width: "100%", height: "auto", display: "block",  borderRadius: 1, border: isDarkMode ? "1px solid #555" : "1px solid #ddd" }}
+    />
+  </Box>
+)}
         {/* Feedback */}
         <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
           <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
