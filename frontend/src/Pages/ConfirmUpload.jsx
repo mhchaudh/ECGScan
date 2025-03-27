@@ -215,7 +215,7 @@ const ConfirmUpload = () => {
     
     const now = new Date();
     const date = now.toLocaleDateString('en-CA'); 
-    const dateTime = now.toISOString();
+    const dateTime = now.toLocaleTimeString('en-CA', { hour12: false });
     
     const historyItem = {
       uniqueId,
