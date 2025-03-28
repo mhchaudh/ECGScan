@@ -229,6 +229,8 @@ const ECGResults = () => {
       </Container>
     );
   }
+  const sortedDiagnoses = Object.entries(classificationResult.diagnoses)
+  .sort(([, confA], [, confB]) => confB - confA);
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -238,16 +240,16 @@ const ECGResults = () => {
         </Typography>
 
         {/* Diagnoses */}
-         <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
+        <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
           <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
-            Diagnoses:
+            Diagnoses (Ranked by Confidence):
           </Typography>
           <List>
-            {Object.entries(classificationResult.diagnoses).map(([diag, conf], index) => (
+            {sortedDiagnoses.map(([diag, conf], index) => (
               <div key={index}>
                 <ListItem>
                   <ListItemText 
-                    primary={diag} 
+                    primary={`${index + 1}. ${diag}`} 
                     secondary={`Confidence: ${(conf * 100).toFixed(0)}%`}
                     primaryTypographyProps={{
                       sx: { fontWeight: 600, color: isDarkMode ? "#fff" : "#333" }
@@ -257,7 +259,7 @@ const ECGResults = () => {
                     }}
                   />
                 </ListItem>
-                {index < Object.entries(classificationResult.diagnoses).length - 1 && <Divider />}
+                {index < sortedDiagnoses.length - 1 && <Divider />}
               </div>
             ))}
           </List>
