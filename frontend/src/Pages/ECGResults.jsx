@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button } from "@mui/material";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import './ECGResults.css';
+import { Container, Typography, Paper, Box, Radio, RadioGroup, FormControlLabel, TextField, Button, List, ListItem, ListItemText, Divider } from "@mui/material";import './ECGResults.css';
 
 // use indexeddb instead of localstorage
 const initializeDB = () => {
@@ -64,7 +62,6 @@ const ECGResults = () => {
   const [db, setDb] = useState(null);
   const API_URL = import.meta.env.VITE_API_URL;
 
-  const colors = ["red", "green", "blue", "yellow", "purple"];
 
   // initialize the db 
   useEffect(() => {
@@ -233,12 +230,6 @@ const ECGResults = () => {
     );
   }
 
-  const diagnosesData = Object.entries(classificationResult.diagnoses).map(([diag, conf], index) => ({
-    name: diag,
-    confidence: (conf * 100).toFixed(0),
-    fill: colors[index % colors.length], 
-  }));
-
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 4, borderRadius:3,boxShadow:3, backgroundColor: isDarkMode ? "#1e1e1e" : "#fff"}}>
@@ -247,51 +238,45 @@ const ECGResults = () => {
         </Typography>
 
         {/* Diagnoses */}
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" color="text.primary">
+         <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
+          <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
             Diagnoses:
           </Typography>
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={diagnosesData} margin={{ top: 20, right: 30, left: 20, bottom: 70 }}>
-              <XAxis dataKey="name" stroke={isDarkMode ? "#fff" : "#8884d8"} tick={false} axisLine={{ stroke: "#8884d8" }} />
-              <YAxis label={{ value: "Confidence (%)", angle: -90, position: "insideLeft", fill: isDarkMode ? "#fff" : "#000" }} tick={{ fill: isDarkMode ? "#fff" : "#000" }} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: isDarkMode ? "#121212" : "#fff",  
-                  color: isDarkMode ? "#fff" : "#000",              
-                  border: isDarkMode ? "1px solid #444" : "none"    
-                }}
-              />
-              <Bar dataKey="confidence" fill="#8884d8" barSize={50} radius={[4, 4, 0, 0]}>
-                {diagnosesData.map((entry, index) => (
-                  <rect
-                    key={`bar-${index}`}
-                    x={entry.x} 
-                    y={entry.y} 
-                    width={entry.width} 
-                    height={entry.height} 
-                    fill={entry.fill} 
+          <List>
+            {Object.entries(classificationResult.diagnoses).map(([diag, conf], index) => (
+              <div key={index}>
+                <ListItem>
+                  <ListItemText 
+                    primary={diag} 
+                    secondary={`Confidence: ${(conf * 100).toFixed(0)}%`}
+                    primaryTypographyProps={{
+                      sx: { fontWeight: 600, color: isDarkMode ? "#fff" : "#333" }
+                    }}
+                    secondaryTypographyProps={{
+                      sx: { color: isDarkMode ? "#bbb" : "#666" }
+                    }}
                   />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+                </ListItem>
+                {index < Object.entries(classificationResult.diagnoses).length - 1 && <Divider />}
+              </div>
+            ))}
+          </List>
         </Box>
 
         {/* Highlighted ECG Image */}
         {highlightedImageUrl && (
-  <Box sx={{ mt: 4, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0",  borderRadius: 2, p: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9"} }>
-    <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
-      ECG Sections Leading to Diagnosis
-    </Typography>
-    <Box
-      component="img"
-      src={highlightedImageUrl} // Use the URL directly (it's already base64 encoded)
-      alt="Highlighted ECG Sections"
-      sx={{ width: "100%", height: "auto", display: "block",  borderRadius: 1, border: isDarkMode ? "1px solid #555" : "1px solid #ddd" }}
-    />
-  </Box>
-)}
+            <Box sx={{ mt: 4, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0",  borderRadius: 2, p: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9"} }>
+              <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
+                ECG Sections Leading to Diagnosis
+              </Typography>
+              <Box
+                component="img"
+                src={highlightedImageUrl} // Use the URL directly (it's already base64 encoded)
+                alt="Highlighted ECG Sections"
+                sx={{ width: "100%", height: "auto", display: "block",  borderRadius: 1, border: isDarkMode ? "1px solid #555" : "1px solid #ddd" }}
+              />
+            </Box>
+          )}
         {/* Feedback */}
         <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
           <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
