@@ -7,7 +7,6 @@ import Confirm from './Pages/Confirm';
 import ConfirmUpload from './Pages/ConfirmUpload';
 import ECGResults from "./Pages/ECGResults";
 import History from "./Pages/History";
-import Map from "./Pages/Map";
 import logo from './assets/1-3b2842e1-removebg-preview.png'; 
 
 import { AppBar, Toolbar, Typography, IconButton, Menu, MenuItem, Box, Switch } from '@mui/material';
@@ -86,7 +85,6 @@ function App() {
         <MenuItem onClick={() => navigate("/home")} className="menu-item">Home</MenuItem>
         <MenuItem onClick={() => navigate("/about")} className="menu-item">About</MenuItem>
         <MenuItem onClick={() => navigate("/history")} className="menu-item">History</MenuItem>
-        <MenuItem onClick={() => navigate("/map")} className="menu-item">Map</MenuItem>
         <MenuItem>
           Dark Mode
           <Switch checked={darkMode} onChange={handleDarkModeToggle} />
@@ -102,7 +100,6 @@ function App() {
           <Route path="/confirmupload" element={<ConfirmUpload />} />
           <Route path="/ecg-results" element={<ECGResults />} />
           <Route path="/history" element={<History />} />
-          <Route path="/map" element={<Map />} />
         </Routes>
       </div>
     </div>

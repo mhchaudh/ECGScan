@@ -3,15 +3,15 @@ import { useState, useRef, useEffect } from "react";
 import ReactCrop from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
 import "./Confirm.css";
-import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, List, ListItem, ListItemText, Paper, Box, CircularProgress} from "@mui/material";
+import { Grid, Typography, Button, ToggleButton, ToggleButtonGroup, TextField, Dialog, DialogActions, DialogContent, DialogTitle, FormControl, InputLabel, Select, MenuItem, Box, CircularProgress} from "@mui/material";
 import { Male, Female } from "@mui/icons-material";
 import ReplayIcon from '@mui/icons-material/Replay';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import DownloadIcon from '@mui/icons-material/Download';
 import WarningIcon from '@mui/icons-material/Warning';
 import "leaflet/dist/leaflet.css";
-import Fuse from 'fuse.js';
-import debounce from 'lodash.debounce';
+
+
 
 // use IndexedDB instead of localstorage
 const initializeDB = () => {
@@ -32,7 +32,7 @@ const initializeDB = () => {
       
       if (!db.objectStoreNames.contains('images')) {
         const imagesStore = db.createObjectStore('images', { keyPath: 'uniqueId' });
-        imagesStore.createIndex('byType', 'type', { unique: false }); // Add index for image type
+        imagesStore.createIndex('byType', 'type', { unique: false }); 
       }
       
       if (!db.objectStoreNames.contains('classificationResults')) {
@@ -57,15 +57,10 @@ const Confirm = () => {
 
   const [crop, setCrop] = useState({ unit: "%", x: 0, y: 0, width: 100, height: 100 });
   const [croppedImage, setCroppedImage] = useState(null);
-  const [isLocationSelected, setIsLocationSelected] = useState(false);
   const [age, setAge] = useState("");
   const [gender, setGender] = useState("");
   const [identifier, setIdentifier] = useState("");
   const [patientstatus, setPatientstatus] = useState("");
-  const [locationInput, setLocationInput] = useState("");
-  const [locationDetails, setLocationDetails] = useState(null);
-  const [locationSuggestions, setLocationSuggestions] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showConfirmPopup, setShowConfirmPopup] = useState(false);
   const [loading, setLoading] = useState(false);
   const [db, setDb] = useState(null);
@@ -75,7 +70,6 @@ const Confirm = () => {
   const canvasRef = useRef(null);
   const originalImageRef = useRef(null);
 
-  const fuse = new Fuse([], { keys: ["display_name"], threshold: 0.3 });
   const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
@@ -113,82 +107,12 @@ const Confirm = () => {
     };
   };
 
-  const fetchLocationSuggestions = async (query) => {
-    if (!query.trim()) return;
-    try {
-      const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=10`);
-      if (!response.ok) throw new Error("Failed to fetch location suggestions.");
-      const data = await response.json();
-  
-      const uniqueLocations = data.reduce((acc, current) => {
-        const isDuplicate = acc.some(location => location.display_name === current.display_name);
-        if (!isDuplicate) {
-          acc.push(current);
-        }
-        return acc;
-      }, []);
-  
-      setLocationSuggestions(uniqueLocations);
-      setIsDropdownOpen(true);
-    } catch (error) {
-      console.error("Error fetching location suggestions:", error);
-      setLocationSuggestions([]);
-      setIsDropdownOpen(false);
-    }
-  };
-
-  const debouncedFetchLocationSuggestions = useRef(debounce(fetchLocationSuggestions, 500)).current;
-
-  useEffect(() => {
-    if (locationInput.trim() && !isLocationSelected) {
-      debouncedFetchLocationSuggestions(locationInput);
-    } else if (!locationInput.trim()) {
-      setLocationSuggestions([]);
-      setIsDropdownOpen(false);
-      setIsLocationSelected(false);
-    }
-    return () => debouncedFetchLocationSuggestions.cancel();
-  }, [locationInput, debouncedFetchLocationSuggestions, isLocationSelected]);
-
-  const handleLocationSelect = (selectedLocation) => {
-    setLocationInput(selectedLocation.display_name);
-    setLocationDetails({
-      lat: selectedLocation.lat,
-      lon: selectedLocation.lon,
-      display_name: selectedLocation.display_name,
-    });
-    setIsDropdownOpen(false);
-    setLocationSuggestions([]);
-    setIsLocationSelected(true);
-  };
-
-  const handleInputChange = (event) => {
-    const value = event.target.value;
-    setLocationInput(value); 
-    if (value.trim()) {
-      const results = fuse.search(event.target.value);
-      setLocationSuggestions(results.map((result) => result.item));
-      setIsDropdownOpen(true);
-    } else {
-      setLocationSuggestions([]);
-      setIsDropdownOpen(false);
-    }
-  };
-
-  const handleClickOutside = (event) => {
-    if (event.target.closest(".location-dropdown") === null) setIsDropdownOpen(false);
-  };
-
-  useEffect(() => {
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const handleRetake = () => navigate("/home", { state: { cameFromConfirm: true } });
 
   const handleConfirm = async () => {
     try {
-      if (!identifier || !age || !gender || !patientstatus || !locationDetails) {
+      if (!identifier || !age || !gender || !patientstatus) {
         alert("Please fill in all the required fields");
         return;
       }
@@ -198,7 +122,6 @@ const Confirm = () => {
       await saveHistory(uniqueId);
       const imageToSave = croppedImage || imageUrl;
       const filename = await saveImageAndDetails(imageToSave, uniqueId);
-      await sendLocationToMap(uniqueId, filename);
       await classifyECGAndNavigate(uniqueId, filename);
     } catch (error) {
       console.error("Error in handleConfirm: ", error);
@@ -223,7 +146,6 @@ const Confirm = () => {
       status: patientstatus,
       age,
       gender,
-      location: locationDetails,
       filename: null,
       originalImageId: uniqueId,
       boundedBoxImageId: `${uniqueId}_bbox`, // boundedboximage
@@ -285,7 +207,6 @@ const Confirm = () => {
               age,
               gender,
               identifier,
-              location: locationDetails,
             }),
           });
   
@@ -403,33 +324,11 @@ const Confirm = () => {
       };
     });
   };
-  // sending the location to the server to display in the map
-  const sendLocationToMap = async (uniqueId, filename) => {
-    try {
-      const mapResponse = await fetch(`${API_URL}/api/map`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          identifier,
-          filename,
-          location: locationDetails,
-        }),
-      });
-
-      if (!mapResponse.ok) {
-        console.error("Failed to save location details");
-        throw new Error("Failed to save location details");
-      }
-    } catch (error) {
-      console.error("Error in sendLocationToMap: ", error);
-      throw error;
-    }
-  };
 
   // get classification results and send to ecg-results
   const classifyECGAndNavigate = async (uniqueId, filename) => {
     try {
-      await classifyECG(uniqueId, filename);
+      await classifyECG(uniqueId);
       navigate(`/ecg-results?uniqueId=${uniqueId}&filename=${filename}&identifier=${identifier}&age=${age}&gender=${gender}`);
     } catch (error) {
       console.error("Error in classifying the ECG: ", error);
@@ -439,7 +338,7 @@ const Confirm = () => {
     }
   };
   // get classification from server 
-  const classifyECG = async (uniqueId, filename) => {
+  const classifyECG = async (uniqueId) => {
     const classifyResponse = await fetch(`${API_URL}/api/ecg/classify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -458,8 +357,6 @@ const Confirm = () => {
     const classifyData = await classifyResponse.json();
     await saveClassificationResult(uniqueId, classifyData);
 
-    const highestDiagnosis = getHighestConfidenceDiagnosis(classifyData.diagnoses);
-    if (highestDiagnosis) await sendDiagnosis(highestDiagnosis, filename);
   };
   // saving the classificatio result to indexeddb
   const saveClassificationResult = async (uniqueId, result) => {
@@ -476,37 +373,6 @@ const Confirm = () => {
         reject(event.target.error);
       };
     });
-  };
-  // getting the highest confident diagnosis which we will show for the map
-  const getHighestConfidenceDiagnosis = (diagnoses) => {
-    let highestDiagnosis = null;
-    let highestConfidence = 0;
-
-    for (const [diagnosis, confidence] of Object.entries(diagnoses)) {
-      if (confidence > highestConfidence) {
-        highestDiagnosis = diagnosis;
-        highestConfidence = confidence;
-      }
-    }
-
-    return highestDiagnosis;
-  };
-  // we add the diagnosis details to the server
-  const sendDiagnosis = async (diagnosis, filename) => {
-    const diagnosesResponse = await fetch(`${API_URL}/api/diagnoses`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: locationDetails,
-        diagnoses: diagnosis,
-        identifier: identifier,
-        age: age,
-        gender: gender,
-        filename: filename
-      }),
-    });
-
-    if (!diagnosesResponse.ok) console.error("Failed to send diagnosis");
   };
  // this is to convert the image to base64(for storage purposes)
   const convertImageToBase64 = (img) => {
@@ -654,48 +520,6 @@ const Confirm = () => {
               </Select>
             </FormControl>
           </Grid>
-          {/*Location*/}
-          <Grid item>
-              <div className="location-dropdown" style={{ position: "relative" }}>
-                <TextField
-                  label="Location"
-                  variant="outlined"
-                  value={locationInput}
-                  onChange={handleInputChange}
-                  sx={{ width: 300 }}
-                  onFocus={() => {if (locationSuggestions.length > 0 && !locationInput) {
-                    setIsDropdownOpen(true);
-                  }
-                }}
-
-
-                />
-                {isDropdownOpen && locationSuggestions.length > 0 && (
-                  <Paper
-                    style={{
-                      position: "absolute",
-                      width: "100%",
-                      maxHeight: "200px",
-                      overflowY: "auto",
-                      zIndex: 1,
-                      marginTop: "4px",
-                    }}
-                  >
-                    <List>
-                      {locationSuggestions.map((location, index) => (
-                        <ListItem
-                          key={index}
-                          button = {"true"}
-                          onClick={() => handleLocationSelect(location)}
-                        >
-                          <ListItemText primary={location.display_name} />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Paper>
-                )}
-              </div>
-            </Grid>
         </Grid>
   
         <Grid item container spacing={2} justifyContent="center">
