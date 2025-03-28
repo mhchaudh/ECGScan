@@ -61,7 +61,7 @@ const ECGResults = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [db, setDb] = useState(null);
   const API_URL = import.meta.env.VITE_API_URL;
-
+  const colorOptions = ["#2196F3", "#FFEB3B", "#F44336", "#4CAF50", "#9C27B0"];
 
   // initialize the db 
   useEffect(() => {
@@ -229,8 +229,13 @@ const ECGResults = () => {
       </Container>
     );
   }
-  const sortedDiagnoses = Object.entries(classificationResult.diagnoses)
-  .sort(([, confA], [, confB]) => confB - confA);
+  const sortedDiagnosesWithColors = Object.entries(classificationResult.diagnoses)
+  .sort(([, confA], [, confB]) => confB - confA)
+  .map(([diag, conf], index) => ({
+    diag,
+    conf,
+    color: colorOptions[index % colorOptions.length],
+  }));
 
   return (
     <Container sx={{ mt: 4 }}>
@@ -245,9 +250,21 @@ const ECGResults = () => {
             Diagnoses (Ranked by Confidence):
           </Typography>
           <List>
-            {sortedDiagnoses.map(([diag, conf], index) => (
+            {sortedDiagnosesWithColors.map(({ diag, conf, color }, index) => (
               <div key={index}>
-                <ListItem>
+                <ListItem sx={{ display: "flex", alignItems: "center" }}>
+                  
+                  {/* Color Box */}
+                  <Box
+                    sx={{
+                      width: 16,
+                      height: 16,
+                      bgcolor: color,
+                      borderRadius: "4px",
+                      mr: 2, 
+                    }}
+                  />
+                  {/* Diagnosis Text */}
                   <ListItemText 
                     primary={`${index + 1}. ${diag}`} 
                     secondary={`Confidence: ${(conf * 100).toFixed(0)}%`}
@@ -259,7 +276,7 @@ const ECGResults = () => {
                     }}
                   />
                 </ListItem>
-                {index < sortedDiagnoses.length - 1 && <Divider />}
+                {index < sortedDiagnosesWithColors.length - 1 && <Divider />}
               </div>
             ))}
           </List>
