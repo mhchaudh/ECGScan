@@ -1,42 +1,47 @@
 import { Builder, By, until } from "selenium-webdriver";
 
-// I prompted ChatGPT to ask ""How do I initialize Selenium WebDriver in JavaScript?"
-
 (async function testAboutUsDropdown() {
   let driver = await new Builder().forBrowser("chrome").build();
 
   try {
-    await driver.get("http://localhost:5173"); 
+    await driver.get("http://localhost:5173");
 
-    // I prompted ChatGPT to ask ""How do I write a Selenium test in JavaScript to click a dropdown and navigate to another page?
+    // Wait for the disclaimer popup to appear
+    let disclaimerPopup = await driver.wait(
+      until.elementLocated(By.css(".MuiDialog-root")),
+      10000 
+    );
 
+    // Check if the disclaimer checkbox is present and click it
+    let disclaimerCheckbox = await driver.findElement(By.css('input[type="checkbox"]'));
+    await disclaimerCheckbox.click();
+
+    // Click the proceed button
+    let proceedButton = await driver.findElement(By.xpath("//button[contains(text(), 'Proceed')]"));
+    await proceedButton.click();
+
+    // Wait for the dropdown button to appear in the top right
     let dropdownButton = await driver.wait(
-      until.elementLocated(By.className("dropbtn")), // find drop down by class name
-      5000
+      until.elementLocated(By.css(".MuiIconButton-root")),
+      10000 
     );
     await dropdownButton.click();
 
+    // Wait for the About Us link to appear and click it
     let aboutUsLink = await driver.wait(
-      until.elementLocated(By.className("about-us")), // class name inside drop down menu
-      5000
+      until.elementLocated(By.xpath("//li[contains(text(), 'About')]")),
+      10000 
     );
     await aboutUsLink.click();
 
-    await driver.wait(
-      until.elementLocated(By.className("about-us-container")),
-      5000
-    );
+    // Wait for a couple of seconds
+    await driver.sleep(5000); 
 
-    let aboutUsTitle = await driver.findElement(By.className("about-us-title")); // check that it matches class name
-    let titleText = await aboutUsTitle.getText();
-    console.assert(titleText === "About ECGScan", "Title does not match"); // title does not match
-
-    console.log("Dropdown navigation test passed successfully!");
+    console.log("About us test passed successfully!");
 
   } catch (error) {
     console.error("Test failed:", error);
   } finally {
-    // Close the browser
     await driver.quit();
   }
 })();

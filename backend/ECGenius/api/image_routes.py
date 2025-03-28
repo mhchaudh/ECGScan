@@ -1,24 +1,23 @@
 from flask import Blueprint, request, jsonify
 import os, base64, uuid
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageEnhance, ImageDraw
 import io
 from ..utils.image_converter.image_to_sequence import image_to_sequence, convert_image_to_sequence
 from ..utils.image_converter.ecg_processing import process_ecg_image
-import shutil 
+import shutil
+import random
 
 image_bp = Blueprint('image_bp', __name__)
 
-@image_bp.route('', methods=['POST'])  
+@image_bp.route('image', methods=['POST'])
 def create_image_and_digitize():
     data = request.get_json()
     image_data = data.get('image')
     age_data = data.get('age')
     gender_data = data.get('gender')
     identifier_data = data.get('identifier')
-    print(identifier_data)
-
-    # validate the required fields
+    
     if not image_data:
         return jsonify({'error': 'No image provided'}), 400
     if not identifier_data:
@@ -28,59 +27,95 @@ def create_image_and_digitize():
     if not gender_data:
         return jsonify({'error': 'No gender provided'}), 400
 
-    # we remove the header if the image is sent as a data url
     if "base64," in image_data:
         image_data = image_data.split("base64,")[1]
 
     try:
-        image_bytes = base64.b64decode(image_data)  # decode the base64 image data
+        image_bytes = base64.b64decode(image_data)  # Decode the base64 image data
     except Exception as e:
         return jsonify({'error': 'Failed to decode image', 'message': str(e)}), 400
 
-    # convert the image bytes to a PIL Image
+    # Convert to a PIL Image
     image_file = io.BytesIO(image_bytes)
     image = Image.open(image_file)
 
-    # defining the path to store the original image
+    # Define the path to store the original image
     backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
-    print(backend_dir)
-    identifier_folder = os.path.join(backend_dir, f'{identifier_data}_OriginalImage')  
-    os.makedirs(identifier_folder, exist_ok=True)  # check if the folder exists
+    identifier_folder = os.path.join(backend_dir, f'{identifier_data}_OriginalImage')
+    os.makedirs(identifier_folder, exist_ok=True)  
 
-    # we generate a unique filename using the UUID, age, and gender
-    filename = f"{uuid.uuid4().hex}_{age_data}_{gender_data}"
+    # Generate a unique filename using UUID, age, and gender
+    fileuuid = uuid.uuid4().hex
+    filename = f"{fileuuid}_{age_data}_{gender_data}"
     filenamejpg = f"{filename}.jpg"
     filepath = os.path.join(identifier_folder, filenamejpg)
 
-    # convert the image to RGBA and crop the non-white areas
+    # Convert the image to RGBA and crop non-white areas
     image = image.convert('RGBA')
     bbox = image.getbbox()
     cropped_image = image.crop(bbox)
-    cropped_image_rgb = cropped_image.convert('RGB')  # convert to RGB for JPEG format
-    cropped_image_rgb.save(filepath)  # save the image
+    cropped_image_rgb = cropped_image.convert('RGB')  
+    
+    # Enhance the image
+    contrast_enhancer = ImageEnhance.Contrast(cropped_image_rgb)
+    enhanced_image = contrast_enhancer.enhance(1.2)  # Increase contrast
+    brightness_enhancer = ImageEnhance.Brightness(enhanced_image)
+    enhanced_image = brightness_enhancer.enhance(1.2)  # Increase brightness
+
+    enhanced_image.save(filepath) 
+    
+    # Convert enhanced image to base64 to send to the frontend
+    buffered = io.BytesIO()
+    enhanced_image.save(buffered, format="JPEG")
+    enhanced_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
 
     image_path = f"{filepath}"
-    print(image_path)
 
-    # process the ECG image
+    # Process ECG image
     process_ecg_image(image_path, identifier_data, filename)
 
-    # Delete the "runs" folder and "traced_model.pt" file after processing so we can rerun again and again for different ecg images
-    runs_path = os.path.join(backend_dir, "runs")
+    # bounded box image in runs/detect/exp
+    detect_folder = os.path.join(backend_dir, "runs/detect/exp")
+    bounded_box_image_path = None
+
+    # Find the bounded box image in the detect folder
+    if os.path.exists(detect_folder) and os.path.isdir(detect_folder):
+        for file_name in os.listdir(detect_folder):
+            if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
+                bounded_box_image_path = os.path.join(detect_folder, file_name)
+                break
+
+    # Check if the bounded box image exists
+    if not bounded_box_image_path or not os.path.exists(bounded_box_image_path):
+        return jsonify({'error': 'Failed to generate bounded box image'}), 500
+
+    # Highlight random ECG sections
+    base_name = os.path.splitext(os.path.basename(bounded_box_image_path))[0]
+    yolo_txt_path = os.path.join(detect_folder, "labels", base_name + ".txt")
+    highlighted_image = highlight_random_ecg_sections(bounded_box_image_path, yolo_txt_path)
+
+    # Enhance the highlighted bounded box image
+    contrast_enhancer = ImageEnhance.Contrast(highlighted_image)
+    enhanced_highlighted_image = contrast_enhancer.enhance(1.2)  # Increase contrast
+    brightness_enhancer = ImageEnhance.Brightness(enhanced_highlighted_image)
+    enhanced_highlighted_image = brightness_enhancer.enhance(1.1)  # Increase brightness
+    
+    buffered = io.BytesIO()
+    enhanced_highlighted_image.save(buffered, format="PNG")
+    highlighted_image_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+    # Clean up detection folder
+    shutil.rmtree(detect_folder)
+
+    # Delete the traced model file if it exists
     traced_model_path = os.path.join(backend_dir, "traced_model.pt")
+    if os.path.exists(traced_model_path):
+        os.remove(traced_model_path)
+
+    # Append gender and age data to the .hea file
     output_path = os.path.join(backend_dir, f"output_{identifier_data}")
     folder_path = os.path.join(output_path, filename)
     file_path = os.path.join(folder_path, 'Q0001.hea')
-
-    if os.path.exists(runs_path) and os.path.isdir(runs_path):
-        shutil.rmtree(runs_path)  
-        print(f"Deleted folder: {runs_path}")
-
-    if os.path.exists(traced_model_path) and os.path.isfile(traced_model_path):
-        os.remove(traced_model_path)  
-        print(f"Deleted file: {traced_model_path}")
-
-    # Append the gender and age data to the .hea file
     with open(file_path, 'a') as file:
         file.write(f"#Age: {age_data}\n")
         file.write(f"#Sex: {gender_data}\n")
@@ -91,6 +126,54 @@ def create_image_and_digitize():
 
     return jsonify({
         'message': 'Image uploaded and processed successfully',
-        'filename': filenamejpg,
+        'filename': fileuuid,
+        'image': enhanced_image_base64,
+        'boundedboximage': highlighted_image_base64,
         'status': 'Success'
     }), 200
+
+
+def highlight_random_ecg_sections(image_path, yolo_txt_path):
+    """
+    Highlights random sections on the ECG image using YOLOv7 bounding boxes.
+    """
+    colors = ["red", "green", "blue", "yellow", "purple"]
+    
+    image = Image.open(image_path).convert("RGB")
+    draw = ImageDraw.Draw(image)
+    img_width, img_height = image.size
+
+    boxes_by_lead = []
+    with open(yolo_txt_path, 'r') as f:
+        for line in f:
+            parts = line.strip().split()
+            if len(parts) < 5:
+                continue
+            class_id, x_center, y_center, box_width, box_height = map(float, parts[:5])
+            x_center *= img_width
+            y_center *= img_height
+            box_width *= img_width
+            box_height *= img_height
+            x0 = int(x_center - box_width / 2)
+            y0 = int(y_center - box_height / 2)
+            x1 = int(x_center + box_width / 2)
+            y1 = int(y_center + box_height / 2)
+            boxes_by_lead.append((x0, y0, x1, y1))
+
+    if not boxes_by_lead:
+        print("⚠️ No bounding boxes found.") # Testing output
+        return image  # Return the original image if no boxes found
+
+    # Randomly highlight at least one lead
+    num_boxes_to_highlight = min(5, len(boxes_by_lead))
+    selected_indices = random.sample(range(len(boxes_by_lead)), num_boxes_to_highlight)
+
+    for i, idx in enumerate(selected_indices):
+        x0, y0, x1, y1 = boxes_by_lead[idx]
+        width = x1 - x0
+        new_width = random.randint(int(width * 0.1), int(width * 0.4))
+        x_start = random.randint(x0, x1 - new_width)
+        x_end = x_start + new_width
+        draw.rectangle([x_start, y0, x_end, y1], outline=colors[i % len(colors)], width=3)
+
+    return image

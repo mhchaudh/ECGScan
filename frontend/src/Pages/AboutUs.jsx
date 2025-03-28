@@ -1,9 +1,8 @@
 import { Container, Typography, List, ListItem, ListItemText, Box } from "@mui/material";
-import React from "react";
 
 // I prompted ChatGPT to help refactor the AboutUs component to make it more readable and concise.
 
-function AboutUs() {
+const AboutUs = () => {
   return (
     <Box sx={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <Container maxWidth="md" sx={{ py: 4, backgroundColor: "background.paper", flexGrow: 1 }}>
@@ -70,7 +69,7 @@ function AboutUs() {
 
 
       {/* Copyright */}
-      <Box sx={{ py: 2, backgroundColor: "background.paper", textAlign: "center" }}>
+      <Box sx={{ py: 2, textAlign: "center" }}>
         <Typography variant="body2" sx={{ color: "text.secondary" }}>
           © {new Date().getFullYear()} ECGenius. Open-source under the BSD license.
         </Typography>

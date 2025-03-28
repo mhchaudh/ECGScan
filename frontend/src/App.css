@@ -3,6 +3,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 body {
   background-color: white;
   color: black;
@@ -16,34 +17,54 @@ body.dark-mode {
   background-color: #121212;
   color: white;
 }
-
 .dark-mode,
 .dark-mode .app-container,
 .dark-mode .app-title,
-.dark-mode h1,
-.dark-mode h2,
-.dark-mode h3,
-.dark-mode h4,
-.dark-mode h5,
-.dark-mode h6,
-.dark-mode p,
-.dark-mode span,
-.dark-mode a,
-.dark-mode label,
-.dark-mode button,
-.dark-mode .MuiTypography-root,
-.dark-mode .MuiMenuItem-root,
+.dark-mode h1, .dark-mode h2, .dark-mode h3, .dark-mode h4, .dark-mode h5, .dark-mode h6,
+.dark-mode p, .dark-mode span, .dark-mode a, .dark-mode label, .dark-mode button,
+.dark-mode .MuiTypography-root, .dark-mode .MuiMenuItem-root, .dark-mode .MuiMenu-list,
+.dark-mode .MuiContainer-root, .dark-mode .menu-item {
+  color: white !important;
+}
 .dark-mode .MuiPaper-root,
-.dark-mode .MuiMenu-list,
-.dark-mode .MuiMenuItem-root,
-.MuiContainer-root,
-.dark-mode .menu-item {   
+.dark-mode .MuiMenu-paper,
+.dark-mode .MuiDialog-paper {
+  background-color: #333 !important;
+  color: white !important;
+}
+.dark-mode .MuiDialog-paper {
+  background-color: #121212 !important;
+}
+.dark-mode .MuiInputBase-root,
+.dark-mode .MuiOutlinedInput-root {
+  background-color: #333 !important;
   color: white !important;
 }
 
-.dark-mode .MuiTypography-root,
-.dark-mode .MuiListItemText-root {
+.dark-mode .MuiInputLabel-root,
+.dark-mode .MuiOutlinedInput-notchedOutline,
+.dark-mode .MuiSelect-icon {
   color: white !important;
+  border-color: white !important;
+}
+
+.dark-mode .MuiMenuItem-root:hover {
+  background-color: #555 !important;
+}
+
+.dark-mode .MuiButton-root,
+.dark-mode .MuiButton-root.MuiButton-textPrimary,
+.dark-mode .MuiButton-root.MuiButton-textSecondary {
+  color: white !important;
+}
+
+.dark-mode .MuiContainer-root {
+  background-color: #121212 !important;
+}
+.dark-mode button, .dark-mode input, .dark-mode select, .dark-mode textarea {
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
 }
 
 .app-container {
@@ -82,13 +103,8 @@ body.dark-mode {
   overflow: auto;
   padding-bottom: 2rem;
 }
-
-.MuiMenu-paper {
-  background-color: white !important;
-}
-
-.dark-mode .MuiMenu-paper {
-  background-color: #333 !important;
+.dark-mode .main-content {
+  background-color: #121212 !important;
 }
 
 .menu-item {
@@ -100,20 +116,83 @@ body.dark-mode {
   color: white !important;
   border-bottom: 1px solid #555;
 }
-.dark-mode .MuiContainer-root {
+
+.dark-mode .recharts-tooltip-wrapper {
   background-color: #121212 !important;
+}
+
+.dark-mode .recharts-tooltip-item {
   color: white !important;
 }
 
-.dark-mode button,
-.dark-mode input,
-.dark-mode select,
-.dark-mode textarea {
-  background-color: #333;
-  color: white;
-  border: 1px solid #555;
+.dark-mode .recharts-bar-rect {
+  fill: #8884d8 !important;
+}
+
+.dark-mode .recharts-cartesian-axis-tick-value,
+.dark-mode .recharts-x-axis-tick-value,
+.dark-mode .recharts-y-axis-tick-value {
+  fill: white !important;
 }
 
 .MuiIconButton-root:focus {
   outline: none;
+}
+
+.dark-mode .MuiDialog-paper {
+  background-color: #1e1e1e !important;
+  border: 1px solid #444 !important;
+}
+
+.dark-mode .MuiDialogTitle-root {
+  background-color: #333 !important;
+  color: white !important;
+  border-bottom: 1px solid #444 !important;
+}
+
+.dark-mode .MuiCard-root {
+  background-color: #1e1e1e !important;
+  border: 1px solid #444 !important;
+}
+
+.dark-mode .MuiCardContent-root {
+  background-color: #1e1e1e !important;
+  color: white !important;
+}
+
+.dark-mode .MuiTypography-h6,
+.dark-mode .MuiTypography-subtitle2,
+.dark-mode .MuiTypography-body1 {
+  color: white !important;
+}
+
+.dark-mode .MuiGrid-root {
+  border-color: #444 !important;
+}
+
+.dark-mode .MuiButton-outlined {
+  border-color: #666 !important;
+  color: white !important;
+}
+
+.dark-mode .MuiCheckbox-root {
+  color: white !important;
+}
+
+.dark-mode img {
+  filter: brightness(0.9);
+}
+
+.dark-mode .MuiStack-root,
+.dark-mode .MuiBox-root {
+  background-color: transparent !important;
+}
+
+.dark-mode .MuiPaper-root {
+  background-color: #1e1e1e !important;
+  color: white !important;
+}
+
+.dark-mode .MuiRadio-root {
+  color: white !important;
 }
