@@ -245,40 +245,44 @@ const ECGResults = () => {
         </Typography>
 
         {/* Diagnoses */}
-        <Box sx={{ mt: 4, p: 3, border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", borderRadius: 2, backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" }}>
+        <Box sx={{ 
+          mt: 4, 
+          p: 3, 
+          border: isDarkMode ? "1px solid #444" : "1px solid #e0e0e0", 
+          borderRadius: 2, 
+          backgroundColor: isDarkMode ? "#1a1a1a" : "#f9f9f9" 
+        }}>
           <Typography variant="h6" color="text.primary" sx={{ mb: 2 }}>
             Diagnoses (Ranked by Confidence):
           </Typography>
           <List>
-            {sortedDiagnosesWithColors.map(({ diag, conf, color }, index) => (
-              <div key={index}>
-                <ListItem sx={{ display: "flex", alignItems: "center" }}>
-                  
-                  {/* Color Box */}
-                  <Box
-                    sx={{
-                      width: 16,
-                      height: 16,
-                      bgcolor: color,
-                      borderRadius: "4px",
-                      mr: 2, 
-                    }}
-                  />
-                  {/* Diagnosis Text */}
-                  <ListItemText 
-                    primary={`${index + 1}. ${diag}`} 
-                    secondary={`Confidence: ${(conf * 100).toFixed(0)}%`}
-                    primaryTypographyProps={{
-                      sx: { fontWeight: 600, color: isDarkMode ? "#fff" : "#333" }
-                    }}
-                    secondaryTypographyProps={{
-                      sx: { color: isDarkMode ? "#bbb" : "#666" }
-                    }}
-                  />
-                </ListItem>
-                {index < sortedDiagnosesWithColors.length - 1 && <Divider />}
-              </div>
-            ))}
+          {sortedDiagnosesWithColors.map(({ diag, conf, color }, index) => (
+          <div key={index}>
+            <ListItem sx={{ display: "flex", alignItems: "center" }}>
+              {/* Color Box */}
+              <span
+                className="color-box-force"
+                style={{
+                  '--box-color': color,
+                  backgroundColor: color,
+                  border: isDarkMode ? '1px solid rgba(255, 255, 255, 0.3)' : '1px solid rgba(0, 0, 0, 0.3)'
+                }}
+              />
+
+              <ListItemText 
+                primary={`${index + 1}. ${diag}`} 
+                secondary={`Confidence: ${(conf * 100).toFixed(0)}%`}
+                primaryTypographyProps={{
+                  sx: { fontWeight: 600, color: isDarkMode ? "#fff" : "#333" }
+                }}
+                secondaryTypographyProps={{
+                  sx: { color: isDarkMode ? "#bbb" : "#666" }
+                }}
+              />
+            </ListItem>
+            {index < sortedDiagnosesWithColors.length - 1 && <Divider />}
+          </div>
+        ))}
           </List>
         </Box>
 
