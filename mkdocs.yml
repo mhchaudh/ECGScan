@@ -10,6 +10,7 @@ nav:
   - Team Work: teamWork.md
   - Project Management: projectManagement.md
   - UX, UI Design: UX-UI-design.md
+  - Final Documentation: finalDocumentation.md 
   - Images:
       - Major Data Elements: images/majorDataElements.png
       - Sequence Diagram: images/sequenceDiagram.png
