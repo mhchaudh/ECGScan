@@ -1,6 +1,6 @@
 # 🫀 ECG Scan
 
-**ECG Scan** is a web-based application designed to capture, process, and analyze electrocardiogram (ECG) images securely. The system extracts waveforms on-device, transmits data for analysis, and matches ECG patterns against a medical database to provide diagnostic insights — all while maintaining compliance with health data regulations.
+**ECG Scan** is a web-based application designed to securely capture, process, and analyze electrocardiogram (ECG) images. The system extracts waveforms on-device, transmits data for analysis, and matches ECG patterns against a medical database to provide diagnostic insights — all while maintaining compliance with health data regulations.
 
 ---
 
@@ -16,11 +16,10 @@
 
 ## 🧩 Tech Stack
 
-**Frontend:** React / Next.js (or specify the framework used)  
-**Backend:** Python (Flask or Django — specify which)  
-**Database:** SQLite / PostgreSQL (specify your DB)  
-**Authentication & Security:** HTTPS, JWT, or OAuth (if applicable)  
-**Deployment:** Local / Cloud (AWS, Render, etc., if used)
+**Frontend:** React 
+**Backend:** Python (Flask and Django) 
+**Database:** PostgreSQL 
+**Deployment:** Local 
 
 ---
 
@@ -31,7 +30,7 @@ Follow the steps below to run **ECG Scan** locally:
 ### 🖥️ Backend Setup
 
 ```bash
-# 1. Navigate to backend folder
+# 1. Navigate to the backend folder
 cd backend
 
 # 2. Create a virtual environment
@@ -52,3 +51,22 @@ flask --app run.py db upgrade
 
 # 6. Run the backend server
 python3 run.py
+```
+
+### 🖥️ Frontend Setup
+
+```bash
+
+# 1. Navigate to the frontend folder
+cd ..
+cd frontend
+
+# 2. Install dependencies
+npm install
+
+# 3. Start the development server
+npm run dev
+```
+
+Now the web app should be running locally and accessible via your browser
+
